@@ -9,7 +9,7 @@ export default function Portfolio() {
         <header className="text-center">
           <h1 className="text-4xl font-bold">Sherard Bailey</h1>
           <p className="text-lg mt-2 text-gray-600 dark:text-gray-400">
-            Senior Software Engineer — Golang | Postgres | AWS | Kafka
+            Senior Software Engineer — Microservices | Event-driven architecture | AWS | Kafka
           </p>
           <div className="flex justify-center gap-4 mt-4">
             <a href="mailto:sherard@example.com" aria-label="Email">
@@ -18,7 +18,7 @@ export default function Portfolio() {
             <a href="https://www.linkedin.com/in/sherardbailey" target="_blank" aria-label="LinkedIn">
               <Linkedin />
             </a>
-            <a href="https://github.com/sherardbailey" target="_blank" aria-label="GitHub">
+            <a href="https://github.com/sh3r4rd" target="_blank" aria-label="GitHub">
               <Github />
             </a>
           </div>
@@ -68,16 +68,16 @@ export default function Portfolio() {
             <li>Golang</li>
             <li>PostgreSQL</li>
             <li>Kafka</li>
-            <li>Docker</li>
-            <li>AWS (Lambda, S3, ECS)</li>
+            <li>Microservices</li>
+            <li>AWS</li>
             <li>System Design</li>
-            <li>GitHub Actions</li>
-            <li>PayloadCMS</li>
+            <li>CI/CD (GitHub Actions)</li>
+            <li>Event-driven Architecture</li>
           </ul>
         </section>
 
         <section className="text-center mt-12">
-          <Button size="lg">Download Resume</Button>
+          <Button size="lg">Request Resume</Button>
         </section>
       </section>
     </main>
