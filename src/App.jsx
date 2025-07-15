@@ -27,7 +27,7 @@ export default function Portfolio() {
         <section>
           <h2 className="text-2xl font-semibold mb-4">About Me</h2>
           <p className="text-gray-700 dark:text-gray-300">
-            I'm a senior software engineer with extensive experience in Golang, PostgreSQL, system architecture, and event-driven microservices. I've worked on large-scale backend systems, optimized complex queries, and built distributed applications that scale.
+            I'm a senior software engineer with extensive experience in event-driven microservices, system design/architecture, Golang and Postgres. I've worked on large-scale backend systems, optimized complex queries, and built distributed applications that scale.
             I'm currently seeking opportunities to solve challenging problems and build high-impact systems.
           </p>
         </section>
@@ -37,7 +37,7 @@ export default function Portfolio() {
           <div className="grid gap-6">
             <Card>
               <CardContent className="p-4">
-                <h3 className="text-xl font-medium">In-Memory Key-Value Store (Golang)</h3>
+                <h3 className="text-xl font-medium">In-Memory Key-Value Store</h3>
                 <p className="text-gray-700 dark:text-gray-300 mt-2">
                   Built a concurrency-safe key-value store in Go with TTL support and background cleanup using goroutines and mutexes.
                 </p>
@@ -45,17 +45,17 @@ export default function Portfolio() {
             </Card>
             <Card>
               <CardContent className="p-4">
-                <h3 className="text-xl font-medium">Kafka Microservice Observability</h3>
+                <h3 className="text-xl font-medium">Kafka Event Consumer Observability</h3>
                 <p className="text-gray-700 dark:text-gray-300 mt-2">
-                  Designed a Kafka-based observability solution integrated with New Relic to monitor throughput and version message schemas.
+                  Designed a Kafka-based observability solution integrated with New Relic to monitor throughput, error rates and latency in consumers.
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4">
-                <h3 className="text-xl font-medium">Sharded SQL Architecture</h3>
+                <h3 className="text-xl font-medium">Sharded Postgres Architecture</h3>
                 <p className="text-gray-700 dark:text-gray-300 mt-2">
-                  Implemented a scalable Postgres architecture with sharding, global indexing, and optimized query routing.
+                  Implemented a scalable Postgres sharded architecture with global indexing and optimized query routing.
                 </p>
               </CardContent>
             </Card>
@@ -73,11 +73,17 @@ export default function Portfolio() {
             <li>System Design</li>
             <li>CI/CD (GitHub Actions)</li>
             <li>Event-driven Architecture</li>
+            <li>Distributed Systems</li>
+            <li>Observability (New Relic)</li>
+            <li>Concurrency</li>
+            <li>API Design</li>
+            <li>Performance Optimization</li>
+            <li>Agile Methodologies</li>
           </ul>
         </section>
 
         <section className="text-center mt-12">
-          <Button size="lg">Request Resume</Button>
+          <Button size="lg">Request Résumé</Button>
         </section>
       </section>
     </main>
