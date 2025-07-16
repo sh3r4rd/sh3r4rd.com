@@ -46,9 +46,6 @@ function Header() {
           Senior Software Engineer —  Microservices | Event-driven Architecture | AWS | Kafka
         </p>
         <div className="flex justify-center md:justify-start gap-4 mt-4">
-          <a href="mailto:dev@sh3r4rd.com" aria-label="Email">
-            <Mail />
-          </a>
           <a href="https://www.linkedin.com/in/sherardbailey" target="_blank" aria-label="LinkedIn">
             <Linkedin />
           </a>
@@ -214,7 +211,17 @@ function SkillsSection() {
     {
       name: "NoSQL Databases",
       description: `I've worked with NoSQL databases like MongoDB and Neo4j for applications that require flexible data models and horizontal scalability. I have experience designing data schemas, optimizing queries, and integrating these databases with various backend technologies.`
-    }
+    },
+    {
+      name: "Testing and Quality Assurance",
+      description: `I prioritize testing and quality assurance in my development process. I have experience with unit testing, integration testing, and end-to-end testing using tools like Jest, Mocha, and RSpec. 
+      I believe that thorough testing is essential for delivering reliable software and maintaining code quality.`
+    },
+    {
+      name: "TypeScript",
+      description: `Currently, I use TypeScript on two backend services. I appreciate TypeScript's static typing, which helps catch errors early in the development process, and strong community support. 
+      I use TypeScript with frameworks like React and Node.js to enhance code quality and developer productivity.`
+    },
   ];
   const [selected, setSelected] = useState(0);
 
@@ -361,7 +368,7 @@ function ResumeRequestPage() {
       ) : (
         <div className="text-lg text-center text-gray-700 dark:text-gray-300">
           <p>Thank you for your consideration — I appreciate your interest.</p>
-          <p>I&apos;ve received your request and will review it shortly. You&apos;ll receive a confirmation by email and I&apos;ll be in touch soon.</p>
+          <p>I&apos;ve received your request and will review it shortly. I&apos;ll be in touch soon.</p>
 
           <div className="max-w-md mx-auto">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
