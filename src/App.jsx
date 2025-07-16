@@ -220,7 +220,7 @@ function SkillsSection() {
     {
       name: "TypeScript",
       description: `Currently, I use TypeScript on two backend services. I appreciate TypeScript's static typing, which helps catch errors early in the development process, and strong community support. 
-      I use TypeScript with frameworks like React and Node.js to enhance code quality and developer productivity.`
+      While I do enjoy Golang, it lacks the same level of ecosystem maturity. I use TypeScript with frameworks like React and Node.js to enhance code quality and developer productivity.`
     },
   ];
   const [selected, setSelected] = useState(0);
