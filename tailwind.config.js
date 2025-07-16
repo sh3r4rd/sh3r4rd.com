@@ -7,7 +7,17 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      typography: {
+        DEFAULT: {
+          css: {
+            h3: {
+              marginTop: '0.6em',
+            },
+          },
+        },
+      },
+    },
   },
   plugins: [typography],
 }
