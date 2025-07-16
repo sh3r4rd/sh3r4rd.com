@@ -111,30 +111,33 @@ function HomePage() {
           </div>
         </section>
 
-        <section>
+        <section className="prose max-w-none prose-a:underline">
           <h2 className="text-2xl font-semibold mb-4">Projects</h2>
           <div className="grid gap-6">
             <Card>
               <CardContent className="p-4">
-                <h3 className="text-xl font-medium">In-Memory Key-Value Store</h3>
+                <h3 className="text-xl font-medium">AWS Solutions Architect</h3>
                 <p className="text-gray-700 dark:text-gray-300 mt-2">
-                  Built a concurrency-safe key-value store in Go with TTL support and background cleanup using goroutines and mutexes.
+                  A couple years ago, I passed the <a href="https://aws.amazon.com/certification/certified-solutions-architect-associate/" target="_blank" rel="noopener noreferrer">AWS Solutions Architect - Associate</a> exam. I have experience with many AWS services, including EC2, Lambda, S3, CloudFront, and RDS. But this
+                  certification is a testament to my understanding of AWS architecture and best practices. I am currently working on the Professional level certification to deepen my expertise.
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4">
-                <h3 className="text-xl font-medium">Kafka Event Consumer Observability</h3>
+                <h3 className="text-xl font-medium">Building Portfolio</h3>
                 <p className="text-gray-700 dark:text-gray-300 mt-2">
-                  Designed a Kafka-based observability solution integrated with New Relic to monitor throughput, error rates and latency in consumers.
+                  When I started my career I worked primarily on the frontend, but I have since transitioned to backend engineering. I'm <a href="https://github.com/sh3r4rd/sh3r4rd.com" target="_blank" rel="noopener noreferrer">working on this portfolio</a> to showcase my skills and projects throughout the full stack.
+                  This site is built with React, Tailwind CSS, and Vite. It features a responsive design, dark mode support, and a clean, modern aesthetic. On the backend I'm leveraging AWS services like S3, CloudFront, API Gateway and Lambda.
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4">
-                <h3 className="text-xl font-medium">Sharded Postgres Architecture</h3>
+                <h3 className="text-xl font-medium">Leveraging AI</h3>
                 <p className="text-gray-700 dark:text-gray-300 mt-2">
-                  Implemented a scalable Postgres sharded architecture with global indexing and optimized query routing.
+                  I'm currently exploring how to leverage AI to enhance my development workflow and improve the user experience of my applications. This includes using AI for code generation, testing, and even automating some aspects of deployment.
+                  I'm particularly interested in how AI can help with code reviews, bug detection, and optimizing performance. I believe AI has the potential to revolutionize software development, and I'm excited to be at the forefront of this change.
                 </p>
               </CardContent>
             </Card>
@@ -150,7 +153,7 @@ function SkillsSection() {
   const skills = [
     { 
       name: "Golang", 
-      description: `This is my strongest coding language. I wrote code daily in Golang for backend services. The code I write is idiomatic, performant, and well-tested.
+      description: `This is my strongest coding language. I write code daily in Golang for backend services. The code I write is idiomatic, performant, and well-tested.
       One of the more interesting issues I've run into recently is needing to set GO_MAX_PROCS to accurately handle CPU resources in a containerized environment.` 
     },
     { 
