@@ -172,7 +172,7 @@ function ResumeRequestPage() {
     const form = e.target;
     const nameRegex = /^.{2,}$/;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^(\([0-9]{3}\) |[0-9]{3}-)[0-9]{3}-[0-9]{4}$/;
+    const phoneRegex = /^(\+\d{1,2}\s?)?1?\-?\.?\s?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/;
     const jobTitleMinLength = 10;
     const descriptionMinWords = 50;
 
@@ -215,7 +215,7 @@ function ResumeRequestPage() {
     
     if (!phoneRegex.test(form.phone.value)) {
       console.log('phone', form.phone.value);
-      alert("Please enter a valid US phone number using the format (123) 456-7890 or 123-456-7890.");
+      alert("Please enter a valid US phone number");
       form.phone.focus();
       return;
     }
