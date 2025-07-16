@@ -46,13 +46,13 @@ function Header() {
           Senior Software Engineer —  Microservices | Event-driven Architecture | AWS | Kafka
         </p>
         <div className="flex justify-center md:justify-start gap-4 mt-4">
-          <a href="mailto:sherard@example.com" aria-label="Email">
+          <a href="mailto:dev@sh3r4rd.com" aria-label="Email">
             <Mail />
           </a>
           <a href="https://www.linkedin.com/in/sherardbailey" target="_blank" aria-label="LinkedIn">
             <Linkedin />
           </a>
-          <a href="https://github.com/sherardbailey" target="_blank" aria-label="GitHub">
+          <a href="https://github.com/sh3r4rd" target="_blank" aria-label="GitHub">
             <Github />
           </a>
         </div>
