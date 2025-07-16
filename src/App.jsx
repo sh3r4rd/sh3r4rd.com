@@ -217,14 +217,14 @@ function ResumeRequestPage() {
       </p>
       <form className="grid gap-4" onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input name="firstName" type="text" placeholder="First Name" required className="p-2 border rounded-md" />
-          <input name="lastName" type="text" placeholder="Last Name" required className="p-2 border rounded-md" />
+          <input name="firstName" type="text" placeholder="First Name" required className="p-2 border rounded-md text-black" />
+          <input name="lastName" type="text" placeholder="Last Name" required className="p-2 border rounded-md text-black" />
         </div>
-        <input name="email" type="email" placeholder="Email" required className="p-2 border rounded-md" />
-        <input name="phone" type="tel" placeholder="Phone Number" required className="p-2 border rounded-md" />
-        <input name="company" type="text" placeholder="Company" required className="p-2 border rounded-md" />
-        <input name="jobTitle" type="text" placeholder="Job Title" required className="p-2 border rounded-md" />
-        <textarea name="description" placeholder="Job Description" required rows={6} className="p-2 border rounded-md resize-y" />
+        <input name="email" type="email" placeholder="Email" required className="p-2 border rounded-md text-black" />
+        <input name="phone" type="tel" placeholder="Phone Number" required className="p-2 border rounded-md text-black" />
+        <input name="company" type="text" placeholder="Company" required className="p-2 border rounded-md text-black" />
+        <input name="jobTitle" type="text" placeholder="Job Title" required className="p-2 border rounded-md text-black" />
+        <textarea name="description" placeholder="Job Description" required rows={6} className="p-2 border rounded-md resize-y text-black" />
         <Button type="submit">Submit Request</Button>
       </form>
     </section>
