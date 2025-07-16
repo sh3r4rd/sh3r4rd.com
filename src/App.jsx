@@ -141,28 +141,99 @@ function HomePage() {
           </div>
         </section>
 
-        <section>
-          <h2 className="text-2xl font-semibold mb-4">Skills</h2>
-          <ul className="grid grid-cols-2 gap-2 text-gray-700 dark:text-gray-300">
-            <li>Golang</li>
-            <li>PostgreSQL</li>
-            <li>Kafka</li>
-            <li>Microservices</li>
-            <li>AWS</li>
-            <li>System Design</li>
-            <li>CI/CD (GitHub Actions)</li>
-            <li>Event-driven Architecture</li>
-            <li>Distributed Systems</li>
-            <li>Observability (New Relic)</li>
-            <li>Concurrency</li>
-            <li>API Design</li>
-            <li>Performance Optimization</li>
-            <li>Agile Methodologies</li>
-          </ul>
-        </section>
-
-        
+        <SkillsSection />
       </section>
+  );
+}
+
+function SkillsSection() {
+  const skills = [
+    { 
+      name: "Golang", 
+      description: `This is my strongest coding language. I wrote code daily in Golang for backend services. The code I write is idiomatic, performant, and well-tested.
+      One of the more interesting issues I've run into recently is needing to set GO_MAX_PROCS to accurately handle CPU resources in a containerized environment.` 
+    },
+    { 
+      name: "Postgres", 
+      description: `I've worked with SQL databases extensively, particularly Postgres. I have experience with advanced querying, indexing strategies, and performance 
+      optimizations. One pattern I use often in microservices with Postgres is the outbox pattern, which allows me to handle eventual consistency and message delivery guarantees.` 
+    },
+    { 
+      name: "AWS", 
+      description: `I've used many of AWS's services, including EC2, Lambda, S3, CloudFront, and RDS to design and implement software solutions. One interesting service that
+      I used recently is AWS Device Farm, which allows me to test mobile applications on real devices in the cloud. This is particularly useful for ensuring compatibility 
+      across different devices and OS versions.` 
+    },
+    { 
+      name: "Kafka", 
+      description: `I've used Kafka for building event-driven architectures at a few jobs. I often use it to decouple services and ensure reliable message delivery. I've used with and
+      without a schema registry, depending on the use case.`
+    },
+    { 
+      name: "Docker", 
+      description: `Docker has been a crucial part of my developer workflow at every job. I use it to containerize applications, manage dependencies, and ensure consistent environments 
+      across development, testing, and production. It's particularly useful for microservices architectures, where each service can run in its own container with its own dependencies.` 
+    },
+    { 
+      name: "GitHub Actions", 
+      description: `I've used GitHub Actions for automating CI/CD pipelines, running tests, and deploying applications. It's a powerful tool for ensuring code quality and streamlining the development process.` 
+    },
+    { 
+      name: "New Relic", 
+      description: `I've used New Relic for application performance monitoring and observability. It provides valuable insights into application performance, user interactions, and infrastructure health. 
+      I've integrated it with various services to track key metrics and troubleshoot issues effectively.` 
+    },
+    {
+      name: "Redis",
+      description: `I've used Redis for caching, session management, and real-time data processing. It's an excellent tool for improving application performance and scalability, especially in high-traffic environments. 
+      I've implemented Redis in various architectures to handle caching and pub/sub messaging patterns effectively. I currently use Redis to handle caching for complex queries used to determine participant compliance in a study.`
+    },
+    {
+      name: "Agile Methodologies",
+      description: `I've worked with Agile methodologies throughout my career, participating in Scrum and Kanban processes. I value iterative development, continuous feedback, and cross-functional collaboration. 
+      These principles have helped me deliver high-quality software that meets user needs effectively.`
+    },
+    {
+      name: "API Design",
+      description: `I've designed and implemented RESTful APIs and GraphQL endpoints for various applications. I focus on creating intuitive and efficient APIs that meet the needs of both frontend developers and end-users. 
+      I also prioritize API documentation and versioning to ensure smooth integration and maintainability. I've used tools like Swagger and Postman to document and test APIs effectively.`
+    },
+    {
+      name: "Microservices Architecture",
+      description: `I've designed and implemented microservices architectures for scalable and maintainable applications. I focus on service decomposition, inter-service communication (with experience in gRPC and REST), and data management strategies. 
+      I've used technologies like Docker, Kubernetes, and Apache Kafka to manage microservices effectively. I also prioritize observability and monitoring to ensure the health and performance of distributed systems.`
+    },
+    {
+      name: "React",
+      description: `I've used React for building dynamic and responsive user interfaces. I am currently more of a backend engineer, but I have experience with React and its ecosystem, including state management with Redux and context API.`
+    },
+    {
+      name: "NoSQL Databases",
+      description: `I've worked with NoSQL databases like MongoDB and Neo4j for applications that require flexible data models and horizontal scalability. I have experience designing data schemas, optimizing queries, and integrating these databases with various backend technologies.`
+    }
+  ];
+  const [selected, setSelected] = useState(0);
+
+  return (
+    <section className="text-center">
+      <h2 className="text-2xl font-bold mb-4">Skills</h2>
+      <div className="flex flex-wrap justify-center gap-4 mb-4">
+        {skills.map((skill, idx) => (
+          <button
+            key={idx}
+            onClick={() => setSelected(selected === idx ? null : idx)}
+            className={`transition-all duration-300 text-white px-4 py-2 rounded-full shadow-md ${selected === idx ? 'text-xl bg-purple-600 scale-110' : 'bg-indigo-500 hover:bg-indigo-600'}`}
+          >
+            {skill.name}
+          </button>
+        ))}
+      </div>
+      {selected !== null && (
+        <div className="max-w-xl mx-auto text-gray-100 bg-gray-800 rounded-lg p-4 shadow-inner">
+          {skills[selected].description}
+        </div>
+      )}
+    </section>
   );
 }
 
