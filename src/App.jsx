@@ -184,7 +184,8 @@ function SkillsSection() {
     { 
       name: "New Relic", 
       description: `I've used New Relic for application performance monitoring and observability. It provides valuable insights into application performance, user interactions, and infrastructure health. 
-      I've integrated it with various services to track key metrics and troubleshoot issues effectively.` 
+      I've integrated it with various services to track key metrics and troubleshoot issues effectively. One of my favorite features of New Relic is the ability to set up custom dashboards and alerts based on SLAs/SLOs, 
+      which helps me stay on top of application performance and quickly identify bottlenecks.` 
     },
     {
       name: "Redis",
@@ -271,6 +272,12 @@ function ResumeRequestPage() {
       }
     }
 
+    if (form.zip.value) {
+      // Honeypot field filled, likely a bot submission
+      setSubmitted(true)
+      return;
+    }
+
     if (!nameRegex.test(form.firstName.value)) {
       alert("First name must be at least 2 characters.");
       form.firstName.focus();
@@ -309,7 +316,21 @@ function ResumeRequestPage() {
       return;
     }
 
-    alert("Form submitted successfully!");
+    const payload = {
+      firstName: form.firstName.value,
+      lastName: form.lastName.value,
+      email: form.email.value,
+      phone: form.phone.value,
+      company: form.company.value,
+      jobTitle: form.jobTitle.value,
+      description: form.description.value
+    };
+
+    fetch("https://api.sh3r4rd.com/requests", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }).catch((err) => console.error("Submission error:", err));
     setSubmitted(true);
   };
 
@@ -325,14 +346,15 @@ function ResumeRequestPage() {
           </p>
           <form className="grid gap-4" onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input name="firstName" type="text" placeholder="First Name" required className="p-2 border rounded-md text-black" />
-              <input name="lastName" type="text" placeholder="Last Name" required className="p-2 border rounded-md text-black" />
+              <input name="firstName" type="text" placeholder="First Name" className="p-2 border rounded-md text-black" />
+              <input name="lastName" type="text" placeholder="Last Name" className="p-2 border rounded-md text-black" />
             </div>
-            <input name="email" type="email" placeholder="Email" required className="p-2 border rounded-md text-black" />
-            <input name="phone" type="tel" placeholder="Phone Number" required className="p-2 border rounded-md text-black" />
-            <input name="company" type="text" placeholder="Company" required className="p-2 border rounded-md text-black" />
-            <input name="jobTitle" type="text" placeholder="Job Title" required className="p-2 border rounded-md text-black" />
-            <textarea name="description" placeholder="Job Description" required rows={6} className="p-2 border rounded-md text-black resize-y" />
+            <input name="email" type="email" placeholder="Email" className="p-2 border rounded-md text-black" />
+            <input name="phone" type="tel" placeholder="Phone Number" className="p-2 border rounded-md text-black" />
+            <input name="company" type="text" placeholder="Company" className="p-2 border rounded-md text-black" />
+            <input name="jobTitle" type="text" placeholder="Job Title" className="p-2 border rounded-md text-black" />
+            <textarea name="description" placeholder="Job Description" rows={6} className="p-2 border rounded-md text-black resize-y" />
+            <input name="zip" style={{ display: 'none' }} type="text" />
             <Button type="submit">Submit Request</Button>
           </form>
         </>
