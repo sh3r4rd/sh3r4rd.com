@@ -8,7 +8,7 @@ import {
   Link,
   useLocation,
 } from "react-router-dom";
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 function Breadcrumbs() {
   const location = useLocation();
@@ -62,11 +62,30 @@ function Header() {
 }
 
 function HomePage() {
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+  useEffect(() => {
+    const targetDate = new Date('2025-08-08T17:30:00-04:00'); // Set target date here: August 8, 2025 at 5:30 PM EDT
+
+    const interval = setInterval(() => {
+      const now = new Date();
+      const difference = targetDate - now;
+
+      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((difference / 1000 / 60) % 60);
+      const seconds = Math.floor((difference / 1000) % 60);
+
+      setTimeLeft({ days, hours, minutes, seconds });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
       <section className="max-w-4xl mx-auto space-y-12">
         <Breadcrumbs />
         <Header /> 
-
         <section>
           <h2 className="text-2xl font-semibold mb-4">About Me</h2>
           <p className="text-gray-700 dark:text-gray-300">
@@ -79,6 +98,17 @@ function HomePage() {
           <Link to="/resume">
             <Button size="lg">Request Résumé</Button>
           </Link>
+        </section>
+
+        <section className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 rounded-2xl shadow-lg text-center mt-8">
+          <h2 className="text-2xl font-bold mb-2">🚀 Coming Soon</h2>
+          <p className="text-lg">
+            Let me save you time! I'm building a new feature with the help of AI that will automatically analyze your job descriptions and let you know if I'm a good fit — instantly.
+            This tool is currently in development and will be launching soon.
+          </p>
+          <div className="text-xl font-mono mt-2">
+            {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s
+          </div>
         </section>
 
         <section>
@@ -185,7 +215,7 @@ function ResumeRequestPage() {
     
     if (!phoneRegex.test(form.phone.value)) {
       console.log('phone', form.phone.value);
-      alert("Please enter a valid US phone number.");
+      alert("Please enter a valid US phone number using the format (123) 456-7890 or 123-456-7890.");
       form.phone.focus();
       return;
     }
