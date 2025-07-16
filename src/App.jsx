@@ -136,7 +136,7 @@ function HomePage() {
               <CardContent className="p-4">
                 <h3 className="text-xl font-medium">Leveraging AI</h3>
                 <p className="text-gray-700 dark:text-gray-300 mt-2">
-                  I'm currently exploring how to leverage AI to enhance my development workflow and improve the user experience of my applications. This includes using AI for code generation, testing, and even automating some aspects of deployment.
+                  I'm currently exploring how to leverage AI to enhance my development workflow and improve the user experience of my applications. This includes using AI for code generation, testing, and even automating some aspects of deployment via Github Copilot + ChatGPT.
                   I'm particularly interested in how AI can help with code reviews, bug detection, and optimizing performance. I believe AI has the potential to revolutionize software development, and I'm excited to be at the forefront of this change.
                 </p>
               </CardContent>
