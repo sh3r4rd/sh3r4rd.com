@@ -124,7 +124,7 @@ function HomePage() {
               <CardContent className="p-4">
                 <h3 className="text-xl font-medium">Building Portfolio</h3>
                 <p className="text-gray-700 dark:text-gray-300 mt-2">
-                  When I started my career I worked primarily on the frontend, but I have since transitioned to backend engineering. I'm <a href="https://github.com/sh3r4rd/sh3r4rd.com" target="_blank" rel="noopener noreferrer">working on this portfolio</a> to showcase my skills and projects throughout the full stack.
+                  When I started my career I worked primarily on the frontend but I have since transitioned to backend engineering. I'm <a href="https://github.com/sh3r4rd/sh3r4rd.com" target="_blank" rel="noopener noreferrer">working on this portfolio</a> to showcase my skills and projects throughout the full stack.
                   This site is built with React, Tailwind CSS, and Vite. It features a responsive design, dark mode support, and a clean, modern aesthetic. On the backend I'm leveraging AWS services like S3, CloudFront, API Gateway and Lambda.
                 </p>
               </CardContent>
@@ -209,7 +209,8 @@ function SkillsSection() {
     },
     {
       name: "NoSQL Databases",
-      description: (<>I've worked with <span className="font-semibold dark:text-white">NoSQL databases</span> like <span className="font-semibold dark:text-white">MongoDB</span> and <span className="font-semibold dark:text-white">Neo4j</span> for applications that require flexible data models and horizontal scalability. I have experience designing data schemas, optimizing queries, and integrating these databases with various backend technologies.</>)
+      description: (<>I've worked with a couple <span className="font-semibold dark:text-white">NoSQL databases</span>. I've used <span className="font-semibold dark:text-white">MongoDB</span> to store participant compliance data and audit records because those services didn't need transactions or complex queries but rather high availability. I've used <span className="font-semibold dark:text-white">Neo4j</span> to model relationships 
+      between organizations, sponsors, employees and clients as well as cases and referrals that move from one place to another. These are applications that require flexible data models and horizontal scalability. I have experience designing data schemas, optimizing queries, and integrating these databases with various backend technologies.</>)
     },
     {
       name: "Testing and Quality Assurance",
@@ -219,7 +220,7 @@ function SkillsSection() {
     {
       name: "TypeScript",
       description: (<>Currently, I use <span className="font-semibold dark:text-white">TypeScript</span> on two backend services. I appreciate TypeScript's static typing, which helps catch errors early in the development process, and strong community support. 
-      While I do enjoy Golang, it lacks the same level of ecosystem maturity. I use <span className="font-semibold dark:text-white">TypeScript</span> with frameworks like <span className="font-semibold dark:text-white">React</span> and <span className="font-semibold dark:text-white">Node.js</span> to enhance code quality and developer productivity.</>)
+      While I do enjoy <span className="font-semibold dark:text-white">Golang</span>, it lacks the same level of ecosystem maturity. I use <span className="font-semibold dark:text-white">TypeScript</span> with frameworks like <span className="font-semibold dark:text-white">React</span> and <span className="font-semibold dark:text-white">Node.js</span> to enhance code quality and developer productivity.</>)
     },
   ];
   const [selected, setSelected] = useState(0);
