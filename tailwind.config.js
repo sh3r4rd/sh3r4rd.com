@@ -14,6 +14,9 @@ export default {
             h3: {
               marginTop: '0.6em',
             },
+            "p a": {
+              textDecoration: 'underline',
+            },
           },
         },
       },

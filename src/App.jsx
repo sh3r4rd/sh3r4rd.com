@@ -108,7 +108,7 @@ function HomePage() {
           </div>
         </section>
 
-        <section className="prose max-w-none prose-a:underline">
+        <section className="max-w-none prose-a:underline">
           <h2 className="text-2xl font-semibold mb-4">Projects</h2>
           <div className="grid gap-6">
             <Card>
