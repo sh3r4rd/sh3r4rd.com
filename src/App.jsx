@@ -214,7 +214,7 @@ function SkillsSection() {
     },
     {
       name: "Testing and Quality Assurance",
-      description: `I prioritize testing and quality assurance in my development process. I have experience with unit testing, integration testing, and end-to-end testing using tools like Jest, Mocha, and RSpec. 
+      description: `I prioritize testing and quality assurance in my development process. I have experience with unit testing, integration testing, and end-to-end testing using tools like Jest, Mocha, Cucumber and RSpec as well as Go's testing/benchmarking package. 
       I believe that thorough testing is essential for delivering reliable software and maintaining code quality.`
     },
     {
