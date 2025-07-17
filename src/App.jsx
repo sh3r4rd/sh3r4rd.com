@@ -226,8 +226,8 @@ function SkillsSection() {
   const [selected, setSelected] = useState(0);
 
   return (
-    <section className="text-center">
-      <h2 className="text-2xl font-bold mb-4">Skills</h2>
+    <section>
+      <h2 className="text-2xl font-bold mb-6">Skills</h2>
       <div className="flex flex-wrap justify-center gap-4 mb-4">
         {skills.map((skill, idx) => (
           <button
