@@ -150,7 +150,7 @@ function SkillsSection() {
   const skills = [
     { 
       name: "Golang", 
-      description: `This is my strongest coding language. I write code daily in Golang for backend services. The code I write is idiomatic, performant, and well-tested.
+      description: `This is my most proficient coding language. I write code daily in Golang for backend services. The code I write is idiomatic, performant, and well-tested.
       One of the more interesting issues I've run into recently is needing to set GO_MAX_PROCS to accurately handle CPU resources in a containerized environment.` 
     },
     { 
@@ -240,7 +240,7 @@ function SkillsSection() {
         ))}
       </div>
       {selected !== null && (
-        <div className="max-w-xl mx-auto text-gray-100 bg-gray-800 rounded-lg p-4 shadow-inner">
+        <div className="max-w-xl mx-auto text-gray-700 bg-gray-800 rounded-lg p-4 shadow-inner rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-gray-300">
           {skills[selected].description}
         </div>
       )}
