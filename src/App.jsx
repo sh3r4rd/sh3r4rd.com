@@ -125,7 +125,7 @@ function HomePage() {
                 <h3 className="text-xl font-medium">Building Portfolio</h3>
                 <p className="text-gray-700 dark:text-gray-300 mt-2">
                   When I started my career I worked primarily on the frontend but I have since transitioned to backend engineering. I'm <a href="https://github.com/sh3r4rd/sh3r4rd.com" target="_blank" rel="noopener noreferrer">working on this portfolio</a> to showcase my skills and projects throughout the full stack.
-                  This site is built with React, Tailwind CSS, and Vite. It features a responsive design, dark mode support, and a clean, modern aesthetic. On the backend I'm leveraging AWS services like S3, CloudFront, API Gateway and Lambda.
+                  This site is built with React, Tailwind CSS, and Vite. It features a responsive design, dark mode support, and a clean, modern aesthetic. On the backend I'm leveraging AWS services like S3, CloudFront, SES, API Gateway and Lambda.
                 </p>
               </CardContent>
             </Card>
@@ -166,7 +166,7 @@ function SkillsSection() {
     { 
       name: "Kafka", 
       description: (<>I've used <span className="font-semibold dark:text-white">Kafka</span> for building event-driven architectures at a few jobs. I often use it to decouple services and ensure reliable message delivery. I've used it with and
-      without a schema registry, depending on the use case. I've also used sink and source connectors for streaming database updates from <span className="font-semibold dark:text-white">Mongo</span> and <span className="font-semibold dark:text-white">Postgres</span> into data pipelines.</>)
+      without a schema registry. I've also used sink and source connectors for streaming database updates from <span className="font-semibold dark:text-white">Mongo</span> and <span className="font-semibold dark:text-white">Postgres</span> into data pipelines.</>)
     },
     { 
       name: "Docker", 
@@ -180,7 +180,7 @@ function SkillsSection() {
     { 
       name: "New Relic", 
       description: (<>I've used <span className="font-semibold dark:text-white">New Relic</span> for application performance monitoring and observability. It provides valuable insights into application performance, user interactions, and infrastructure health. 
-      I've integrated it with various services to track key metrics and troubleshoot issues effectively. One of my favorite features of New Relic is the ability to set up custom dashboards and alerts based on SLAs/SLOs, 
+      I've integrated it with various services to track key metrics and troubleshoot issues effectively. One of my favorite features of <span className="font-semibold dark:text-white">New Relic</span> is the ability to set up custom dashboards and alerts based on SLAs/SLOs, 
       which helps me stay on top of application performance and quickly identify bottlenecks.</>)
     },
     {
@@ -191,12 +191,12 @@ function SkillsSection() {
     {
       name: "Agile Methodologies",
       description: (<>I've worked with <span className="font-semibold dark:text-white">Agile methodologies</span> throughout my career, participating in <span className="font-semibold dark:text-white">Scrum</span> and <span className="font-semibold dark:text-white">Kanban</span> processes. I value iterative development, continuous feedback, and cross-functional collaboration. 
-      These principles have helped me deliver high-quality software that meets user needs effectively.</>)
+      These principles have helped me deliver high-quality software that meets user needs effectively. I really enjoy having regular retrospectives to reflect on the team's progress and identify areas for improvement but also to celebrate successes 🎉</>)
     },
     {
       name: "API Design",
       description: (<>I've designed and implemented <span className="font-semibold dark:text-white">RESTful APIs</span> and <span className="font-semibold dark:text-white">GraphQL</span> endpoints for various applications. I focus on creating intuitive and efficient APIs that meet the needs of both frontend developers and end-users. 
-      I also prioritize API documentation and versioning to ensure smooth integration and maintainability. I've used tools like Swagger and Postman to document and test APIs effectively.</>)
+      I also prioritize API documentation and versioning to ensure smooth integration and maintainability. I've used tools like <span className="font-semibold dark:text-white">Swagger</span> and <span className="font-semibold dark:text-white">Postman</span> to document and test APIs effectively.</>)
     },
     {
       name: "Microservices Architecture",
@@ -210,11 +210,11 @@ function SkillsSection() {
     {
       name: "NoSQL Databases",
       description: (<>I've worked with a couple <span className="font-semibold dark:text-white">NoSQL databases</span>. I've used <span className="font-semibold dark:text-white">MongoDB</span> to store participant compliance data and audit records because those services didn't need transactions or complex queries but rather high availability. I've used <span className="font-semibold dark:text-white">Neo4j</span> to model relationships 
-      between organizations, sponsors, employees and clients as well as cases and referrals that move from one place to another. These are applications that require flexible data models and horizontal scalability. I have experience designing data schemas, optimizing queries, and integrating these databases with various backend technologies.</>)
+      between organizations, sponsors, employees and clients as well as cases and referrals that move from one organization to another. These are applications that require flexible data models and horizontal scalability. I have experience designing data schemas, optimizing queries, and integrating these databases with various backend technologies.</>)
     },
     {
       name: "Testing and Quality Assurance",
-      description: (<>I prioritize testing and quality assurance in my development process. I have experience with unit testing, integration testing, and end-to-end testing using tools like <span className="font-semibold dark:text-white">Jest</span>, <span className="font-semibold dark:text-white">Mocha</span>, <span className="font-semibold dark:text-white">Cucumber</span> and <span className="font-semibold dark:text-white">RSpec</span> as well as Go's testing/benchmarking package. 
+      description: (<>I prioritize testing and quality assurance in my development process. I have experience with unit testing, integration testing, and end-to-end testing using tools like <span className="font-semibold dark:text-white">Jest</span>, <span className="font-semibold dark:text-white">Mocha</span>, <span className="font-semibold dark:text-white">Cucumber</span> and <span className="font-semibold dark:text-white">RSpec</span> as well as Go's testing and benchmarking package. 
       I believe that thorough testing is essential for delivering reliable software and maintaining code quality.</>)
     },
     {
