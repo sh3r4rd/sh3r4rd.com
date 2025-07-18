@@ -10,6 +10,21 @@ import {
 } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 
+function PageTracker() {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (window.gtag) {
+      window.gtag("event", "page_view", {
+        page_path: location.pathname,
+        page_title: document.title,
+      });
+    }
+  }, [location]);
+
+  return null;
+}
+
 function Breadcrumbs() {
   const location = useLocation();
   const crumbs = location.pathname.split("/").filter(Boolean);
@@ -387,6 +402,7 @@ export default function App() {
   return (
     <main className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-8">
       <Router>
+        <PageTracker />
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/resume" element={<ResumeRequestPage />} />
