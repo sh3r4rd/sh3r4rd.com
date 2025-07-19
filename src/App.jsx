@@ -216,7 +216,7 @@ function SkillsSection() {
     {
       name: "Microservices Architecture",
       description: (<>I've designed and implemented <span className="font-semibold dark:text-white">microservices architectures</span> for scalable and maintainable applications. I focus on service decomposition, inter-service communication (with experience in <span className="font-semibold dark:text-white">gRPC</span> and <span className="font-semibold dark:text-white">REST</span>), and data management strategies. 
-      I've used technologies like <span className="font-semibold dark:text-white">Docker</span>, <span className="font-semibold dark:text-white">Kubernetes</span>, and <span className="font-semibold dark:text-white">Apache Kafka</span> to manage microservices effectively. I also prioritize observability and monitoring to ensure the health and performance of distributed systems.</>)
+      I've used tools like <span className="font-semibold dark:text-white">Docker</span> and <span className="font-semibold dark:text-white">Kubernetes</span> to manage microservices effectively. I also prioritize observability and monitoring to ensure the health and performance of distributed systems.</>)
     },
     {
       name: "React",

@@ -10,3 +10,6 @@ build:
 	@npm run build
 
 deploy: build copy sync
+
+server:
+	@npm run dev
