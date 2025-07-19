@@ -140,7 +140,7 @@ function HomePage() {
                 <h3 className="text-xl font-medium">Building Portfolio</h3>
                 <p className="text-gray-700 dark:text-gray-300 mt-2">
                   When I started my career I worked primarily on the frontend but I have since transitioned to backend engineering. I'm <a href="https://github.com/sh3r4rd/sh3r4rd.com" target="_blank" rel="noopener noreferrer">working on this portfolio</a> to showcase my skills and projects throughout the full stack.
-                  This site is built with React, Tailwind CSS, and Vite. It features a responsive design, dark mode support, and a clean, modern aesthetic. On the backend I'm leveraging AWS services like S3, CloudFront, SES, API Gateway and Lambda.
+                  This site is built with React, Tailwind CSS, and Vite. It features a responsive design, dark mode support, and a clean, modern aesthetic. On the backend I'm leveraging AWS services like Route 53, S3, CloudFront, SES, API Gateway and Lambda.
                 </p>
               </CardContent>
             </Card>
@@ -148,7 +148,7 @@ function HomePage() {
               <CardContent className="p-4">
                 <h3 className="text-xl font-medium">Leveraging AI</h3>
                 <p className="text-gray-700 dark:text-gray-300 mt-2">
-                  I'm currently exploring how to leverage AI to enhance my development workflow and improve the user experience of my applications. This includes using AI for code generation, testing, and even automating some aspects of deployment via Github Copilot + ChatGPT.
+                  I'm currently exploring how to leverage AI to enhance my development workflow and improve the user experience of my applications. This includes using AI for code generation, testing, and even automating some aspects of deployment via <span className="font-semibold dark:text-white">Github Copilot + ChatGPT</span>.
                   I'm particularly interested in how AI can help with code reviews, bug detection, and optimizing performance. I believe AI has the potential to revolutionize software development, and I'm excited to be at the forefront of this change.
                 </p>
               </CardContent>
