@@ -8,3 +8,10 @@ It is build using React, Tailwind and Vite on the front-end and uses AWS service
 
 ## Upcoming
 I'm working on a new feature to leverage AI to compare my experience with prospective job descriptions to determine if I'm a good fit for a particular role.
+
+## Deployment
+Run the following command to deploy assets to production
+
+```bash
+make deploy bucket=bucket-name
+```
