@@ -214,8 +214,8 @@ function SkillsSection() {
       I also prioritize API documentation and versioning to ensure smooth integration and maintainability. I've used tools like <span className="font-semibold dark:text-white">Swagger</span> and <span className="font-semibold dark:text-white">Postman</span> to document and test APIs effectively.</>)
     },
     {
-      name: "Microservices Architecture",
-      description: (<>I've designed and implemented <span className="font-semibold dark:text-white">microservices architectures</span> for scalable and maintainable applications. I focus on service decomposition, inter-service communication (with experience in <span className="font-semibold dark:text-white">gRPC</span> and <span className="font-semibold dark:text-white">REST</span>), and data management strategies. 
+      name: "Microservice Architecture",
+      description: (<>I've designed and implemented <span className="font-semibold dark:text-white">microservice architectures</span> for scalable and maintainable applications. I focus on service decomposition, inter-service communication (with experience in <span className="font-semibold dark:text-white">gRPC</span> and <span className="font-semibold dark:text-white">REST</span>), and data management strategies. 
       I've used tools like <span className="font-semibold dark:text-white">Docker</span> and <span className="font-semibold dark:text-white">Kubernetes</span> to manage microservices effectively. I also prioritize observability and monitoring to ensure the health and performance of distributed systems.</>)
     },
     {
