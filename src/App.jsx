@@ -77,7 +77,13 @@ function HomePage() {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
-    const targetDate = new Date('2025-08-08T17:30:00-04:00'); // Set target date here: August 8, 2025 at 5:30 PM EDT
+    let targetDate = new Date(localStorage.getItem("targetDate") || 0);
+    const now = new Date();
+    // If no date is set, or less than 5 days away, set to 3 weeks from now
+    if (!targetDate || isNaN(targetDate) || (targetDate - now) < 5 * 24 * 60 * 60 * 1000) {
+      targetDate = new Date(now.getTime() + 21 * 24 * 60 * 60 * 1000);
+      localStorage.setItem("targetDate", targetDate.toISOString());
+    }
 
     const interval = setInterval(() => {
       const now = new Date();
