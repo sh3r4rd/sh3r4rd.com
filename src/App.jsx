@@ -77,7 +77,12 @@ function HomePage() {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
-    let targetDate = new Date(localStorage.getItem("targetDate") || 0);
+    let targetDate;
+    if (typeof window !== "undefined" && window.localStorage) {
+      targetDate = new Date(localStorage.getItem("targetDate") || 0);
+    } else {
+      targetDate = new Date(Date.now() + 21 * 24 * 60 * 60 * 1000);
+    }
     const now = new Date();
     // If no date is set, or less than 5 days away, set to 3 weeks from now
     if (!targetDate || isNaN(targetDate) || (targetDate - now) < 5 * 24 * 60 * 60 * 1000) {
