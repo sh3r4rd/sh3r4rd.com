@@ -1,6 +1,6 @@
 # sh3r4rd.com
 
-This is my personal website that I use to demonstrate professional abilities throughout the tech stack. Anyone interested will also be able to send me a 
+This is [my personal website](https://sh3r4rd.com) that I use to demonstrate professional abilities throughout the tech stack. Anyone interested will also be able to send me a 
 request for my resume.
 
 ## Tools
@@ -34,3 +34,7 @@ make deploy bucket=bucket-name
 ```
 
 This requires AWS CLI to be configured locally.
+
+## Conventional Commits
+
+This repository uses [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) to describe commits and add automated tooling.
