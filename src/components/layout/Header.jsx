@@ -12,7 +12,7 @@ export default function Header() {
       <div>
         <h1 className="text-4xl font-bold">Sherard Bailey</h1>
         <p className="text-lg mt-2 text-gray-600 dark:text-gray-400">
-          Senior Software Engineer —  Microservices | Event-driven Architecture | AWS | Kafka
+          Senior Software Engineer —  Microservices | Event-driven Architecture | AWS | GCP 
         </p>
         <div className="flex justify-center md:justify-start gap-4 mt-4">
           <a href="https://www.linkedin.com/in/sherardbailey" target="_blank" aria-label="LinkedIn">
