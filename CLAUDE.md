@@ -42,7 +42,7 @@ Personal portfolio website (sh3r4rd.com) built with React, Tailwind CSS, and Vit
 
 ### Component Patterns
 
-- Pages wrap content in `<section className="max-w-4xl mx-auto space-y-12">` with `<Breadcrumbs />` then `<Header />`
+- Content pages wrap in `<section className="max-w-4xl mx-auto space-y-12">` with `<Breadcrumbs />` then `<Header />` (exception: `NotFoundPage` uses a minimal layout)
 - `components/ui/` uses **named exports** (e.g., `export function Button`, `export function Card`)
 - All other components (pages, layout, sections) use **default exports**
 

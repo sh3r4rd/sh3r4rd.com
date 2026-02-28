@@ -6,7 +6,8 @@ applyTo: "src/components/**,src/pages/**"
 
 ## File Naming
 
-- Use PascalCase for component files (e.g., `SkillsSection.jsx`, `HomePage.jsx`)
+- Use PascalCase for pages, layout, and section component files (e.g., `SkillsSection.jsx`, `HomePage.jsx`)
+- Use lowercase filenames for UI primitives in `components/ui/` (e.g., `button.jsx`, `card.jsx`)
 - All files use `.jsx` extension
 
 ## Dark Mode
@@ -35,8 +36,7 @@ Always pair light and dark classes:
 
 ### `pages/` — Route-level components
 - Use **default exports**
-- Always wrap in `<section className="max-w-4xl mx-auto space-y-12">`
-- Always render `<Breadcrumbs />` then `<Header />` first
+- Wrap in `<section className="max-w-4xl mx-auto space-y-12">` and render `<Breadcrumbs />` then `<Header />` first (exception: special pages like `NotFoundPage` use a minimal layout)
 
 ## Avoid
 

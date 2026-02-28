@@ -54,7 +54,7 @@ import { Card, CardContent } from "../components/ui/card";
 ## Forms
 
 - Use DOM-based validation (access fields via `form.elements[id]`)
-- Include a honeypot field: `<input name="zip" style={{ display: 'none' }} type="text" />`
+- Include a honeypot field: `<input name="zip" className="hidden" type="text" />`
 - API endpoint: `POST https://api.sh3r4rd.com/requests`
 - Payload fields: `firstName`, `lastName`, `email`, `phone`, `company`, `jobTitle`, `description`
 
