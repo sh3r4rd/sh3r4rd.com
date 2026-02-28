@@ -36,6 +36,26 @@ Personal portfolio website (sh3r4rd.com) built with React, Tailwind CSS, and Vit
 - Icons from `lucide-react`
 - Conventional commits required (see [conventionalcommits.org](https://www.conventionalcommits.org/en/v1.0.0/))
 
+### Stale Boilerplate
+
+- `src/App.css` and `src/assets/react.svg` are unused Vite scaffolding — do not import or extend them
+
+### Component Patterns
+
+- Pages wrap content in `<section className="max-w-4xl mx-auto space-y-12">` with `<Breadcrumbs />` then `<Header />`
+- `components/ui/` uses **named exports** (e.g., `export function Button`, `export function Card`)
+- All other components (pages, layout, sections) use **default exports**
+
+### Backend API
+
+- Resume request form POSTs to `https://api.sh3r4rd.com/requests` (separate infrastructure, not in this repo)
+- Payload fields: `firstName`, `lastName`, `email`, `phone`, `company`, `jobTitle`, `description`
+
+### Analytics
+
+- Google Analytics via `window.gtag` in `PageTracker` component
+- Measurement ID `G-L2852SHBRS` loaded in `index.html`
+
 ### Deployment
 
 - GitHub Actions workflow (`.github/workflows/deploy.yml`) auto-deploys on push to `main`
