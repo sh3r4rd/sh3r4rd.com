@@ -1,0 +1,35 @@
+.github/instructions/components.instructions.md
+  70d5e94fed4c4b95 1-46
+CLAUDE.md
+  70d5e94fed4c4b95 39-58
+.claude/commands/component.md
+  70d5e94fed4c4b95 1-46
+.github/copilot-instructions.md
+  70d5e94fed4c4b95 1-85
+.claude/commands/add-skill.md
+  70d5e94fed4c4b95 1-20
+.claude/commands/deploy-check.md
+  70d5e94fed4c4b95 1-9
+.claude/settings.json
+  70d5e94fed4c4b95 1-27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.6",
+  "base_commit_sha": "1bf79813b76e95ea8f26b3a6c5e00df4b9a9db0d",
+  "prompts": {
+    "70d5e94fed4c4b95": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "12b40974-4002-463f-a1df-2d87aec3d2b7",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Sherard Bailey <sbailey@gobloominghealth.com>",
+      "messages": [],
+      "total_additions": 253,
+      "total_deletions": 0,
+      "accepted_lines": 253,
+      "overriden_lines": 0
+    }
+  }
+}
