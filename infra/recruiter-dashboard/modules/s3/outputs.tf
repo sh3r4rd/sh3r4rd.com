@@ -8,7 +8,3 @@ output "bucket_arn" {
   value       = aws_s3_bucket.email_storage.arn
 }
 
-output "bucket_id" {
-  description = "ID of the S3 bucket."
-  value       = aws_s3_bucket.email_storage.id
-}

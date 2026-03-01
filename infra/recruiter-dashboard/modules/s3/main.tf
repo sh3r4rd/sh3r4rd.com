@@ -38,14 +38,6 @@ resource "aws_s3_bucket_public_access_block" "email_storage" {
   restrict_public_buckets = true
 }
 
-resource "aws_s3_bucket_versioning" "email_storage" {
-  bucket = aws_s3_bucket.email_storage.id
-
-  versioning_configuration {
-    status = "Disabled"
-  }
-}
-
 # Allow SES to write incoming emails to this bucket
 resource "aws_s3_bucket_policy" "allow_ses" {
   bucket = aws_s3_bucket.email_storage.id

@@ -5,22 +5,22 @@ aws_region = "us-east-1"
 project_name = "recruiter-dashboard"
 
 # Domain for SES email receiving (use subdomain to preserve existing MX records)
-ses_domain = "inbox.sh3r4rd.com"
+ses_domain = "inbox.example.com"
 
 # Email recipient address for SES receipt rule
-ses_recipient = "recruiters@inbox.sh3r4rd.com"
+ses_recipient = "recruiters@inbox.example.com"
 
 # CORS allowed origin for API Gateway
-cors_allowed_origin = "https://sh3r4rd.com"
+cors_allowed_origin = "https://example.com"
 
 # Email address for budget and alarm notifications
-alert_email = "your-email@example.com"
+alert_email = "alerts@example.com"
 
 # Monthly budget limit in USD
 budget_limit = "5.0"
 
 # S3 bucket name for raw email storage (must be globally unique)
-email_bucket_name = "sh3r4rd-recruiter-emails"
+email_bucket_name = "my-recruiter-emails"
 
 # DynamoDB table name
 dynamodb_table_name = "recruiter-emails"

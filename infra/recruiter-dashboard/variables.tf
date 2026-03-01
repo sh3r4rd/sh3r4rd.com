@@ -4,8 +4,8 @@ variable "aws_region" {
   default     = "us-east-1"
 
   validation {
-    condition     = contains(["us-east-1", "us-west-2", "eu-west-1", "eu-central-1"], var.aws_region)
-    error_message = "Region must support SES email receiving: us-east-1, us-west-2, eu-west-1, or eu-central-1."
+    condition     = contains(["us-east-1", "us-west-2", "eu-west-1"], var.aws_region)
+    error_message = "Region must support SES email receiving: us-east-1, us-west-2, or eu-west-1."
   }
 }
 
@@ -18,19 +18,31 @@ variable "project_name" {
 variable "ses_domain" {
   description = "Domain for SES email receiving. Use a subdomain to preserve existing MX records."
   type        = string
-  default     = "inbox.sh3r4rd.com"
+
+  validation {
+    condition     = can(regex("^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$", var.ses_domain))
+    error_message = "Must be a valid domain name."
+  }
 }
 
 variable "ses_recipient" {
   description = "Email recipient address for the SES receipt rule."
   type        = string
-  default     = "recruiters@inbox.sh3r4rd.com"
+
+  validation {
+    condition     = can(regex("^[^@]+@[^@]+\\.[^@]+$", var.ses_recipient))
+    error_message = "Must be a valid email address."
+  }
 }
 
 variable "cors_allowed_origin" {
   description = "CORS allowed origin for API Gateway responses."
   type        = string
-  default     = "https://sh3r4rd.com"
+
+  validation {
+    condition     = can(regex("^https?://", var.cors_allowed_origin))
+    error_message = "Must be a valid URL starting with http:// or https://."
+  }
 }
 
 variable "alert_email" {
@@ -48,7 +60,11 @@ variable "budget_limit" {
 variable "email_bucket_name" {
   description = "S3 bucket name for raw email storage. Must be globally unique."
   type        = string
-  default     = "sh3r4rd-recruiter-emails"
+
+  validation {
+    condition     = can(regex("^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$", var.email_bucket_name))
+    error_message = "Must be a valid S3 bucket name (3-63 chars, lowercase, numbers, hyphens, periods)."
+  }
 }
 
 variable "dynamodb_table_name" {

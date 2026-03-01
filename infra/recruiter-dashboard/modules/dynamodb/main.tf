@@ -26,29 +26,29 @@ resource "aws_dynamodb_table" "recruiter_emails" {
 
   # GSI key attributes
   attribute {
-    name = "company"
+    name = "recruiter_email"
     type = "S"
   }
 
   attribute {
-    name = "date_month"
+    name = "date_day"
     type = "S"
   }
 
-  # GSI 1: Filter by company
+  # GSI 1: Filter by recruiter email
   global_secondary_index {
-    name            = "company-index"
-    hash_key        = "company"
+    name            = "recruiter-index"
+    hash_key        = "recruiter_email"
     range_key       = "received_at"
     projection_type = "ALL"
     read_capacity   = var.gsi_read_capacity
     write_capacity  = var.gsi_write_capacity
   }
 
-  # GSI 2: Filter by month
+  # GSI 2: Filter by date (YYYY-MM-DD for day-level and finer queries)
   global_secondary_index {
     name            = "date-index"
-    hash_key        = "date_month"
+    hash_key        = "date_day"
     range_key       = "received_at"
     projection_type = "ALL"
     read_capacity   = var.gsi_read_capacity

@@ -13,9 +13,9 @@ output "table_id" {
   value       = aws_dynamodb_table.recruiter_emails.id
 }
 
-output "company_index_arn" {
-  description = "ARN of the company-index GSI."
-  value       = "${aws_dynamodb_table.recruiter_emails.arn}/index/company-index"
+output "recruiter_index_arn" {
+  description = "ARN of the recruiter-index GSI."
+  value       = "${aws_dynamodb_table.recruiter_emails.arn}/index/recruiter-index"
 }
 
 output "date_index_arn" {
