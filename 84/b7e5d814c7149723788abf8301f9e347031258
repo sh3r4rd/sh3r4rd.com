@@ -1,0 +1,77 @@
+infra/recruiter-dashboard/modules/s3/variables.tf
+  afb2188146ef7094 1-20
+infra/recruiter-dashboard/modules/iam/outputs.tf
+  afb2188146ef7094 1-19
+infra/recruiter-dashboard/modules/lambda/variables.tf
+  afb2188146ef7094 1-67
+infra/recruiter-dashboard/modules/lambda/outputs.tf
+  afb2188146ef7094 1-24
+infra/recruiter-dashboard/modules/api-gateway/outputs.tf
+  afb2188146ef7094 1-14
+infra/recruiter-dashboard/modules/ses/variables.tf
+  afb2188146ef7094 1-27
+infra/recruiter-dashboard/modules/iam/variables.tf
+  afb2188146ef7094 1-29
+infra/recruiter-dashboard/modules/dynamodb/outputs.tf
+  afb2188146ef7094 1-24
+infra/recruiter-dashboard/variables.tf
+  afb2188146ef7094 1-84
+infra/recruiter-dashboard/terraform.tfvars.example
+  afb2188146ef7094 1-32
+infra/recruiter-dashboard/modules/s3/outputs.tf
+  afb2188146ef7094 1-14
+infra/recruiter-dashboard/modules/api-gateway/variables.tf
+  afb2188146ef7094 1-32
+infra/recruiter-dashboard/.gitignore
+  afb2188146ef7094 1-21
+infra/recruiter-dashboard/modules/iam/main.tf
+  afb2188146ef7094 2-117
+infra/recruiter-dashboard/outputs.tf
+  afb2188146ef7094 1-59
+infra/recruiter-dashboard/modules/dynamodb/main.tf
+  afb2188146ef7094 1-67
+infra/recruiter-dashboard/lambda-src/email-parser/email_parser/handler.py
+  afb2188146ef7094 1-6
+infra/recruiter-dashboard/modules/s3/main.tf
+  afb2188146ef7094 1-75
+infra/recruiter-dashboard/modules/ses/outputs.tf
+  afb2188146ef7094 1-19
+infra/recruiter-dashboard/modules/dynamodb/variables.tf
+  afb2188146ef7094 1-28
+infra/recruiter-dashboard/modules/api-gateway/main.tf
+  afb2188146ef7094 1-305
+infra/recruiter-dashboard/lambda-src/api-handler/api_handler/handler.py
+  afb2188146ef7094 1-10
+infra/recruiter-dashboard/modules/lambda/main.tf
+  afb2188146ef7094 1-40
+infra/recruiter-dashboard/modules/ses/main.tf
+  afb2188146ef7094 1-63
+infra/recruiter-dashboard/modules/monitoring/main.tf
+  afb2188146ef7094 1-134
+infra/recruiter-dashboard/main.tf
+  afb2188146ef7094 1-103,105,107-143,145-157
+infra/recruiter-dashboard/modules/monitoring/variables.tf
+  afb2188146ef7094 1-26
+infra/recruiter-dashboard/modules/monitoring/outputs.tf
+  afb2188146ef7094 1-9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.7",
+  "base_commit_sha": "84b7e5d814c7149723788abf8301f9e347031258",
+  "prompts": {
+    "afb2188146ef7094": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9c983501-43a9-4304-8bc6-b81c35d5666e",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Sherard Bailey <sbailey@gobloominghealth.com>",
+      "messages": [],
+      "total_additions": 222,
+      "total_deletions": 27,
+      "accepted_lines": 1518,
+      "overriden_lines": 0
+    }
+  }
+}
