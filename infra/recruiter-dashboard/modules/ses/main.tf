@@ -20,6 +20,8 @@ resource "aws_ses_receipt_rule_set" "this" {
 
 resource "aws_ses_active_receipt_rule_set" "this" {
   rule_set_name = aws_ses_receipt_rule_set.this.rule_set_name
+
+  depends_on = [aws_ses_receipt_rule.store_and_parse]
 }
 
 # ---------------------------------------------------------------------------
@@ -32,6 +34,7 @@ resource "aws_lambda_permission" "ses_invoke" {
   function_name  = var.email_parser_function_arn
   principal      = "ses.amazonaws.com"
   source_account = data.aws_caller_identity.current.account_id
+  source_arn     = aws_ses_receipt_rule_set.this.arn
 }
 
 data "aws_caller_identity" "current" {}

@@ -1,13 +1,16 @@
 variable "ses_domain" {
   description = "Domain for the SES domain identity."
   type        = string
-  default     = "inbox.sh3r4rd.com"
 }
 
 variable "ses_recipient" {
   description = "Email recipient address for the SES receipt rule."
   type        = string
-  default     = "recruiters@inbox.sh3r4rd.com"
+}
+
+variable "aws_region" {
+  description = "AWS region for SES inbound SMTP endpoint."
+  type        = string
 }
 
 variable "s3_bucket_name" {
