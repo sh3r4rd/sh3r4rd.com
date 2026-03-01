@@ -28,3 +28,6 @@ dist-ssr
 
 # Scratch/experimentation
 scratch/
+
+# Terraform build artifacts
+.build/

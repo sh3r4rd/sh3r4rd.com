@@ -6,6 +6,10 @@ terraform {
       source  = "hashicorp/aws"
       version = ">= 5.31.0"
     }
+    archive = {
+      source  = "hashicorp/archive"
+      version = ">= 2.4.0"
+    }
   }
 
   # Local state for single-developer project.
@@ -60,7 +64,7 @@ module "lambda_email_parser" {
   function_name                  = "${var.project_name}-email-parser"
   description                    = "Parses forwarded recruiter emails from S3 and stores data in DynamoDB"
   source_dir                     = "${path.module}/lambda-src/email-parser"
-  handler                        = "email_parser.handler.lambda_handler"
+  handler                        = "bootstrap"
   role_arn                       = module.iam.email_parser_role_arn
   memory_size                    = 128
   timeout                        = 30
@@ -82,7 +86,7 @@ module "lambda_api_handler" {
   function_name                  = "${var.project_name}-api-handler"
   description                    = "Serves the recruiter dashboard REST API with anonymized responses"
   source_dir                     = "${path.module}/lambda-src/api-handler"
-  handler                        = "api_handler.handler.lambda_handler"
+  handler                        = "bootstrap"
   role_arn                       = module.iam.api_handler_role_arn
   memory_size                    = 128
   timeout                        = 10
@@ -92,7 +96,7 @@ module "lambda_api_handler" {
   environment_variables = {
     RECRUITER_TABLE    = module.dynamodb.table_name
     CORS_ALLOW_ORIGIN  = var.cors_allowed_origin
-    COMPANY_INDEX_NAME = "company-index"
+    COMPANY_INDEX_NAME = "recruiter-index"
     DATE_INDEX_NAME    = "date-index"
   }
 }
@@ -107,9 +111,9 @@ module "iam" {
   s3_bucket_arn      = module.s3.bucket_arn
   dynamodb_table_arn = module.dynamodb.table_arn
   dynamodb_gsi_arns = [
-    module.dynamodb.company_index_arn,
+    module.dynamodb.recruiter_index_arn,
     module.dynamodb.date_index_arn,
   ]
-  email_parser_log_group_arn = module.lambda_email_parser.log_group_arn
-  api_handler_log_group_arn  = module.lambda_api_handler.log_group_arn
+  email_parser_function_name = "${var.project_name}-email-parser"
+  api_handler_function_name  = "${var.project_name}-api-handler"
 }

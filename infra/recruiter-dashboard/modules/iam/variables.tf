@@ -18,12 +18,12 @@ variable "dynamodb_gsi_arns" {
   type        = list(string)
 }
 
-variable "email_parser_log_group_arn" {
-  description = "ARN of the CloudWatch log group for the email parser Lambda."
+variable "email_parser_function_name" {
+  description = "Name of the email parser Lambda function (used to construct log group ARN)."
   type        = string
 }
 
-variable "api_handler_log_group_arn" {
-  description = "ARN of the CloudWatch log group for the API handler Lambda."
+variable "api_handler_function_name" {
+  description = "Name of the API handler Lambda function (used to construct log group ARN)."
   type        = string
 }

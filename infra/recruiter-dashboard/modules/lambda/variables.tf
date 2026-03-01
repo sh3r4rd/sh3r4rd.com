@@ -22,7 +22,7 @@ variable "handler" {
 variable "runtime" {
   description = "Lambda runtime."
   type        = string
-  default     = "python3.12"
+  default     = "provided.al2023"
 }
 
 variable "architectures" {

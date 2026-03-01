@@ -1,4 +1,17 @@
 # ---------------------------------------------------------------------------
+# Data sources for constructing log group ARNs from function names.
+# This avoids a circular dependency between IAM and Lambda modules.
+# ---------------------------------------------------------------------------
+
+data "aws_region" "current" {}
+data "aws_caller_identity" "current" {}
+
+locals {
+  email_parser_log_group_arn = "arn:aws:logs:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.email_parser_function_name}"
+  api_handler_log_group_arn  = "arn:aws:logs:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.api_handler_function_name}"
+}
+
+# ---------------------------------------------------------------------------
 # Email Parser Lambda Role
 # Permissions: S3 read (raw emails), DynamoDB write (parsed data), CloudWatch logs
 # ---------------------------------------------------------------------------
@@ -46,8 +59,8 @@ data "aws_iam_policy_document" "email_parser" {
       "logs:PutLogEvents",
     ]
     resources = [
-      var.email_parser_log_group_arn,
-      "${var.email_parser_log_group_arn}:*",
+      local.email_parser_log_group_arn,
+      "${local.email_parser_log_group_arn}:*",
     ]
   }
 }
@@ -91,8 +104,8 @@ data "aws_iam_policy_document" "api_handler" {
       "logs:PutLogEvents",
     ]
     resources = [
-      var.api_handler_log_group_arn,
-      "${var.api_handler_log_group_arn}:*",
+      local.api_handler_log_group_arn,
+      "${local.api_handler_log_group_arn}:*",
     ]
   }
 }
