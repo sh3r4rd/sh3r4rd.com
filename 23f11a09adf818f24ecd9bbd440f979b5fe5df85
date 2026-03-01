@@ -1,0 +1,25 @@
+infra/recruiter-dashboard/modules/monitoring/variables.tf
+  a1227027c4d1a9ca 10-14
+CLAUDE.md
+  a1227027c4d1a9ca 9-10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.7",
+  "base_commit_sha": "23f11a09adf818f24ecd9bbd440f979b5fe5df85",
+  "prompts": {
+    "a1227027c4d1a9ca": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c8f7aeb8-1242-4ac6-976c-190a089e0bff",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Sherard Bailey <sbailey@gobloominghealth.com>",
+      "messages": [],
+      "total_additions": 7,
+      "total_deletions": 0,
+      "accepted_lines": 7,
+      "overriden_lines": 0
+    }
+  }
+}
