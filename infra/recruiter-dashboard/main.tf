@@ -102,6 +102,18 @@ module "lambda_api_handler" {
 }
 
 # ---------------------------------------------------------------------------
+# Module: API Gateway — REST API with Lambda proxy integration
+# ---------------------------------------------------------------------------
+module "api_gateway" {
+  source = "./modules/api-gateway"
+
+  api_name                  = "${var.project_name}-api"
+  api_handler_invoke_arn    = module.lambda_api_handler.invoke_arn
+  api_handler_function_name = module.lambda_api_handler.function_name
+  cors_allowed_origin       = var.cors_allowed_origin
+}
+
+# ---------------------------------------------------------------------------
 # Module: IAM — Least-privilege roles for both Lambdas
 # ---------------------------------------------------------------------------
 module "iam" {

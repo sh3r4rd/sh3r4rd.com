@@ -37,3 +37,8 @@ output "api_handler_invoke_arn" {
   description = "Invoke ARN of the API handler Lambda (for API Gateway)."
   value       = module.lambda_api_handler.invoke_arn
 }
+
+output "api_endpoint" {
+  description = "Full invoke URL of the API Gateway prod stage."
+  value       = module.api_gateway.api_endpoint
+}
