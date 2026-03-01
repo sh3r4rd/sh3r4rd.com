@@ -31,6 +31,11 @@ resource "aws_dynamodb_table" "recruiter_emails" {
   }
 
   attribute {
+    name = "date_year"
+    type = "S"
+  }
+
+  attribute {
     name = "date_day"
     type = "S"
   }
@@ -53,7 +58,9 @@ resource "aws_dynamodb_table" "recruiter_emails" {
     }
   }
 
-  # GSI 2: Filter by date (YYYY-MM-DD for day-level and finer queries)
+  # GSI 2: Filter by date — supports year, month, day, and range queries.
+  # Hash key: date_year (e.g. "2026") for natural partitioning.
+  # Range key: date_day (e.g. "2026-03-15") for begins_with / BETWEEN queries.
   global_secondary_index {
     name            = "date-index"
     projection_type = "ALL"
@@ -61,12 +68,12 @@ resource "aws_dynamodb_table" "recruiter_emails" {
     write_capacity  = var.gsi_write_capacity
 
     key_schema {
-      attribute_name = "date_day"
+      attribute_name = "date_year"
       key_type       = "HASH"
     }
 
     key_schema {
-      attribute_name = "received_at"
+      attribute_name = "date_day"
       key_type       = "RANGE"
     }
   }
