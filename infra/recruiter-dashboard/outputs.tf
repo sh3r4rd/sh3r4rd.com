@@ -17,3 +17,23 @@ output "dynamodb_table_arn" {
   description = "ARN of the DynamoDB table."
   value       = module.dynamodb.table_arn
 }
+
+output "email_parser_function_name" {
+  description = "Name of the email parser Lambda function."
+  value       = module.lambda_email_parser.function_name
+}
+
+output "email_parser_function_arn" {
+  description = "ARN of the email parser Lambda function."
+  value       = module.lambda_email_parser.function_arn
+}
+
+output "api_handler_function_name" {
+  description = "Name of the API handler Lambda function."
+  value       = module.lambda_api_handler.function_name
+}
+
+output "api_handler_invoke_arn" {
+  description = "Invoke ARN of the API handler Lambda (for API Gateway)."
+  value       = module.lambda_api_handler.invoke_arn
+}
