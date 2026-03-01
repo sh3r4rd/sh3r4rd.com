@@ -10,8 +10,15 @@ resource "aws_dynamodb_table" "recruiter_emails" {
   read_capacity  = var.read_capacity
   write_capacity = var.write_capacity
 
-  hash_key  = "id"
-  range_key = "received_at"
+  key_schema {
+    attribute_name = "id"
+    key_type       = "HASH"
+  }
+
+  key_schema {
+    attribute_name = "received_at"
+    key_type       = "RANGE"
+  }
 
   # Primary key attributes
   attribute {
@@ -38,21 +45,37 @@ resource "aws_dynamodb_table" "recruiter_emails" {
   # GSI 1: Filter by recruiter email
   global_secondary_index {
     name            = "recruiter-index"
-    hash_key        = "recruiter_email"
-    range_key       = "received_at"
     projection_type = "ALL"
     read_capacity   = var.gsi_read_capacity
     write_capacity  = var.gsi_write_capacity
+
+    key_schema {
+      attribute_name = "recruiter_email"
+      key_type       = "HASH"
+    }
+
+    key_schema {
+      attribute_name = "received_at"
+      key_type       = "RANGE"
+    }
   }
 
   # GSI 2: Filter by date (YYYY-MM-DD for day-level and finer queries)
   global_secondary_index {
     name            = "date-index"
-    hash_key        = "date_day"
-    range_key       = "received_at"
     projection_type = "ALL"
     read_capacity   = var.gsi_read_capacity
     write_capacity  = var.gsi_write_capacity
+
+    key_schema {
+      attribute_name = "date_day"
+      key_type       = "HASH"
+    }
+
+    key_schema {
+      attribute_name = "received_at"
+      key_type       = "RANGE"
+    }
   }
 
   deletion_protection_enabled = true
