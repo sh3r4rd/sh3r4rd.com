@@ -42,3 +42,18 @@ output "api_endpoint" {
   description = "Full invoke URL of the API Gateway prod stage."
   value       = module.api_gateway.api_endpoint
 }
+
+output "ses_domain_verification_token" {
+  description = "TXT record value for SES domain verification."
+  value       = module.ses.domain_verification_token
+}
+
+output "ses_dkim_tokens" {
+  description = "DKIM CNAME record tokens for email signing."
+  value       = module.ses.dkim_tokens
+}
+
+output "ses_mx_record" {
+  description = "MX record value to route inbound email to SES."
+  value       = module.ses.mx_record
+}
