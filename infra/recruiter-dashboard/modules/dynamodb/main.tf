@@ -10,15 +10,8 @@ resource "aws_dynamodb_table" "recruiter_emails" {
   read_capacity  = var.read_capacity
   write_capacity = var.write_capacity
 
-  key_schema {
-    attribute_name = "id"
-    key_type       = "HASH"
-  }
-
-  key_schema {
-    attribute_name = "received_at"
-    key_type       = "RANGE"
-  }
+  hash_key  = "id"
+  range_key = "received_at"
 
   # Primary key attributes
   attribute {
