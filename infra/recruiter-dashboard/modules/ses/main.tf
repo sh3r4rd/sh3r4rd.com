@@ -34,7 +34,6 @@ resource "aws_lambda_permission" "ses_invoke" {
   function_name  = var.email_parser_function_arn
   principal      = "ses.amazonaws.com"
   source_account = data.aws_caller_identity.current.account_id
-  source_arn     = aws_ses_receipt_rule_set.this.arn
 }
 
 data "aws_caller_identity" "current" {}
