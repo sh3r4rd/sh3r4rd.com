@@ -1,0 +1,33 @@
+.github/instructions/terraform.instructions.md
+  38ba5af5125b1921 1-45
+README.md
+  38ba5af5125b1921 9-21
+.github/copilot-instructions.md
+  38ba5af5125b1921 73-81,95
+.claude/settings.json
+  38ba5af5125b1921 8-11
+CLAUDE.md
+  38ba5af5125b1921 11-12,19-26,30-31,37-45,61,75,77
+.claude/commands/deploy-check.md
+  38ba5af5125b1921 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.7",
+  "base_commit_sha": "22923bd0e2d05a447b7dee9b5c1dfebb0352c418",
+  "prompts": {
+    "38ba5af5125b1921": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "be3d58a0-48d6-44b2-97af-978abae86618",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Sherard Bailey <sbailey@gobloominghealth.com>",
+      "messages": [],
+      "total_additions": 125,
+      "total_deletions": 35,
+      "accepted_lines": 119,
+      "overriden_lines": 0
+    }
+  }
+}
