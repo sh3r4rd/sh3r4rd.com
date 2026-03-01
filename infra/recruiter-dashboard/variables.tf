@@ -51,12 +51,6 @@ variable "alert_email" {
   sensitive   = true
 }
 
-variable "budget_limit" {
-  description = "Monthly budget limit in USD."
-  type        = string
-  default     = "5.0"
-}
-
 variable "email_bucket_name" {
   description = "S3 bucket name for raw email storage. Must be globally unique."
   type        = string
