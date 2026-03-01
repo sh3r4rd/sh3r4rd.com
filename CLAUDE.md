@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Personal portfolio website (sh3r4rd.com) built with React, Tailwind CSS, and Vite. Deployed to AWS S3/CloudFront via GitHub Actions on push to `main`.
 
+- **GitHub repository:** `sh3r4rd/sh3r4rd.com` — always use this for `gh` CLI commands (e.g., `gh pr view`, `gh api`)
+
 ## Commands
 
 ### Frontend
