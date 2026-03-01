@@ -1,0 +1,38 @@
+infra/recruiter-dashboard/modules/api-gateway/main.tf
+  053aa62c6b3c5bf4 262-263,268-269,274-275,310
+infra/recruiter-dashboard/modules/api-gateway/variables.tf
+  053aa62c6b3c5bf4 19-23,30-34,41-45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.7",
+  "base_commit_sha": "53ba9a4431e47491e95bddaacf476f49fb912001",
+  "prompts": {
+    "053aa62c6b3c5bf4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7f8823af-bba8-4d7e-89ef-58f95913ba25",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Sherard Bailey <sbailey@gobloominghealth.com>",
+      "messages": [],
+      "total_additions": 22,
+      "total_deletions": 2,
+      "accepted_lines": 22,
+      "overriden_lines": 0
+    },
+    "5ae84bef0361fac6": {
+      "agent_id": {
+        "tool": "gemini",
+        "id": "1e398773-724c-43d1-92ef-058027d4cf9f",
+        "model": "gemini-2.5-pro"
+      },
+      "human_author": "Sherard Bailey <sbailey@gobloominghealth.com>",
+      "messages": [],
+      "total_additions": 29,
+      "total_deletions": 0,
+      "accepted_lines": 29,
+      "overriden_lines": 0
+    }
+  }
+}
