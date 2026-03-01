@@ -1,0 +1,42 @@
+infra/recruiter-dashboard/terraform.tfvars.example
+  1a67c1a1b88f5394 8,11,14,17,23
+infra/recruiter-dashboard/modules/dynamodb/main.tf
+  1a67c1a1b88f5394 29,34,38,40-41,48,51
+infra/recruiter-dashboard/modules/dynamodb/outputs.tf
+  1a67c1a1b88f5394 16-18
+infra/recruiter-dashboard/variables.tf
+  1a67c1a1b88f5394 8,21-25,31-35,41-45,63-67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.7",
+  "base_commit_sha": "6b7afdf2dc7a9e4caae4ff154084e53774d8741b",
+  "prompts": {
+    "1a67c1a1b88f5394": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2f978081-237b-499b-b394-540caa01745c",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Sherard Bailey <sbailey@gobloominghealth.com>",
+      "messages": [],
+      "total_additions": 37,
+      "total_deletions": 34,
+      "accepted_lines": 36,
+      "overriden_lines": 0
+    },
+    "c490ff4ba1322123": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "26817d84-a9c9-4fa3-aa6d-f7b8a280572c",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Sherard Bailey <sbailey@gobloominghealth.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 2041,
+      "overriden_lines": 0
+    }
+  }
+}
