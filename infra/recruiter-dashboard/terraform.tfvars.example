@@ -1,0 +1,32 @@
+# AWS Region — must be SES-receiving-capable (us-east-1, us-west-2, eu-west-1)
+aws_region = "us-east-1"
+
+# Project name used for resource naming and tagging
+project_name = "recruiter-dashboard"
+
+# Domain for SES email receiving (use subdomain to preserve existing MX records)
+ses_domain = "inbox.sh3r4rd.com"
+
+# Email recipient address for SES receipt rule
+ses_recipient = "recruiters@inbox.sh3r4rd.com"
+
+# CORS allowed origin for API Gateway
+cors_allowed_origin = "https://sh3r4rd.com"
+
+# Email address for budget and alarm notifications
+alert_email = "your-email@example.com"
+
+# Monthly budget limit in USD
+budget_limit = "5.0"
+
+# S3 bucket name for raw email storage (must be globally unique)
+email_bucket_name = "sh3r4rd-recruiter-emails"
+
+# DynamoDB table name
+dynamodb_table_name = "recruiter-emails"
+
+# CloudWatch log retention in days
+log_retention_days = 7
+
+# S3 lifecycle expiration in days for raw emails
+s3_lifecycle_expiration_days = 30
