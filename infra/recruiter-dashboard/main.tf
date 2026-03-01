@@ -142,3 +142,15 @@ module "iam" {
   email_parser_function_name = "${var.project_name}-email-parser"
   api_handler_function_name  = "${var.project_name}-api-handler"
 }
+
+# ---------------------------------------------------------------------------
+# Module: Monitoring — Budget alerts, CloudWatch alarms, SNS
+# ---------------------------------------------------------------------------
+module "monitoring" {
+  source = "./modules/monitoring"
+
+  project_name               = var.project_name
+  alert_email                = var.alert_email
+  email_parser_function_name = module.lambda_email_parser.function_name
+  api_handler_function_name  = module.lambda_api_handler.function_name
+}
