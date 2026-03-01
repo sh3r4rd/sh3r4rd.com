@@ -1,0 +1,41 @@
+infra/recruiter-dashboard/modules/iam/outputs.tf
+  afb2188146ef7094 1-19
+infra/recruiter-dashboard/modules/lambda/outputs.tf
+  afb2188146ef7094 1-24
+infra/recruiter-dashboard/modules/lambda/variables.tf
+  afb2188146ef7094 1-67
+infra/recruiter-dashboard/modules/iam/variables.tf
+  afb2188146ef7094 1-29
+infra/recruiter-dashboard/lambda-src/email-parser/email_parser/handler.py
+  afb2188146ef7094 1-6
+infra/recruiter-dashboard/lambda-src/api-handler/api_handler/handler.py
+  afb2188146ef7094 1-10
+infra/recruiter-dashboard/main.tf
+  afb2188146ef7094 53-115
+infra/recruiter-dashboard/outputs.tf
+  afb2188146ef7094 20-39
+infra/recruiter-dashboard/modules/iam/main.tf
+  afb2188146ef7094 1-104
+infra/recruiter-dashboard/modules/lambda/main.tf
+  afb2188146ef7094 1-40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.7",
+  "base_commit_sha": "ceffb7152ec7c689c9b6e772716654eea6d66bf7",
+  "prompts": {
+    "afb2188146ef7094": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9c983501-43a9-4304-8bc6-b81c35d5666e",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Sherard Bailey <sbailey@gobloominghealth.com>",
+      "messages": [],
+      "total_additions": 382,
+      "total_deletions": 0,
+      "accepted_lines": 382,
+      "overriden_lines": 0
+    }
+  }
+}
