@@ -1,0 +1,31 @@
+infra/recruiter-dashboard/modules/api-gateway/main.tf
+  afb2188146ef7094 1-305
+infra/recruiter-dashboard/outputs.tf
+  afb2188146ef7094 40-44
+infra/recruiter-dashboard/modules/api-gateway/variables.tf
+  afb2188146ef7094 1-32
+infra/recruiter-dashboard/modules/api-gateway/outputs.tf
+  afb2188146ef7094 1-14
+infra/recruiter-dashboard/main.tf
+  afb2188146ef7094 101-111
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.7",
+  "base_commit_sha": "2f063af26502b065c4bd06d50bcac7be101e156f",
+  "prompts": {
+    "afb2188146ef7094": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9c983501-43a9-4304-8bc6-b81c35d5666e",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Sherard Bailey <sbailey@gobloominghealth.com>",
+      "messages": [],
+      "total_additions": 368,
+      "total_deletions": 0,
+      "accepted_lines": 368,
+      "overriden_lines": 0
+    }
+  }
+}
