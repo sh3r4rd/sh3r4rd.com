@@ -1,0 +1,36 @@
+infra/recruiter-dashboard/modules/dynamodb/main.tf
+  d25835c796dcc11d 13-21,51-60,69-78
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.7",
+  "base_commit_sha": "1f1b287e43397352278b10d1f74ad64e77e752fc",
+  "prompts": {
+    "cb2178a63340b8e8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2ceb1d15-efe3-4540-932c-943d54adfbcf",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Sherard Bailey <sbailey@gobloominghealth.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 137,
+      "overriden_lines": 0
+    },
+    "d25835c796dcc11d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "64d2e4d0-794a-4bf3-ac2b-ddea4d0b5382",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Sherard Bailey <sbailey@gobloominghealth.com>",
+      "messages": [],
+      "total_additions": 29,
+      "total_deletions": 6,
+      "accepted_lines": 29,
+      "overriden_lines": 0
+    }
+  }
+}
