@@ -114,6 +114,19 @@ module "api_gateway" {
 }
 
 # ---------------------------------------------------------------------------
+# Module: SES — Email receiving
+# ---------------------------------------------------------------------------
+module "ses" {
+  source = "./modules/ses"
+
+  ses_domain                = var.ses_domain
+  ses_recipient             = var.ses_recipient
+  aws_region                = var.aws_region
+  s3_bucket_name            = module.s3.bucket_name
+  email_parser_function_arn = module.lambda_email_parser.function_arn
+}
+
+# ---------------------------------------------------------------------------
 # Module: IAM — Least-privilege roles for both Lambdas
 # ---------------------------------------------------------------------------
 module "iam" {
