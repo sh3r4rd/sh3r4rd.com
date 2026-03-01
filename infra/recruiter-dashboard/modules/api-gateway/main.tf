@@ -259,14 +259,20 @@ resource "aws_api_gateway_deployment" "api" {
       aws_api_gateway_method.recruiters_options,
       aws_api_gateway_integration.recruiters_get,
       aws_api_gateway_integration.recruiters_options,
+      aws_api_gateway_method_response.recruiters_options,
+      aws_api_gateway_integration_response.recruiters_options,
       aws_api_gateway_method.recruiters_id_get,
       aws_api_gateway_method.recruiters_id_options,
       aws_api_gateway_integration.recruiters_id_get,
       aws_api_gateway_integration.recruiters_id_options,
+      aws_api_gateway_method_response.recruiters_id_options,
+      aws_api_gateway_integration_response.recruiters_id_options,
       aws_api_gateway_method.stats_get,
       aws_api_gateway_method.stats_options,
       aws_api_gateway_integration.stats_get,
       aws_api_gateway_integration.stats_options,
+      aws_api_gateway_method_response.stats_options,
+      aws_api_gateway_integration_response.stats_options,
     ]))
   }
 
@@ -301,5 +307,5 @@ resource "aws_lambda_permission" "api_gateway" {
   action        = "lambda:InvokeFunction"
   function_name = var.api_handler_function_name
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_api_gateway_rest_api.api.execution_arn}/*/*"
+  source_arn    = "${aws_api_gateway_rest_api.api.execution_arn}/${aws_api_gateway_stage.prod.stage_name}/*"
 }
