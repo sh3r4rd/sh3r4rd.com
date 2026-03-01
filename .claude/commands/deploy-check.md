@@ -5,5 +5,6 @@ Run a pre-deployment checklist for this project. Execute each step and report th
 3. **Git status** — Run `git status` and flag any uncommitted changes or untracked files
 4. **Branch check** — Confirm the current branch is `main` (deployment only triggers on push to `main`)
 5. **Stale boilerplate** — Check that `src/App.css` and `src/assets/react.svg` are not imported anywhere in the codebase
+6. **Terraform validation** — If any files under `infra/` were modified, run `terraform -chdir=infra/recruiter-dashboard validate` and `terraform -chdir=infra/recruiter-dashboard fmt -recursive -check`
 
 Report a summary with pass/fail for each step. If any step fails, explain what needs to be fixed before deploying.

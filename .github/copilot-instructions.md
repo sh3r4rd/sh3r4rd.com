@@ -70,6 +70,15 @@ Optional body with more detail.
 
 Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `ci`
 
+## Infrastructure (Terraform)
+
+- Use `.tf` files only in `infra/` directories
+- Follow existing module pattern: `modules/<name>/main.tf`, `variables.tf`, `outputs.tf`
+- Use `snake_case` for resource names and variables
+- Add `description` to all variables and outputs
+- Use `validation` blocks for input constraints
+- Use conventional commits with `(infra)` scope for infrastructure changes (e.g., `feat(infra): add SES module`)
+
 ## Boundaries
 
 **Never:**
@@ -83,3 +92,4 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `ci`
 - Creating new routes in `App.jsx`
 - Modifying the deployment workflow (`.github/workflows/deploy.yml`)
 - Changing the API endpoint or payload structure
+- Modifying Terraform modules or adding new cloud resources
