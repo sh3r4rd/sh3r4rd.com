@@ -6,6 +6,10 @@ terraform {
       source  = "hashicorp/aws"
       version = ">= 5.31.0"
     }
+    archive = {
+      source  = "hashicorp/archive"
+      version = ">= 2.4.0"
+    }
   }
 
   # Local state for single-developer project.
@@ -49,4 +53,67 @@ module "dynamodb" {
   source = "./modules/dynamodb"
 
   table_name = var.dynamodb_table_name
+}
+
+# ---------------------------------------------------------------------------
+# Module: Lambda — Email Parser
+# ---------------------------------------------------------------------------
+module "lambda_email_parser" {
+  source = "./modules/lambda"
+
+  function_name                  = "${var.project_name}-email-parser"
+  description                    = "Parses forwarded recruiter emails from S3 and stores data in DynamoDB"
+  source_dir                     = "${path.module}/lambda-src/email-parser"
+  handler                        = "bootstrap"
+  role_arn                       = module.iam.email_parser_role_arn
+  memory_size                    = 128
+  timeout                        = 30
+  reserved_concurrent_executions = 2
+  log_retention_days             = var.log_retention_days
+
+  environment_variables = {
+    RECRUITER_TABLE = module.dynamodb.table_name
+    S3_BUCKET       = module.s3.bucket_name
+  }
+}
+
+# ---------------------------------------------------------------------------
+# Module: Lambda — API Handler
+# ---------------------------------------------------------------------------
+module "lambda_api_handler" {
+  source = "./modules/lambda"
+
+  function_name                  = "${var.project_name}-api-handler"
+  description                    = "Serves the recruiter dashboard REST API with anonymized responses"
+  source_dir                     = "${path.module}/lambda-src/api-handler"
+  handler                        = "bootstrap"
+  role_arn                       = module.iam.api_handler_role_arn
+  memory_size                    = 128
+  timeout                        = 10
+  reserved_concurrent_executions = 5
+  log_retention_days             = var.log_retention_days
+
+  environment_variables = {
+    RECRUITER_TABLE    = module.dynamodb.table_name
+    CORS_ALLOW_ORIGIN  = var.cors_allowed_origin
+    COMPANY_INDEX_NAME = "recruiter-index"
+    DATE_INDEX_NAME    = "date-index"
+  }
+}
+
+# ---------------------------------------------------------------------------
+# Module: IAM — Least-privilege roles for both Lambdas
+# ---------------------------------------------------------------------------
+module "iam" {
+  source = "./modules/iam"
+
+  project_name       = var.project_name
+  s3_bucket_arn      = module.s3.bucket_arn
+  dynamodb_table_arn = module.dynamodb.table_arn
+  dynamodb_gsi_arns = [
+    module.dynamodb.recruiter_index_arn,
+    module.dynamodb.date_index_arn,
+  ]
+  email_parser_function_name = "${var.project_name}-email-parser"
+  api_handler_function_name  = "${var.project_name}-api-handler"
 }
