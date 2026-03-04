@@ -23,5 +23,9 @@ dist-ssr
 *.sln
 *.sw?
 
+# Go build artifacts
+infra/recruiter-dashboard/lambda-src/email-parser/email-parser
+infra/recruiter-dashboard/lambda-src/email-parser/bootstrap
+
 # Claude Code
 .claude/settings.local.json
