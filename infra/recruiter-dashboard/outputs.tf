@@ -43,17 +43,7 @@ output "api_endpoint" {
   value       = module.api_gateway.api_endpoint
 }
 
-output "ses_domain_verification_token" {
-  description = "TXT record value for SES domain verification."
-  value       = module.ses.domain_verification_token
-}
-
-output "ses_dkim_tokens" {
-  description = "DKIM CNAME record tokens for email signing."
-  value       = module.ses.dkim_tokens
-}
-
-output "ses_mx_record" {
-  description = "MX record value to route inbound email to SES."
-  value       = module.ses.mx_record
+output "ses_domain_verification_status" {
+  description = "SES domain verification status (domain name when verified)."
+  value       = module.ses.domain_verification_status
 }

@@ -122,6 +122,7 @@ module "ses" {
   ses_domain                = var.ses_domain
   ses_recipient             = var.ses_recipient
   aws_region                = var.aws_region
+  hosted_zone_id            = var.hosted_zone_id
   s3_bucket_name            = module.s3.bucket_name
   email_parser_function_arn = module.lambda_email_parser.function_arn
 }

@@ -84,6 +84,16 @@ variable "s3_lifecycle_expiration_days" {
   default     = 30
 }
 
+variable "hosted_zone_id" {
+  description = "Route53 hosted zone ID for SES DNS record creation."
+  type        = string
+
+  validation {
+    condition     = can(regex("^Z[A-Z0-9]+$", var.hosted_zone_id))
+    error_message = "Must be a valid Route53 hosted zone ID (starts with Z, alphanumeric)."
+  }
+}
+
 variable "default_tags" {
   description = "Default tags applied to all resources."
   type        = map(string)
