@@ -1,0 +1,35 @@
+infra/recruiter-dashboard/outputs.tf
+  b787087e2957bc22 46-48
+infra/recruiter-dashboard/modules/ses/variables.tf
+  b787087e2957bc22 26-30
+infra/recruiter-dashboard/main.tf
+  b787087e2957bc22 125
+infra/recruiter-dashboard/modules/ses/outputs.tf
+  b787087e2957bc22 20-24
+infra/recruiter-dashboard/terraform.tfvars.example
+  b787087e2957bc22 30-32
+infra/recruiter-dashboard/modules/ses/main.tf
+  b787087e2957bc22 14-47
+infra/recruiter-dashboard/variables.tf
+  b787087e2957bc22 87-96
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.7",
+  "base_commit_sha": "0b5cfeb6acf1eb0ba6938fdab749a3abebf85e7a",
+  "prompts": {
+    "b787087e2957bc22": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8d9de7ec-5b28-40eb-92d0-647c8c33fcd9",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Sherard Bailey <sbailey@gobloominghealth.com>",
+      "messages": [],
+      "total_additions": 62,
+      "total_deletions": 13,
+      "accepted_lines": 62,
+      "overriden_lines": 0
+    }
+  }
+}
