@@ -1,0 +1,47 @@
+infra/recruiter-dashboard/lambda-src/email-parser/internal/ssm/ssm_test.go
+  876ed226d0470a0a 1-129
+infra/recruiter-dashboard/lambda-src/email-parser/internal/sanitizer/sanitizer_test.go
+  876ed226d0470a0a 1-375
+infra/recruiter-dashboard/lambda-src/email-parser/testdata/html_xss.eml
+  876ed226d0470a0a 1-25
+infra/recruiter-dashboard/lambda-src/email-parser/internal/parser/parser_test.go
+  876ed226d0470a0a 1-409
+infra/recruiter-dashboard/lambda-src/email-parser/testdata/gmail_forward.eml
+  876ed226d0470a0a 1-26
+infra/recruiter-dashboard/lambda-src/email-parser/internal/db/db_test.go
+  876ed226d0470a0a 1-129
+infra/recruiter-dashboard/lambda-src/email-parser/testdata/direct_email.eml
+  876ed226d0470a0a 1-21
+infra/recruiter-dashboard/lambda-src/email-parser/internal/extractor/extractor_test.go
+  876ed226d0470a0a 1-186
+infra/recruiter-dashboard/lambda-src/email-parser/internal/tagger/tagger_test.go
+  876ed226d0470a0a 1-142
+infra/recruiter-dashboard/lambda-src/email-parser/testdata/apple_mail_forward.eml
+  876ed226d0470a0a 1-29
+infra/recruiter-dashboard/lambda-src/email-parser/testdata/ses_event.json
+  876ed226d0470a0a 1-42
+infra/recruiter-dashboard/lambda-src/email-parser/internal/handler/handler_test.go
+  876ed226d0470a0a 1-522
+infra/recruiter-dashboard/lambda-src/email-parser/testdata/outlook_forward.eml
+  876ed226d0470a0a 1-25
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.7",
+  "base_commit_sha": "d04a0f2edaa407f482c0a2f85b5758b99487bea4",
+  "prompts": {
+    "876ed226d0470a0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "134236d8-ac35-47b1-9f0d-47e858afe9bf",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Sherard Bailey <sbailey@gobloominghealth.com>",
+      "messages": [],
+      "total_additions": 2091,
+      "total_deletions": 31,
+      "accepted_lines": 2060,
+      "overriden_lines": 0
+    }
+  }
+}
