@@ -27,3 +27,13 @@ variable "api_handler_function_name" {
   description = "Name of the API handler Lambda function (used to construct log group ARN)."
   type        = string
 }
+
+variable "ssm_openai_key_name" {
+  description = "SSM Parameter Store path for the OpenAI API key (used to scope IAM permissions)."
+  type        = string
+
+  validation {
+    condition     = startswith(var.ssm_openai_key_name, "/")
+    error_message = "SSM parameter name must begin with a leading slash (e.g. /recruiter-dashboard/openai-api-key)."
+  }
+}

@@ -58,6 +58,29 @@ resource "aws_cloudwatch_metric_alarm" "email_loop_detection" {
 }
 
 # ---------------------------------------------------------------------------
+# CloudWatch Alarm — Email parse failures (custom metric)
+# ---------------------------------------------------------------------------
+resource "aws_cloudwatch_metric_alarm" "email_parse_failures" {
+  alarm_name          = "${var.project_name}-email-parse-failures"
+  alarm_description   = "Triggers when email parser has more than 3 parse failures in 1 hour"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "ParseFailures"
+  namespace           = "RecruiterDashboard"
+  period              = 3600
+  statistic           = "Sum"
+  threshold           = 3
+  treat_missing_data  = "notBreaching"
+
+  dimensions = {
+    FunctionName = var.email_parser_function_name
+  }
+
+  alarm_actions = [aws_sns_topic.alerts.arn]
+  ok_actions    = [aws_sns_topic.alerts.arn]
+}
+
+# ---------------------------------------------------------------------------
 # CloudWatch Alarm — API handler errors
 # ---------------------------------------------------------------------------
 resource "aws_cloudwatch_metric_alarm" "api_handler_errors" {

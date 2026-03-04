@@ -41,6 +41,13 @@ data "aws_iam_policy_document" "email_parser" {
     ]
   }
 
+  # S3: Tag raw email objects with parse results
+  statement {
+    sid       = "S3TagRawEmails"
+    actions   = ["s3:PutObjectTagging"]
+    resources = ["${var.s3_bucket_arn}/incoming/*"]
+  }
+
   # DynamoDB: Write parsed data only
   statement {
     sid = "DynamoDBWriteParsedData"
@@ -49,6 +56,13 @@ data "aws_iam_policy_document" "email_parser" {
       "dynamodb:UpdateItem",
     ]
     resources = [var.dynamodb_table_arn]
+  }
+
+  # SSM: Read OpenAI API key
+  statement {
+    sid       = "SSMGetOpenAIKey"
+    actions   = ["ssm:GetParameter"]
+    resources = ["arn:aws:ssm:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:parameter${var.ssm_openai_key_name}"]
   }
 
   # CloudWatch Logs
