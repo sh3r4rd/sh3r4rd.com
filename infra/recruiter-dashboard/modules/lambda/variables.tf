@@ -15,7 +15,7 @@ variable "source_dir" {
 }
 
 variable "handler" {
-  description = "Lambda function handler (e.g., 'email_parser.handler.lambda_handler')."
+  description = "Lambda function handler (e.g., 'bootstrap')."
   type        = string
 }
 
