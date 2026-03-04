@@ -1,0 +1,42 @@
+{
+  "Records": [
+    {
+      "eventVersion": "1.0",
+      "ses": {
+        "mail": {
+          "timestamp": "2026-03-03T15:30:00.000Z",
+          "source": "user@sh3r4rd.com",
+          "messageId": "test-message-id-001",
+          "destination": ["recruiters@inbox.sh3r4rd.com"],
+          "headersTruncated": false,
+          "headers": [
+            {"name": "From", "value": "user@sh3r4rd.com"},
+            {"name": "To", "value": "recruiters@inbox.sh3r4rd.com"},
+            {"name": "Subject", "value": "Fwd: Senior Engineer at TestCorp"}
+          ],
+          "commonHeaders": {
+            "from": ["user@sh3r4rd.com"],
+            "to": ["recruiters@inbox.sh3r4rd.com"],
+            "subject": "Fwd: Senior Engineer at TestCorp"
+          }
+        },
+        "receipt": {
+          "timestamp": "2026-03-03T15:30:00.000Z",
+          "processingTimeMillis": 500,
+          "recipients": ["recruiters@inbox.sh3r4rd.com"],
+          "spamVerdict": {"status": "PASS"},
+          "virusVerdict": {"status": "PASS"},
+          "spfVerdict": {"status": "PASS"},
+          "dkimVerdict": {"status": "PASS"},
+          "dmarcVerdict": {"status": "PASS"},
+          "action": {
+            "type": "Lambda",
+            "functionArn": "arn:aws:lambda:us-east-1:123456789012:function:recruiter-dashboard-email-parser",
+            "invocationType": "Event"
+          }
+        }
+      },
+      "eventSource": "aws:ses"
+    }
+  ]
+}
