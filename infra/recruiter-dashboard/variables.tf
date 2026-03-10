@@ -94,6 +94,17 @@ variable "hosted_zone_id" {
   }
 }
 
+variable "ssm_openai_key_name" {
+  description = "SSM Parameter Store path for the OpenAI API key (SecureString)."
+  type        = string
+  default     = "/recruiter-dashboard/openai-api-key"
+
+  validation {
+    condition     = startswith(var.ssm_openai_key_name, "/")
+    error_message = "SSM parameter name must begin with a leading slash (e.g. /recruiter-dashboard/openai-api-key)."
+  }
+}
+
 variable "default_tags" {
   description = "Default tags applied to all resources."
   type        = map(string)

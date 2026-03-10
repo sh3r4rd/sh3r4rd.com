@@ -72,8 +72,10 @@ module "lambda_email_parser" {
   log_retention_days             = var.log_retention_days
 
   environment_variables = {
-    RECRUITER_TABLE = module.dynamodb.table_name
-    S3_BUCKET       = module.s3.bucket_name
+    RECRUITER_TABLE     = module.dynamodb.table_name
+    EMAIL_BUCKET        = module.s3.bucket_name
+    S3_KEY_PREFIX       = "incoming"
+    SSM_OPENAI_KEY_NAME = var.ssm_openai_key_name
   }
 }
 
@@ -142,6 +144,7 @@ module "iam" {
   ]
   email_parser_function_name = "${var.project_name}-email-parser"
   api_handler_function_name  = "${var.project_name}-api-handler"
+  ssm_openai_key_name        = var.ssm_openai_key_name
 }
 
 # ---------------------------------------------------------------------------
