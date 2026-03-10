@@ -17,3 +17,8 @@ output "ses_domain" {
   description = "The SES domain name."
   value       = aws_ses_domain_identity.this.domain
 }
+
+output "domain_verification_status" {
+  description = "SES domain verification status."
+  value       = aws_ses_domain_identity_verification.this.id
+}

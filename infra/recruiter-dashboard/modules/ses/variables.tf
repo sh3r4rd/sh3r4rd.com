@@ -23,6 +23,11 @@ variable "email_parser_function_arn" {
   type        = string
 }
 
+variable "hosted_zone_id" {
+  description = "Route53 hosted zone ID for DNS record creation."
+  type        = string
+}
+
 variable "s3_key_prefix" {
   description = "S3 key prefix for stored emails."
   type        = string

@@ -27,3 +27,6 @@ log_retention_days = 7
 
 # S3 lifecycle expiration in days for raw emails
 s3_lifecycle_expiration_days = 30
+
+# Route53 hosted zone ID for SES DNS records
+hosted_zone_id = "Z0123456789ABCDEFGHIJ"
