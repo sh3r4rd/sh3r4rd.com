@@ -28,5 +28,8 @@ log_retention_days = 7
 # S3 lifecycle expiration in days for raw emails
 s3_lifecycle_expiration_days = 30
 
+# SSM Parameter Store path for the OpenAI API key (SecureString)
+ssm_openai_key_name = "/recruiter-dashboard/openai-api-key"
+
 # Route53 hosted zone ID for SES DNS records
 hosted_zone_id = "Z0123456789ABCDEFGHIJ"

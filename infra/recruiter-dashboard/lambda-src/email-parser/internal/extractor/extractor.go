@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	modelName   = "gpt-4.1-nano"
+	modelName   = "gpt-5-nano"
 	maxRetries  = 3
 	baseBackoff = 500 * time.Millisecond
 )
@@ -23,7 +23,8 @@ const (
 var systemPrompt = `You are a data extraction assistant. Extract the following fields from the recruiter email body text provided. If a field cannot be determined, use "Unknown". Set confidence between 0.0 and 1.0 based on how certain you are about the extraction accuracy.
 
 Extract:
-- recruiter_name: The full name of the recruiter who sent the email
+- recruiter_first_name: The first name of the recruiter who sent the email
+- recruiter_last_name: The last name of the recruiter who sent the email
 - recruiter_email: The email address of the recruiter
 - company: The company the recruiter works for or is recruiting for
 - job_title: The job title or position being discussed
@@ -34,14 +35,15 @@ Extract:
 var extractionSchema = map[string]any{
 	"type": "object",
 	"properties": map[string]any{
-		"recruiter_name":  map[string]any{"type": "string"},
-		"recruiter_email": map[string]any{"type": "string"},
+		"recruiter_first_name": map[string]any{"type": "string"},
+		"recruiter_last_name":  map[string]any{"type": "string"},
+		"recruiter_email":      map[string]any{"type": "string"},
 		"company":         map[string]any{"type": "string"},
 		"job_title":       map[string]any{"type": "string"},
 		"phone":           map[string]any{"type": "string"},
 		"confidence":      map[string]any{"type": "number"},
 	},
-	"required":             []string{"recruiter_name", "recruiter_email", "company", "job_title", "phone", "confidence"},
+	"required":             []string{"recruiter_first_name", "recruiter_last_name", "recruiter_email", "company", "job_title", "phone", "confidence"},
 	"additionalProperties": false,
 }
 
@@ -87,34 +89,43 @@ func (e *Extractor) Extract(ctx context.Context, emailBody string) models.Extrac
 		},
 	}
 
+retry:
 	for attempt := range maxRetries {
 		completion, err := e.client.New(ctx, params)
 		if err != nil {
 			log.Printf("OpenAI API attempt %d/%d failed: %v", attempt+1, maxRetries, err)
-			sleepBackoff(attempt)
+			sleepBackoff(ctx, attempt)
 			continue
 		}
 
 		if len(completion.Choices) == 0 {
 			log.Printf("OpenAI API attempt %d/%d: no choices returned", attempt+1, maxRetries)
-			sleepBackoff(attempt)
+			sleepBackoff(ctx, attempt)
 			continue
 		}
 
 		choice := completion.Choices[0]
 
-		// Check for non-retryable finish reasons
+		// Handle finish reasons: "stop" and empty are success, "length" is
+		// retryable (output truncated), everything else is non-retryable.
 		finishReason := string(choice.FinishReason)
-		if finishReason != "" && finishReason != "stop" {
+		switch finishReason {
+		case "", "stop":
+			// Proceed with parsing the response.
+		case "length":
+			log.Printf("OpenAI API attempt %d/%d: finish_reason %q, retrying", attempt+1, maxRetries, finishReason)
+			sleepBackoff(ctx, attempt)
+			continue
+		default:
 			log.Printf("OpenAI API attempt %d/%d: non-retryable finish_reason %q", attempt+1, maxRetries, finishReason)
-			break
+			break retry
 		}
 
 		content := choice.Message.Content
 		var result models.ExtractionResult
 		if err := json.Unmarshal([]byte(content), &result); err != nil {
 			log.Printf("OpenAI API attempt %d/%d: failed to parse response: %v", attempt+1, maxRetries, err)
-			sleepBackoff(attempt)
+			sleepBackoff(ctx, attempt)
 			continue
 		}
 
@@ -126,13 +137,21 @@ func (e *Extractor) Extract(ctx context.Context, emailBody string) models.Extrac
 }
 
 // sleepBackoff applies exponential backoff with jitter before the next retry attempt.
-func sleepBackoff(attempt int) {
+// Returns early if the context is cancelled or its deadline expires.
+func sleepBackoff(ctx context.Context, attempt int) {
 	if attempt >= maxRetries-1 {
 		return // No sleep after last attempt
 	}
 	backoff := time.Duration(math.Pow(2, float64(attempt))) * baseBackoff
 	jitter := time.Duration(rand.Int64N(int64(backoff / 2)))
-	time.Sleep(backoff + jitter)
+	timer := time.NewTimer(backoff + jitter)
+	defer timer.Stop()
+	select {
+	case <-ctx.Done():
+		return
+	case <-timer.C:
+		return
+	}
 }
 
 // ExtractWithKey creates a temporary OpenAI client with the given API key and extracts data.
