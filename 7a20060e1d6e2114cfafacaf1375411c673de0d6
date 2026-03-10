@@ -1,0 +1,25 @@
+infra/recruiter-dashboard/lambda-src/email-parser/internal/extractor/extractor.go
+  8bf9da80c35a865b 18,26-27,38-39,46,92,97,103,109-110,112-119,121,128,140-141,147-154
+infra/recruiter-dashboard/terraform.tfvars.example
+  8bf9da80c35a865b 31-33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.9",
+  "base_commit_sha": "7a20060e1d6e2114cfafacaf1375411c673de0d6",
+  "prompts": {
+    "8bf9da80c35a865b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e280eefa-cbe3-4934-832d-f02e3452d266",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Sherard Bailey <sbailey@gobloominghealth.com>",
+      "messages": [],
+      "total_additions": 35,
+      "total_deletions": 13,
+      "accepted_lines": 34,
+      "overriden_lines": 0
+    }
+  }
+}
