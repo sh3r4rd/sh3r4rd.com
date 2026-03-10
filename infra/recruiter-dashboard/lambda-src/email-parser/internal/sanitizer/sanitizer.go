@@ -15,8 +15,8 @@ var (
 	whitespaceRe = regexp.MustCompile(`\s{2,}`)
 	blankLinesRe = regexp.MustCompile(`\n{3,}`)
 
-	// Phone patterns: US formats, international with +, extensions
-	phoneRe = regexp.MustCompile(`(?:(?:\+?1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}(?:\s*(?:ext|x|ext\.)\s*\d{1,5})?)`)
+	// Phone patterns: US formats with required area code, international with +, extensions
+	phoneRe = regexp.MustCompile(`(?:\b(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}(?:\s*(?:ext|x|ext\.)\s*\d{1,5})?\b)`)
 
 	// Email address pattern
 	emailRe = regexp.MustCompile(`[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}`)
@@ -108,6 +108,12 @@ func IsValidEmail(addr string) bool {
 	if local == "" || domain == "" {
 		return false
 	}
+	// Validate local part: no whitespace or control characters
+	for _, r := range local {
+		if unicode.IsSpace(r) || unicode.IsControl(r) {
+			return false
+		}
+	}
 	if !strings.Contains(domain, ".") {
 		return false
 	}
@@ -122,6 +128,9 @@ func IsValidEmail(addr string) bool {
 
 // Truncate cuts text at the given rune limit, respecting word boundaries.
 func Truncate(text string, maxChars int) string {
+	if maxChars <= 0 {
+		return ""
+	}
 	runes := []rune(text)
 	if len(runes) <= maxChars {
 		return text

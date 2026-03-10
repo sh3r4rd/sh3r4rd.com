@@ -2,10 +2,12 @@ package parser
 
 import (
 	"bytes"
+	"encoding/base64"
 	"errors"
 	"io"
 	"mime"
 	"mime/multipart"
+	"mime/quotedprintable"
 	"net/mail"
 	"regexp"
 	"strings"
@@ -65,18 +67,25 @@ func parseRawEmailWithDepth(raw []byte, depth int) (*models.ParsedEmail, error) 
 			parsed.Date = t
 		}
 	}
-	if parsed.Date.IsZero() {
-		parsed.Date = time.Now().UTC()
-	}
+	// Leave Date as zero if missing/unparseable — caller can inject a received-at timestamp
 
 	contentType := msg.Header.Get("Content-Type")
 	if contentType == "" {
 		contentType = "text/plain"
 	}
 
-	body, err := io.ReadAll(io.LimitReader(msg.Body, maxBodyBytes))
+	body, err := io.ReadAll(io.LimitReader(msg.Body, maxBodyBytes+1))
 	if err != nil {
 		return nil, &perrors.ParseError{Op: "read_body", Err: err}
+	}
+	if len(body) > maxBodyBytes {
+		return nil, &perrors.ParseError{Op: "read_body", Err: errors.New("message body exceeds 10MB limit")}
+	}
+
+	// Decode Content-Transfer-Encoding
+	body, err = decodeTransferEncoding(body, msg.Header.Get("Content-Transfer-Encoding"))
+	if err != nil {
+		return nil, &perrors.ParseError{Op: "decode_transfer_encoding", Err: err}
 	}
 
 	mediaType, params, err := mime.ParseMediaType(contentType)
@@ -109,7 +118,7 @@ func parseRawEmailWithDepth(raw []byte, depth int) (*models.ParsedEmail, error) 
 // It also detects nested message/rfc822 parts (Outlook-style forwarded emails).
 func parseMultipart(parsed *models.ParsedEmail, body []byte, boundary string, depth int) error {
 	if boundary == "" {
-		return &perrors.ParseError{Op: "multipart", Err: io.EOF}
+		return &perrors.ParseError{Op: "multipart", Err: errors.New("missing multipart boundary in Content-Type header")}
 	}
 	if depth > maxDepth {
 		return &perrors.ParseError{Op: "multipart_depth", Err: errors.New("max MIME nesting depth exceeded")}
@@ -125,7 +134,13 @@ func parseMultipart(parsed *models.ParsedEmail, body []byte, boundary string, de
 			return &perrors.ParseError{Op: "multipart_next", Err: err}
 		}
 
-		partData, err := io.ReadAll(io.LimitReader(part, maxBodyBytes))
+		rawPartData, err := io.ReadAll(io.LimitReader(part, maxBodyBytes))
+		if err != nil {
+			continue
+		}
+
+		// Decode Content-Transfer-Encoding for this part
+		partData, err := decodeTransferEncoding(rawPartData, part.Header.Get("Content-Transfer-Encoding"))
 		if err != nil {
 			continue
 		}
@@ -150,8 +165,8 @@ func parseMultipart(parsed *models.ParsedEmail, body []byte, boundary string, de
 					parsed.Date = nested.Date
 				}
 				parsed.Body = nested.Body
-				if parsed.Body == "" {
-					parsed.Body = nested.HTMLBody
+				if parsed.Body == "" && nested.HTMLBody != "" {
+					parsed.Body = sanitizer.StripHTML(nested.HTMLBody)
 				}
 				// Prepend pseudo-headers for extraction
 				var sb strings.Builder
@@ -251,4 +266,25 @@ func parseFlexibleDate(dateStr string) (time.Time, error) {
 
 	// Try mail.ParseDate as a last resort
 	return mail.ParseDate(dateStr)
+}
+
+// decodeTransferEncoding decodes body bytes based on the Content-Transfer-Encoding header.
+func decodeTransferEncoding(data []byte, encoding string) ([]byte, error) {
+	switch strings.ToLower(strings.TrimSpace(encoding)) {
+	case "base64":
+		decoded, err := io.ReadAll(base64.NewDecoder(base64.StdEncoding, bytes.NewReader(data)))
+		if err != nil {
+			return nil, err
+		}
+		return decoded, nil
+	case "quoted-printable":
+		decoded, err := io.ReadAll(quotedprintable.NewReader(bytes.NewReader(data)))
+		if err != nil {
+			return nil, err
+		}
+		return decoded, nil
+	default:
+		// 7bit, 8bit, binary, or missing — no decoding needed
+		return data, nil
+	}
 }
