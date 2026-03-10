@@ -1,0 +1,41 @@
+infra/recruiter-dashboard/lambda-src/email-parser/internal/db/db.go
+  876ed226d0470a0a 1-61
+infra/recruiter-dashboard/lambda-src/email-parser/cmd/handler/main.go
+  876ed226d0470a0a 5-6,10-18,21-44,46-47,51
+infra/recruiter-dashboard/lambda-src/email-parser/internal/handler/handler.go
+  876ed226d0470a0a 1-139,146-157,161-235
+  cb41a2794151585e 140-144,158-160
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.9",
+  "base_commit_sha": "62bb8f7b790072e43694ac0d2e2e191fc747f895",
+  "prompts": {
+    "876ed226d0470a0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "134236d8-ac35-47b1-9f0d-47e858afe9bf",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Sherard Bailey <sbailey@gobloominghealth.com>",
+      "messages": [],
+      "total_additions": 601,
+      "total_deletions": 30,
+      "accepted_lines": 325,
+      "overriden_lines": 0
+    },
+    "cb41a2794151585e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0f636d74-2a1f-4ab1-aee1-625cd02da936",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": null,
+      "messages": [],
+      "total_additions": 20,
+      "total_deletions": 16,
+      "accepted_lines": 8,
+      "overriden_lines": 0
+    }
+  }
+}
