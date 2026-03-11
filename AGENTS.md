@@ -5,7 +5,7 @@ This file provides repository-specific guidance to Codex CLI when working in thi
 ## Scope
 
 - Keep this file Codex-specific. Do not treat it as the source of truth for Claude Code or Copilot.
-- Preserve existing guidance in [CLAUDE.md](/Users/sherardbailey/Code/sh3r4rd.com/CLAUDE.md) and [.github/copilot-instructions.md](/Users/sherardbailey/Code/sh3r4rd.com/.github/copilot-instructions.md).
+- Preserve existing guidance in [CLAUDE.md](CLAUDE.md) and [.github/copilot-instructions.md](.github/copilot-instructions.md).
 
 ## Project Overview
 

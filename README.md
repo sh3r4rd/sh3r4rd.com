@@ -43,8 +43,8 @@ This repository uses [conventional commits](https://www.conventionalcommits.org/
 
 This repository includes tool-specific instructions for multiple coding assistants:
 
-- Claude Code reads [CLAUDE.md](/Users/sherardbailey/Code/sh3r4rd.com/CLAUDE.md)
-- Codex CLI reads [AGENTS.md](/Users/sherardbailey/Code/sh3r4rd.com/AGENTS.md)
-- GitHub Copilot reads [.github/copilot-instructions.md](/Users/sherardbailey/Code/sh3r4rd.com/.github/copilot-instructions.md) and any scoped instructions under [.github/instructions/](/Users/sherardbailey/Code/sh3r4rd.com/.github/instructions)
+- Claude Code reads [CLAUDE.md](CLAUDE.md)
+- Codex CLI reads [AGENTS.md](AGENTS.md)
+- GitHub Copilot reads [.github/copilot-instructions.md](.github/copilot-instructions.md) and any scoped instructions under [.github/instructions/](.github/instructions/)
 
-Developers using Codex should start with [docs/codex.md](/Users/sherardbailey/Code/sh3r4rd.com/docs/codex.md) for installation, ChatGPT sign-in, repository workflow, and validation expectations.
+Developers using Codex should start with [docs/codex.md](docs/codex.md) for installation, ChatGPT sign-in, repository workflow, and validation expectations.

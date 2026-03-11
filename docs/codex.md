@@ -33,7 +33,7 @@ From the repository root:
 codex
 ```
 
-Codex will automatically read repository guidance from [AGENTS.md](/Users/sherardbailey/Code/sh3r4rd.com/AGENTS.md). That file is intentionally Codex-specific. If you are using Claude Code or Copilot, use their own instruction files instead.
+Codex will automatically read repository guidance from [AGENTS.md](../AGENTS.md). That file is intentionally Codex-specific. If you are using Claude Code or Copilot, use their own instruction files instead.
 
 ## Recommended Workflow
 
@@ -89,6 +89,6 @@ Read approval prompts carefully and grant them only when the action matches the 
 
 ## Related Files
 
-- Codex instructions: [AGENTS.md](/Users/sherardbailey/Code/sh3r4rd.com/AGENTS.md)
-- Claude Code instructions: [CLAUDE.md](/Users/sherardbailey/Code/sh3r4rd.com/CLAUDE.md)
-- Copilot instructions: [.github/copilot-instructions.md](/Users/sherardbailey/Code/sh3r4rd.com/.github/copilot-instructions.md)
+- Codex instructions: [AGENTS.md](../AGENTS.md)
+- Claude Code instructions: [CLAUDE.md](../CLAUDE.md)
+- Copilot instructions: [.github/copilot-instructions.md](../.github/copilot-instructions.md)
