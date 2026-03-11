@@ -38,3 +38,13 @@ This requires AWS CLI to be configured locally.
 ## Conventional Commits
 
 This repository uses [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) to describe commits and add automated tooling.
+
+## AI Tooling
+
+This repository includes tool-specific instructions for multiple coding assistants:
+
+- Claude Code reads [CLAUDE.md](/Users/sherardbailey/Code/sh3r4rd.com/CLAUDE.md)
+- Codex CLI reads [AGENTS.md](/Users/sherardbailey/Code/sh3r4rd.com/AGENTS.md)
+- GitHub Copilot reads [.github/copilot-instructions.md](/Users/sherardbailey/Code/sh3r4rd.com/.github/copilot-instructions.md) and any scoped instructions under [.github/instructions/](/Users/sherardbailey/Code/sh3r4rd.com/.github/instructions)
+
+Developers using Codex should start with [docs/codex.md](/Users/sherardbailey/Code/sh3r4rd.com/docs/codex.md) for installation, ChatGPT sign-in, repository workflow, and validation expectations.
