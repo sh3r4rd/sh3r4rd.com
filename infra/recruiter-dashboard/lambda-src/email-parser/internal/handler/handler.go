@@ -69,6 +69,26 @@ func (h *Handler) HandleSESEvent(ctx context.Context, event events.SimpleEmailEv
 	keyPrefix := os.Getenv("S3_KEY_PREFIX")
 	ssmKeyName := os.Getenv("SSM_OPENAI_KEY_NAME")
 
+	// Validate required environment variables
+	if bucket == "" {
+		err := fmt.Errorf("required environment variable EMAIL_BUCKET is not set or empty")
+		log.Printf("ERROR: %v", err)
+		summary.Failed = summary.Total
+		return summary, err
+	}
+	if keyPrefix == "" {
+		err := fmt.Errorf("required environment variable S3_KEY_PREFIX is not set or empty")
+		log.Printf("ERROR: %v", err)
+		summary.Failed = summary.Total
+		return summary, err
+	}
+	if ssmKeyName == "" {
+		err := fmt.Errorf("required environment variable SSM_OPENAI_KEY_NAME is not set or empty")
+		log.Printf("ERROR: %v", err)
+		summary.Failed = summary.Total
+		return summary, err
+	}
+
 	// Lazily initialize the extractor on first invocation (or cold start)
 	if h.extractor == nil {
 		apiKey, err := h.ssmFetcher.GetSecureParameter(ctx, ssmKeyName)
@@ -106,8 +126,9 @@ func (h *Handler) processRecord(ctx context.Context, record events.SimpleEmailRe
 		return
 	}
 
-	// Derive S3 key
-	s3Key := keyPrefix + "/" + messageID
+	// Derive S3 key with normalized prefix to avoid double slashes
+	normalizedPrefix := strings.TrimSuffix(keyPrefix, "/")
+	s3Key := normalizedPrefix + "/" + messageID
 
 	// Fetch raw email from S3
 	rawEmail, err := h.fetchEmail(ctx, bucket, s3Key)
@@ -152,9 +173,13 @@ func (h *Handler) processRecord(ctx context.Context, record events.SimpleEmailRe
 
 	// Build the RecruiterEmail model
 	now := time.Now().UTC()
+	receivedAt := parsed.Date
+	if receivedAt.IsZero() {
+		receivedAt = now
+	}
 	email := &models.RecruiterEmail{
 		ID:         messageID,
-		ReceivedAt: parsed.Date,
+		ReceivedAt: receivedAt,
 		FirstName:  extraction.RecruiterFirstName,
 		LastName:   extraction.RecruiterLastName,
 		Email:      extraction.RecruiterEmail,
@@ -166,25 +191,26 @@ func (h *Handler) processRecord(ctx context.Context, record events.SimpleEmailRe
 		S3Bucket:   bucket,
 		S3Key:      s3Key,
 		DedupKey:   models.GenerateDedupKey(extraction.RecruiterEmail, extraction.JobTitle),
-		DateYear:   now.Format("2006"),
-		DateDay:    now.Format("2006-01-02"),
+		DateYear:   receivedAt.Format("2006"),
+		DateDay:    receivedAt.Format("2006-01-02"),
 	}
 
-	// Tag S3 object with parse results
+	// Persist to DynamoDB
+	result, err := h.store.WriteRecruiterEmail(ctx, email)
+	if err != nil {
+		log.Printf("ERROR: failed to write email %s to DynamoDB: %v", messageID, err)
+		h.tagFailure(ctx, bucket, s3Key, "dynamodb_write_failed")
+		summary.Failed++
+		return
+	}
+
+	// Tag S3 object with parse results only after successful persistence
 	h.tagger.TagObject(ctx, bucket, s3Key, tagger.TagResult{
 		Status:     status,
 		Company:    extraction.Company,
 		Sender:     extraction.RecruiterEmail,
 		Confidence: extraction.Confidence,
 	})
-
-	// Persist to DynamoDB
-	result, err := h.store.WriteRecruiterEmail(ctx, email)
-	if err != nil {
-		log.Printf("ERROR: failed to write email %s to DynamoDB: %v", messageID, err)
-		summary.Failed++
-		return
-	}
 
 	if result.Duplicate {
 		summary.Duplicate++
@@ -223,7 +249,14 @@ func (h *Handler) fetchEmail(ctx context.Context, bucket, key string) ([]byte, e
 	}
 	defer output.Body.Close()
 
-	return io.ReadAll(io.LimitReader(output.Body, maxEmailBytes))
+	data, err := io.ReadAll(io.LimitReader(output.Body, maxEmailBytes+1))
+	if err != nil {
+		return nil, err
+	}
+	if len(data) > maxEmailBytes {
+		return nil, fmt.Errorf("email size exceeds maximum allowed %d bytes", maxEmailBytes)
+	}
+	return data, nil
 }
 
 // tagFailure tags an S3 object with a failed parse status.
