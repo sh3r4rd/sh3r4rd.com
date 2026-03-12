@@ -1,0 +1,81 @@
+infra/recruiter-dashboard/modules/monitoring/main.tf
+  876ed226d0470a0a 61-73
+infra/recruiter-dashboard/lambda-src/email-parser/internal/errors/errors.go
+  876ed226d0470a0a 1-59
+infra/recruiter-dashboard/lambda-src/email-parser/internal/parser/parser.go
+  876ed226d0470a0a 1-254
+infra/recruiter-dashboard/lambda-src/email-parser/internal/models/email.go
+  876ed226d0470a0a 1-69
+infra/recruiter-dashboard/lambda-src/email-parser/internal/tagger/tagger.go
+  876ed226d0470a0a 1-77
+infra/recruiter-dashboard/modules/iam/main.tf
+  876ed226d0470a0a 44-50,61-65
+infra/recruiter-dashboard/lambda-src/email-parser/internal/sanitizer/sanitizer.go
+  876ed226d0470a0a 1-144
+infra/recruiter-dashboard/variables.tf
+  876ed226d0470a0a 87-97
+infra/recruiter-dashboard/lambda-src/email-parser/internal/extractor/extractor.go
+  876ed226d0470a0a 1-143
+infra/recruiter-dashboard/modules/iam/variables.tf
+  876ed226d0470a0a 30-39
+infra/recruiter-dashboard/lambda-src/email-parser/go.mod
+  876ed226d0470a0a 1-6,9,13
+infra/recruiter-dashboard/lambda-src/email-parser/internal/models/extraction.go
+  876ed226d0470a0a 1-33
+infra/recruiter-dashboard/lambda-src/email-parser/internal/ssm/ssm.go
+  876ed226d0470a0a 1-67
+infra/recruiter-dashboard/lambda-src/email-parser/internal/db/db.go
+  876ed226d0470a0a 1-61
+infra/recruiter-dashboard/lambda-src/email-parser/internal/handler/handler.go
+  876ed226d0470a0a 1-231
+infra/recruiter-dashboard/main.tf
+  876ed226d0470a0a 76-78,146
+infra/recruiter-dashboard/lambda-src/email-parser/cmd/handler/main.go
+  876ed226d0470a0a 5-6,10-18,21-44,46-47,51
+infra/recruiter-dashboard/lambda-src/email-parser/testdata/direct_email.eml
+  876ed226d0470a0a 1-21
+infra/recruiter-dashboard/lambda-src/email-parser/testdata/gmail_forward.eml
+  876ed226d0470a0a 1-26
+infra/recruiter-dashboard/lambda-src/email-parser/internal/sanitizer/sanitizer_test.go
+  876ed226d0470a0a 1-375
+infra/recruiter-dashboard/lambda-src/email-parser/testdata/apple_mail_forward.eml
+  876ed226d0470a0a 1-29
+infra/recruiter-dashboard/lambda-src/email-parser/internal/handler/handler_test.go
+  876ed226d0470a0a 1-522
+infra/recruiter-dashboard/lambda-src/email-parser/internal/extractor/extractor_test.go
+  876ed226d0470a0a 1-186
+infra/recruiter-dashboard/lambda-src/email-parser/internal/ssm/ssm_test.go
+  876ed226d0470a0a 1-129
+infra/recruiter-dashboard/lambda-src/email-parser/internal/db/db_test.go
+  876ed226d0470a0a 1-129
+infra/recruiter-dashboard/lambda-src/email-parser/testdata/outlook_forward.eml
+  876ed226d0470a0a 1-25
+infra/recruiter-dashboard/lambda-src/email-parser/testdata/html_xss.eml
+  876ed226d0470a0a 1-25
+infra/recruiter-dashboard/lambda-src/email-parser/internal/tagger/tagger_test.go
+  876ed226d0470a0a 1-142
+infra/recruiter-dashboard/lambda-src/email-parser/internal/parser/parser_test.go
+  876ed226d0470a0a 1-409
+infra/recruiter-dashboard/lambda-src/email-parser/testdata/ses_event.json
+  876ed226d0470a0a 1-42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.10",
+  "base_commit_sha": "ab413a414df8c4d16b8476d49c85f3631de99124",
+  "prompts": {
+    "876ed226d0470a0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "134236d8-ac35-47b1-9f0d-47e858afe9bf",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Sherard Bailey <sbailey@gobloominghealth.com>",
+      "messages": [],
+      "total_additions": 601,
+      "total_deletions": 30,
+      "accepted_lines": 3294,
+      "overriden_lines": 0
+    }
+  }
+}
