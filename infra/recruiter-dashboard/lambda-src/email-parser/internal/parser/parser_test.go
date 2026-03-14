@@ -296,8 +296,8 @@ Body content.`
 		t.Fatalf("ParseRawEmail returned error: %v", err)
 	}
 
-	if parsed.Date.IsZero() {
-		t.Error("Date should default to current time, not zero")
+	if !parsed.Date.IsZero() {
+		t.Error("Date should be zero when Date header is missing")
 	}
 }
 

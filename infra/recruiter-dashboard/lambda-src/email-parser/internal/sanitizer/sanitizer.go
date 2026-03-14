@@ -16,7 +16,7 @@ var (
 	blankLinesRe = regexp.MustCompile(`\n{3,}`)
 
 	// Phone patterns: US formats with required area code, international with +, extensions
-	phoneRe = regexp.MustCompile(`(?:\b(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}(?:\s*(?:ext|x|ext\.)\s*\d{1,5})?\b)`)
+	phoneRe = regexp.MustCompile(`(?:(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}(?:\s*(?:ext|x|ext\.)\s*\d{1,5})?)`)
 
 	// Email address pattern
 	emailRe = regexp.MustCompile(`[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}`)

@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 
@@ -27,8 +28,9 @@ func newTestEmail() *models.RecruiterEmail {
 	return &models.RecruiterEmail{
 		ID:             "test-msg-001",
 		ReceivedAt:     time.Date(2026, 3, 3, 15, 30, 0, 0, time.UTC),
-		RecruiterName:  "Jane Smith",
-		RecruiterEmail: "jane@google.com",
+		FirstName: "Jane",
+		LastName:  "Smith",
+		Email:     "jane@google.com",
 		Company:        "Google",
 		JobTitle:       "Senior Engineer",
 		Phone:          "+16502530000",
@@ -61,8 +63,8 @@ func TestWriteRecruiterEmail_Success(t *testing.T) {
 	if *mock.lastInput.TableName != "test-table" {
 		t.Errorf("expected table name test-table, got %s", *mock.lastInput.TableName)
 	}
-	if *mock.lastInput.ConditionExpression != "attribute_not_exists(id)" {
-		t.Errorf("expected condition expression attribute_not_exists(id), got %s", *mock.lastInput.ConditionExpression)
+	if *mock.lastInput.ConditionExpression != "attribute_not_exists(id) AND attribute_not_exists(received_at)" {
+		t.Errorf("expected condition expression attribute_not_exists(id) AND attribute_not_exists(received_at), got %s", *mock.lastInput.ConditionExpression)
 	}
 }
 
@@ -70,7 +72,7 @@ func TestWriteRecruiterEmail_Duplicate(t *testing.T) {
 	mock := &mockDynamoDBClient{
 		putItemFn: func(ctx context.Context, params *dynamodb.PutItemInput, optFns ...func(*dynamodb.Options)) (*dynamodb.PutItemOutput, error) {
 			return nil, &types.ConditionalCheckFailedException{
-				Message: stringPtr("The conditional request failed"),
+				Message: aws.String("The conditional request failed"),
 			}
 		},
 	}
@@ -114,7 +116,7 @@ func TestWriteRecruiterEmail_ItemContainsAllFields(t *testing.T) {
 	}
 
 	item := mock.lastInput.Item
-	requiredKeys := []string{"id", "received_at", "recruiter_name", "recruiter_email", "company",
+	requiredKeys := []string{"id", "received_at", "first_name", "last_name", "email", "company",
 		"job_title", "phone", "subject", "confidence", "s3_bucket", "s3_key", "dedup_key", "date_year", "date_day"}
 
 	for _, key := range requiredKeys {
@@ -122,8 +124,4 @@ func TestWriteRecruiterEmail_ItemContainsAllFields(t *testing.T) {
 			t.Errorf("missing required DynamoDB attribute: %s", key)
 		}
 	}
-}
-
-func stringPtr(s string) *string {
-	return &s
 }

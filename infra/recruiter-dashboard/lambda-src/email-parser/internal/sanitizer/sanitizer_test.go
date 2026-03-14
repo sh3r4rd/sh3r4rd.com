@@ -288,7 +288,7 @@ func TestTruncate(t *testing.T) {
 			name:     "handles multi-byte UTF-8 Japanese characters",
 			input:    "これは日本語のテストです",
 			maxChars: 5,
-			want:     "これは日本語...",
+			want:     "これは日本...",
 		},
 		{
 			name:     "handles multi-byte UTF-8 with spaces",

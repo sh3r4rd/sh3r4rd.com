@@ -158,7 +158,7 @@ func TestHandleSESEvent_Success(t *testing.T) {
 	}()
 
 	emailBody := "From: test@test.com\r\nTo: me@test.com\r\nSubject: Test\r\nDate: Mon, 03 Mar 2026 10:00:00 +0000\r\n\r\nHello, this is a test email."
-	openAIResp := `{"recruiter_name":"Test Recruiter","recruiter_email":"test@test.com","company":"TestCorp","job_title":"Engineer","phone":"","confidence":0.9}`
+	openAIResp := `{"recruiter_first_name":"Test","recruiter_last_name":"Recruiter","recruiter_email":"test@test.com","company":"TestCorp","job_title":"Engineer","phone":"","confidence":0.9}`
 
 	h := newTestHandler(emailBody, openAIResp)
 	event := newTestSESEvent("test-msg-001")
@@ -317,7 +317,7 @@ func TestHandleSESEvent_DynamoDBWriteFailure(t *testing.T) {
 	}()
 
 	emailBody := "From: test@test.com\r\nTo: me@test.com\r\nSubject: Test\r\nDate: Mon, 03 Mar 2026 10:00:00 +0000\r\n\r\nTest body."
-	openAIResp := `{"recruiter_name":"Test","recruiter_email":"test@test.com","company":"Corp","job_title":"Eng","phone":"","confidence":0.5}`
+	openAIResp := `{"recruiter_first_name":"Test","recruiter_last_name":"User","recruiter_email":"test@test.com","company":"Corp","job_title":"Eng","phone":"","confidence":0.5}`
 
 	s3Read := &mockS3ReadClient{
 		getObjectFn: func(ctx context.Context, params *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error) {
@@ -386,7 +386,7 @@ func TestHandleSESEvent_DuplicateDetection(t *testing.T) {
 	}()
 
 	emailBody := "From: test@test.com\r\nTo: me@test.com\r\nSubject: Test\r\nDate: Mon, 03 Mar 2026 10:00:00 +0000\r\n\r\nTest body."
-	openAIResp := `{"recruiter_name":"Test","recruiter_email":"test@test.com","company":"Corp","job_title":"Eng","phone":"","confidence":0.5}`
+	openAIResp := `{"recruiter_first_name":"Test","recruiter_last_name":"User","recruiter_email":"test@test.com","company":"Corp","job_title":"Eng","phone":"","confidence":0.5}`
 
 	s3Read := &mockS3ReadClient{
 		getObjectFn: func(ctx context.Context, params *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error) {
@@ -405,7 +405,7 @@ func TestHandleSESEvent_DuplicateDetection(t *testing.T) {
 	dynamo := &mockDynamoDBClient{
 		putItemFn: func(ctx context.Context, params *dynamodb.PutItemInput, optFns ...func(*dynamodb.Options)) (*dynamodb.PutItemOutput, error) {
 			return nil, &dbtypes.ConditionalCheckFailedException{
-				Message: stringPtr("The conditional request failed"),
+				Message: aws.String("The conditional request failed"),
 			}
 		},
 	}
@@ -460,7 +460,7 @@ func TestHandleSESEvent_MultipleRecords(t *testing.T) {
 	}()
 
 	emailBody := "From: test@test.com\r\nTo: me@test.com\r\nSubject: Test\r\nDate: Mon, 03 Mar 2026 10:00:00 +0000\r\n\r\nTest body."
-	openAIResp := `{"recruiter_name":"Test","recruiter_email":"test@test.com","company":"Corp","job_title":"Eng","phone":"","confidence":0.5}`
+	openAIResp := `{"recruiter_first_name":"Test","recruiter_last_name":"User","recruiter_email":"test@test.com","company":"Corp","job_title":"Eng","phone":"","confidence":0.5}`
 
 	h := newTestHandler(emailBody, openAIResp)
 
@@ -500,7 +500,7 @@ func TestHandleSESEvent_SummaryCountsCorrect(t *testing.T) {
 	}()
 
 	emailBody := "From: test@test.com\r\nTo: me@test.com\r\nSubject: Test\r\nDate: Mon, 03 Mar 2026 10:00:00 +0000\r\n\r\nTest body."
-	openAIResp := `{"recruiter_name":"Test","recruiter_email":"test@test.com","company":"Corp","job_title":"Eng","phone":"","confidence":0.5}`
+	openAIResp := `{"recruiter_first_name":"Test","recruiter_last_name":"User","recruiter_email":"test@test.com","company":"Corp","job_title":"Eng","phone":"","confidence":0.5}`
 
 	h := newTestHandler(emailBody, openAIResp)
 	event := newTestSESEvent("summary-msg")
@@ -517,6 +517,3 @@ func TestHandleSESEvent_SummaryCountsCorrect(t *testing.T) {
 	}
 }
 
-func stringPtr(s string) *string {
-	return &s
-}
