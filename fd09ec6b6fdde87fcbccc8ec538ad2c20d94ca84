@@ -1,0 +1,29 @@
+package.json
+  98b4c1dc2e63fc87 31-33
+.github/workflows/ci.yml
+  98b4c1dc2e63fc87 1-80
+.releaserc.json
+  98b4c1dc2e63fc87 1-17
+.github/workflows/release.yml
+  98b4c1dc2e63fc87 1-36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.11",
+  "base_commit_sha": "fd09ec6b6fdde87fcbccc8ec538ad2c20d94ca84",
+  "prompts": {
+    "98b4c1dc2e63fc87": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "105fc8e0-11ca-4873-975f-1e2d652014f0",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Sherard Bailey <sbailey@gobloominghealth.com>",
+      "messages": [],
+      "total_additions": 136,
+      "total_deletions": 0,
+      "accepted_lines": 136,
+      "overriden_lines": 0
+    }
+  }
+}
