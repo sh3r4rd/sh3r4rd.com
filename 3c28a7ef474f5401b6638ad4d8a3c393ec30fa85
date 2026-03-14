@@ -1,0 +1,23 @@
+GEMINI.md
+  772f2adc5da6baaa 1-85
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.11",
+  "base_commit_sha": "3c28a7ef474f5401b6638ad4d8a3c393ec30fa85",
+  "prompts": {
+    "772f2adc5da6baaa": {
+      "agent_id": {
+        "tool": "gemini",
+        "id": "e4630351-88a2-4cf3-8fd4-f24a019ae79d",
+        "model": "gemini-2.5-pro"
+      },
+      "human_author": "Sherard Bailey <sbailey@gobloominghealth.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 85,
+      "overriden_lines": 0
+    }
+  }
+}
