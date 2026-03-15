@@ -1,0 +1,21 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.11",
+  "base_commit_sha": "5c70c030a35c3d8f18fe2a01a92b582852210cb8",
+  "prompts": {
+    "3510e181bcf48e3d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "deb64915-dd0b-49dc-b795-385453348fde",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Sherard Bailey <sbailey@gobloominghealth.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 3,
+      "accepted_lines": 0,
+      "overriden_lines": 0
+    }
+  }
+}
