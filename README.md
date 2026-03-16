@@ -84,5 +84,3 @@ This repository includes tool-specific instructions for multiple coding assistan
 - Gemini reads [GEMINI.md](GEMINI.md)
 - Codex CLI reads [AGENTS.md](AGENTS.md)
 - GitHub Copilot reads [.github/copilot-instructions.md](.github/copilot-instructions.md) and any scoped instructions under [.github/instructions/](.github/instructions/)
-
-Developers using Codex should start with [docs/codex.md](docs/codex.md) for installation, ChatGPT sign-in, repository workflow, and validation expectations.
