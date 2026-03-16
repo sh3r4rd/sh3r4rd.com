@@ -1,0 +1,25 @@
+AGENTS.md
+  87025ae7bd3b64a3 183-186
+Makefile
+  87025ae7bd3b64a3 43,60
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.12",
+  "base_commit_sha": "efe0a7c04f7e26b559b02cf6c72b7faaeab2779f",
+  "prompts": {
+    "87025ae7bd3b64a3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "703a083b-cc12-4ae8-ae6c-c19737351b68",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Sherard Bailey <sbailey@gobloominghealth.com>",
+      "messages": [],
+      "total_additions": 7,
+      "total_deletions": 4,
+      "accepted_lines": 6,
+      "overriden_lines": 0
+    }
+  }
+}
