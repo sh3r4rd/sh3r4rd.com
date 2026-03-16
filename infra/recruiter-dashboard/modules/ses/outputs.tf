@@ -18,7 +18,7 @@ output "ses_domain" {
   value       = aws_ses_domain_identity.this.domain
 }
 
-output "domain_verification_status" {
-  description = "SES domain verification status."
+output "domain_verification_id" {
+  description = "The verified SES domain name (resource exists only after verification succeeds)."
   value       = aws_ses_domain_identity_verification.this.id
 }

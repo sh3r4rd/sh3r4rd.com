@@ -10,7 +10,13 @@ variable "description" {
 }
 
 variable "source_dir" {
-  description = "Path to the directory containing the Lambda source code."
+  description = "Path to the directory containing the Lambda source code (used for documentation only when package_dir is set)."
+  type        = string
+  default     = null
+}
+
+variable "package_dir" {
+  description = "Path to the directory to package into the Lambda zip. For Go lambdas, this should contain the compiled 'bootstrap' binary."
   type        = string
 }
 

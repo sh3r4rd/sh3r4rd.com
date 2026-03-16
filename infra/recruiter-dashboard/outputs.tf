@@ -43,7 +43,7 @@ output "api_endpoint" {
   value       = module.api_gateway.api_endpoint
 }
 
-output "ses_domain_verification_status" {
-  description = "SES domain verification status (domain name when verified)."
-  value       = module.ses.domain_verification_status
+output "ses_domain_verification_id" {
+  description = "The verified SES domain name (resource exists only after verification succeeds)."
+  value       = module.ses.domain_verification_id
 }

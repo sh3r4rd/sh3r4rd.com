@@ -116,7 +116,7 @@ func TestWriteRecruiterEmail_ItemContainsAllFields(t *testing.T) {
 	}
 
 	item := mock.lastInput.Item
-	requiredKeys := []string{"id", "received_at", "first_name", "last_name", "email", "company",
+	requiredKeys := []string{"id", "received_at", "first_name", "last_name", "recruiter_email", "company",
 		"job_title", "phone", "subject", "confidence", "s3_bucket", "s3_key", "dedup_key", "date_year", "date_day"}
 
 	for _, key := range requiredKeys {

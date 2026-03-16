@@ -50,7 +50,7 @@ func (r *RecruiterEmail) ToDynamoDBItem() map[string]types.AttributeValue {
 		"received_at": &types.AttributeValueMemberS{Value: r.ReceivedAt.Format(time.RFC3339)},
 		"first_name":  &types.AttributeValueMemberS{Value: r.FirstName},
 		"last_name":   &types.AttributeValueMemberS{Value: r.LastName},
-		"email":       &types.AttributeValueMemberS{Value: r.Email},
+		"recruiter_email": &types.AttributeValueMemberS{Value: r.Email},
 		"company":     &types.AttributeValueMemberS{Value: r.Company},
 		"job_title":   &types.AttributeValueMemberS{Value: r.JobTitle},
 		"phone":       &types.AttributeValueMemberS{Value: r.Phone},

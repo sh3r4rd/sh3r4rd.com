@@ -34,6 +34,10 @@ provider "aws" {
 
 data "aws_caller_identity" "current" {}
 
+locals {
+  s3_key_prefix = "incoming"
+}
+
 # ---------------------------------------------------------------------------
 # Module: S3 — Raw email storage
 # ---------------------------------------------------------------------------
@@ -64,6 +68,7 @@ module "lambda_email_parser" {
   function_name                  = "${var.project_name}-email-parser"
   description                    = "Parses forwarded recruiter emails from S3 and stores data in DynamoDB"
   source_dir                     = "${path.module}/lambda-src/email-parser"
+  package_dir                    = "${path.module}/.build/email-parser"
   handler                        = "bootstrap"
   role_arn                       = module.iam.email_parser_role_arn
   memory_size                    = 128
@@ -74,7 +79,7 @@ module "lambda_email_parser" {
   environment_variables = {
     RECRUITER_TABLE     = module.dynamodb.table_name
     EMAIL_BUCKET        = module.s3.bucket_name
-    S3_KEY_PREFIX       = "incoming"
+    S3_KEY_PREFIX       = local.s3_key_prefix
     SSM_OPENAI_KEY_NAME = var.ssm_openai_key_name
   }
 }
@@ -88,6 +93,7 @@ module "lambda_api_handler" {
   function_name                  = "${var.project_name}-api-handler"
   description                    = "Serves the recruiter dashboard REST API with anonymized responses"
   source_dir                     = "${path.module}/lambda-src/api-handler"
+  package_dir                    = "${path.module}/.build/api-handler"
   handler                        = "bootstrap"
   role_arn                       = module.iam.api_handler_role_arn
   memory_size                    = 128
@@ -126,6 +132,7 @@ module "ses" {
   aws_region                = var.aws_region
   hosted_zone_id            = var.hosted_zone_id
   s3_bucket_name            = module.s3.bucket_name
+  s3_key_prefix             = "${local.s3_key_prefix}/"
   email_parser_function_arn = module.lambda_email_parser.function_arn
 }
 

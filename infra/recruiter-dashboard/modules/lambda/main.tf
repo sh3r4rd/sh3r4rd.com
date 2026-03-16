@@ -8,7 +8,7 @@ resource "aws_cloudwatch_log_group" "function" {
 # Package the Lambda source code
 data "archive_file" "function" {
   type        = "zip"
-  source_dir  = var.source_dir
+  source_dir  = var.package_dir
   output_path = "${path.module}/../../.build/${var.function_name}.zip"
 }
 
