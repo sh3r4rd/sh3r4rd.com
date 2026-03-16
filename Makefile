@@ -23,8 +23,8 @@ build-lambdas: build-email-parser build-api-handler
 
 build-email-parser:
 	@mkdir -p $(BUILD_DIR)/email-parser
-	@cd $(INFRA_DIR)/lambda-src/email-parser && $(GOFLAGS) go build -o ../../../.build/email-parser/bootstrap ./cmd/handler/
+	@cd $(INFRA_DIR)/lambda-src/email-parser && $(GOFLAGS) go build -o $(CURDIR)/$(BUILD_DIR)/email-parser/bootstrap ./cmd/handler/
 
 build-api-handler:
 	@mkdir -p $(BUILD_DIR)/api-handler
-	@cd $(INFRA_DIR)/lambda-src/api-handler && $(GOFLAGS) go build -o ../../../.build/api-handler/bootstrap .
+	@cd $(INFRA_DIR)/lambda-src/api-handler && $(GOFLAGS) go build -o $(CURDIR)/$(BUILD_DIR)/api-handler/bootstrap .
