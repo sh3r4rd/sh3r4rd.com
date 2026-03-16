@@ -4,7 +4,7 @@ This is [my personal website](https://sh3r4rd.com) that I use to demonstrate pro
 request for my resume.
 
 ## Tools
-It is build using React, Tailwind and Vite on the front-end and uses AWS services like S3, Cloudfront, API Gateway and Lambda on the backend.
+It is built using React, Tailwind and Vite on the front-end and Go, Lambda, DynamoDB, SES, and API Gateway on the backend.
 
 ## Infrastructure
 
@@ -19,8 +19,24 @@ terraform -chdir=infra/recruiter-dashboard plan
 
 See [`terraform.tfvars.example`](infra/recruiter-dashboard/terraform.tfvars.example) for required configuration.
 
-## Upcoming
-I'm working on a new feature to leverage AI to compare my experience with prospective job descriptions to determine if I'm a good fit for a particular role.
+## Recruiter Dashboard
+
+The recruiter dashboard is built and deployed. It includes:
+
+- **Email parsing pipeline** — SES receives recruiter emails, stores raw emails in S3, triggers a Go Lambda that parses the email, extracts recruiter data via OpenAI, and writes structured records to DynamoDB
+- **API handler** — Stub Lambda behind API Gateway at `api.sh3r4rd.com`, ready for Phase 3 dashboard endpoints
+
+## Backend Development
+
+Lambda source code lives under `infra/recruiter-dashboard/lambda-src/`.
+
+```bash
+# Build all Lambda binaries (linux/arm64)
+make build-lambdas
+
+# Run email-parser tests
+cd infra/recruiter-dashboard/lambda-src/email-parser && go test -v -race ./...
+```
 
 ## Deployment
 
@@ -48,6 +64,14 @@ make deploy bucket=bucket-name
 
 This requires AWS CLI to be configured locally.
 
+## CI/CD
+
+Three GitHub Actions workflows:
+
+- **`ci.yml`** — Runs on all PRs and pushes to `main`. Parallel jobs: frontend lint + build, Go tests, Terraform validation
+- **`deploy.yml`** — Deploys frontend to S3 on push to `main`
+- **`release.yml`** — Runs semantic-release on push to `main` for automated versioning
+
 ## Conventional Commits
 
 This repository uses [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) to describe commits and add automated tooling.
@@ -57,7 +81,6 @@ This repository uses [conventional commits](https://www.conventionalcommits.org/
 This repository includes tool-specific instructions for multiple coding assistants:
 
 - Claude Code reads [CLAUDE.md](CLAUDE.md)
+- Gemini reads [GEMINI.md](GEMINI.md)
 - Codex CLI reads [AGENTS.md](AGENTS.md)
 - GitHub Copilot reads [.github/copilot-instructions.md](.github/copilot-instructions.md) and any scoped instructions under [.github/instructions/](.github/instructions/)
-
-Developers using Codex should start with [docs/codex.md](docs/codex.md) for installation, ChatGPT sign-in, repository workflow, and validation expectations.

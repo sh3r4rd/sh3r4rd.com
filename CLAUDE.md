@@ -18,6 +18,14 @@ Personal portfolio website (sh3r4rd.com) built with React, Tailwind CSS, and Vit
 - **Deploy (manual):** `make deploy bucket=<bucket-name>` (builds then syncs to S3)
 - **Preview production build:** `npm run preview`
 
+### Backend (Go Lambda)
+
+- **Build all Lambdas:** `make build-lambdas`
+- **Build email parser:** `make build-email-parser`
+- **Build API handler:** `make build-api-handler`
+- **Run tests:** `cd infra/recruiter-dashboard/lambda-src/email-parser && go test ./...`
+- **Run tests (verbose + race):** `cd infra/recruiter-dashboard/lambda-src/email-parser && go test -v -race ./...`
+
 ### Infrastructure (Terraform)
 
 All commands run from `infra/recruiter-dashboard/`:
@@ -39,12 +47,41 @@ All commands run from `infra/recruiter-dashboard/`:
 ### Infrastructure (`infra/recruiter-dashboard/`)
 
 - **Terraform >= 1.5.0** with **AWS provider >= 5.31.0**
-- Directory structure: root module + `modules/s3`, `modules/dynamodb`
+- Directory structure: root module + 7 modules: `modules/s3`, `modules/dynamodb`, `modules/lambda`, `modules/iam`, `modules/ses`, `modules/api-gateway`, `modules/monitoring`
 - Local state (single-developer project)
 - AWS region: us-east-1 (required for SES email receiving)
 - DynamoDB: provisioned billing mode (15/15 RCU/WCU, under 25 free tier)
 - S3: AES-256 encryption, 30-day lifecycle, full public access block
 - Default tags applied via provider `default_tags` block
+
+### Backend Lambda Functions
+
+- **email-parser** (`infra/recruiter-dashboard/lambda-src/email-parser/`) — Go 1.25, production-ready
+  - Entry point: `cmd/handler/main.go`
+  - 9 internal packages: `handler`, `ssm`, `sanitizer`, `extractor`, `models`, `parser`, `db`, `errors`, `tagger`
+  - Env vars: `RECRUITER_TABLE`, `EMAIL_BUCKET`, `S3_KEY_PREFIX`, `SSM_OPENAI_KEY_NAME`
+  - Test fixtures in `testdata/`
+- **api-handler** (`infra/recruiter-dashboard/lambda-src/api-handler/`) — stub for Phase 3
+  - Single `main.go`, returns 200 OK with CORS headers
+  - Env vars: `CORS_ALLOW_ORIGIN`
+
+### SES Email Flow
+
+SES receives email → stores raw email in S3 → triggers email-parser Lambda → parses email with `internal/parser` → extracts recruiter data via OpenAI (`internal/extractor`) → sanitizes fields (`internal/sanitizer`) → writes to DynamoDB (`internal/db`) → tags S3 object with parse results (`internal/tagger`)
+
+### DynamoDB Schema
+
+- **Table:** `recruiter_emails`
+- **Primary key:** `id` (S, partition) + `received_at` (S, sort)
+- **GSI `recruiter-index`:** `recruiter_email` (HASH) + `received_at` (RANGE)
+- **GSI `date-index`:** `date_year` (HASH) + `date_day` (RANGE)
+- **Key attributes:** `id`, `received_at`, `recruiter_email`, `date_year`, `date_day`, plus `first_name`, `last_name`, `email`, `company`, `job_title`, `phone`, `subject`, `confidence`, `s3_bucket`, `s3_key`, `dedup_key`
+
+### CI/CD
+
+- **`ci.yml`** — Runs on push to `main` and all PRs. Three parallel jobs: frontend (lint + build), Go tests (`go test -v -race ./...`), Terraform validation (fmt check + init + validate)
+- **`deploy.yml`** — Deploys frontend to S3 on push to `main`
+- **`release.yml`** — Runs semantic-release on push to `main` using SSH deploy key to bypass branch ruleset
 
 ### Source Structure (`src/`)
 
@@ -61,6 +98,8 @@ All commands run from `infra/recruiter-dashboard/`:
 - Icons from `lucide-react`
 - Conventional commits required (see [conventionalcommits.org](https://www.conventionalcommits.org/en/v1.0.0/))
 - Terraform: HCL files only, module pattern (`modules/<name>/main.tf`, `variables.tf`, `outputs.tf`), see `terraform.tfvars.example` for variable defaults
+- Go: `internal/` package pattern, `bootstrap` binaries compiled for `linux/arm64`, colocated `_test.go` files, table-driven tests, test fixtures in `testdata/`
+- Custom Claude Code commands in `.claude/commands/` (`component`, `add-skill`, `deploy-check`)
 
 ### Stale Boilerplate
 
