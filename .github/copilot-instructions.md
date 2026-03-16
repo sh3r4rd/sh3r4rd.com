@@ -70,6 +70,23 @@ Optional body with more detail.
 
 Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `ci`
 
+## Backend (Go Lambda)
+
+Lambda source code lives under `infra/recruiter-dashboard/lambda-src/`.
+
+- **email-parser** (`lambda-src/email-parser/`): Entry point `cmd/handler/main.go`, 9 internal packages (`handler`, `ssm`, `sanitizer`, `extractor`, `models`, `parser`, `db`, `errors`, `tagger`)
+- **api-handler** (`lambda-src/api-handler/`): Stub `main.go` for Phase 3
+- Build: `make build-lambdas` (compiles `bootstrap` binaries for `linux/arm64`)
+- Test: `cd infra/recruiter-dashboard/lambda-src/email-parser && go test -v -race ./...`
+- Go uses `internal/` package pattern — all packages are unexported
+- Custom error types in `internal/errors/`; wrap errors with `%w`
+
+## CI/CD
+
+- **`ci.yml`**: Frontend lint + build, Go tests, Terraform validation (parallel jobs on PRs and main pushes)
+- **`deploy.yml`**: S3 deployment on push to `main`
+- **`release.yml`**: Semantic-release with SSH deploy key on push to `main`
+
 ## Infrastructure (Terraform)
 
 - Use `.tf` files only in `infra/` directories
@@ -86,6 +103,7 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `ci`
 - Add new icon libraries (use `lucide-react`)
 - Add state management libraries (Redux, Zustand, etc.)
 - Import or extend `src/App.css` or `src/assets/react.svg` (unused Vite scaffolding)
+- Create `.go` files outside `infra/recruiter-dashboard/lambda-src/`
 
 **Ask before:**
 - Adding new npm dependencies
@@ -93,3 +111,5 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `ci`
 - Modifying the deployment workflow (`.github/workflows/deploy.yml`)
 - Changing the API endpoint or payload structure
 - Modifying Terraform modules or adding new cloud resources
+- Adding Go dependencies
+- Modifying Lambda function signatures

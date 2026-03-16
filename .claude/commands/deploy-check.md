@@ -6,5 +6,7 @@ Run a pre-deployment checklist for this project. Execute each step and report th
 4. **Branch check** — Confirm the current branch is `main` (deployment only triggers on push to `main`)
 5. **Stale boilerplate** — Check that `src/App.css` and `src/assets/react.svg` are not imported anywhere in the codebase
 6. **Terraform validation** — If any files under `infra/` were modified, run `terraform -chdir=infra/recruiter-dashboard validate` and `terraform -chdir=infra/recruiter-dashboard fmt -recursive -check`
+7. **Go tests** — If any files under `lambda-src/` were modified, run `cd infra/recruiter-dashboard/lambda-src/email-parser && go test -v -race ./...`
+8. **Lambda build** — If any Go files were modified, run `make build-lambdas`
 
 Report a summary with pass/fail for each step. If any step fails, explain what needs to be fixed before deploying.

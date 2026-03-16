@@ -9,6 +9,9 @@ sync:
 build:
 	@npm run build
 
+lint:
+	@npm run lint
+
 deploy: build copy sync
 
 server:
@@ -28,3 +31,30 @@ build-email-parser:
 build-api-handler:
 	@mkdir -p $(BUILD_DIR)/api-handler
 	@cd $(INFRA_DIR)/lambda-src/api-handler && $(GOFLAGS) go build -o $(CURDIR)/$(BUILD_DIR)/api-handler/bootstrap .
+
+# Go tests
+test-go:
+	@cd $(INFRA_DIR)/lambda-src/email-parser && go test -v -race ./...
+
+# Terraform
+tf-init:
+	@terraform -chdir=$(INFRA_DIR) init
+
+tf-validate:
+	@terraform -chdir=$(INFRA_DIR) validate
+
+tf-fmt:
+	@terraform -chdir=$(INFRA_DIR) fmt -recursive
+
+tf-fmt-check:
+	@terraform -chdir=$(INFRA_DIR) fmt -recursive -check
+
+tf-plan:
+	@terraform -chdir=$(INFRA_DIR) plan
+
+# Clean build artifacts
+clean:
+	@rm -rf dist $(BUILD_DIR)
+
+# Run all CI checks locally
+ci: lint build test-go tf-fmt-check tf-validate

@@ -8,7 +8,11 @@
       "Bash(npm ci)",
       "Bash(terraform init:*)",
       "Bash(terraform validate:*)",
-      "Bash(terraform fmt:*)"
+      "Bash(terraform fmt:*)",
+      "Bash(go test:*)",
+      "Bash(make build-lambdas)",
+      "Bash(make build-email-parser)",
+      "Bash(make build-api-handler)"
     ],
     "deny": [
       "Bash(make deploy:*)"
