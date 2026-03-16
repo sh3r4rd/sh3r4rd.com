@@ -1,0 +1,21 @@
+{
+  "experimental": {
+    "enableAgents": true
+  },
+  "context": {
+    "fileName": [
+      "GEMINI.md",
+      "README.md"
+    ]
+  },
+  "mcpServers": {
+    "github": {
+      "description": "Connect AI assistants to GitHub - manage repos, issues, PRs, and workflows through natural language.",
+      "httpUrl": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+        "Authorization": "Bearer ${GITHUB_TOKEN}"
+      },
+      "timeout": 5000
+    }
+  }
+}

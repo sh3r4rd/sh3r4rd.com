@@ -6,6 +6,19 @@ request for my resume.
 ## Tools
 It is build using React, Tailwind and Vite on the front-end and uses AWS services like S3, Cloudfront, API Gateway and Lambda on the backend.
 
+## Infrastructure
+
+The recruiter dashboard backend is managed with Terraform under `infra/recruiter-dashboard/`. To get started:
+
+```bash
+cp infra/recruiter-dashboard/terraform.tfvars.example infra/recruiter-dashboard/terraform.tfvars
+# Edit terraform.tfvars with your values
+terraform -chdir=infra/recruiter-dashboard init
+terraform -chdir=infra/recruiter-dashboard plan
+```
+
+See [`terraform.tfvars.example`](infra/recruiter-dashboard/terraform.tfvars.example) for required configuration.
+
 ## Upcoming
 I'm working on a new feature to leverage AI to compare my experience with prospective job descriptions to determine if I'm a good fit for a particular role.
 
