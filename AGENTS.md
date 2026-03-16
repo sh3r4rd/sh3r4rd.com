@@ -180,7 +180,10 @@ npm run build  # Must complete without errors
 cd infra/recruiter-dashboard/lambda-src/email-parser
 go vet ./...              # Must exit 0
 go test -v -race ./...    # All tests must pass
-make build-lambdas        # Must compile successfully
+```
+
+```bash
+make build-lambdas        # Must compile successfully (run from repo root)
 ```
 
 ### Infrastructure changes

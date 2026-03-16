@@ -40,7 +40,7 @@ test-go:
 tf-init:
 	@terraform -chdir=$(INFRA_DIR) init
 
-tf-validate:
+tf-validate: tf-init
 	@terraform -chdir=$(INFRA_DIR) validate
 
 tf-fmt:
