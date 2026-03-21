@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
@@ -65,6 +66,7 @@ func attributeValueFloat(item map[string]types.AttributeValue, key string) float
 		if n, ok := val.(*types.AttributeValueMemberN); ok {
 			f, err := strconv.ParseFloat(n.Value, 64)
 			if err != nil {
+				log.Printf("WARN: failed to parse float for DynamoDB attribute %q: %v", key, err)
 				return 0
 			}
 			return f
