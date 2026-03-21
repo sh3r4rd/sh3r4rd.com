@@ -1,0 +1,23 @@
+infra/recruiter-dashboard/lambda-src/api-handler/anonymizer.go
+  db195edf45931c57 5,69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.17",
+  "base_commit_sha": "d855795dabe871f3cdc47a361fd778e926959058",
+  "prompts": {
+    "db195edf45931c57": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dded4f50-b05a-42fe-9351-b97d33ad3920",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Sherard Bailey <sbailey@gobloominghealth.com>",
+      "messages": [],
+      "total_additions": 2,
+      "total_deletions": 0,
+      "accepted_lines": 2,
+      "overriden_lines": 0
+    }
+  }
+}
