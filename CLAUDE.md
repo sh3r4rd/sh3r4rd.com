@@ -99,7 +99,7 @@ SES receives email → stores raw email in S3 → triggers email-parser Lambda �
 - Conventional commits required (see [conventionalcommits.org](https://www.conventionalcommits.org/en/v1.0.0/))
 - Terraform: HCL files only, module pattern (`modules/<name>/main.tf`, `variables.tf`, `outputs.tf`), see `terraform.tfvars.example` for variable defaults
 - Go: `internal/` package pattern, `bootstrap` binaries compiled for `linux/arm64`, colocated `_test.go` files, table-driven tests, test fixtures in `testdata/`
-- Custom Claude Code commands in `.claude/commands/` (`component`, `add-skill`, `deploy-check`)
+- Custom Claude Code commands in `.claude/commands/` (`component`, `add-skill`, `deploy-check`, `pr-fix`)
 
 ### Stale Boilerplate
 
