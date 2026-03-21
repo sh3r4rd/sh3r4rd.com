@@ -326,9 +326,12 @@ func TestListRecruiters_DynamoDBError(t *testing.T) {
 // --- GET /recruiters?company=X Tests ---
 
 func TestListRecruiters_CompanyFilter(t *testing.T) {
+	var capturedInput *dynamodb.ScanInput
 	mock := &mockDynamoDB{
 		scanFn: func(ctx context.Context, params *dynamodb.ScanInput, optFns ...func(*dynamodb.Options)) (*dynamodb.ScanOutput, error) {
-			return &dynamodb.ScanOutput{Items: sampleItems()}, nil
+			capturedInput = params
+			// Return only matching items since DynamoDB applies the FilterExpression
+			return &dynamodb.ScanOutput{Items: sampleItems()[:1]}, nil
 		},
 	}
 	h := newTestHandler(mock)
@@ -340,6 +343,21 @@ func TestListRecruiters_CompanyFilter(t *testing.T) {
 	})
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("expected 200, got %d", resp.StatusCode)
+	}
+
+	// Verify FilterExpression was passed to DynamoDB
+	if capturedInput == nil {
+		t.Fatal("expected Scan to be called for company filter")
+	}
+	if capturedInput.FilterExpression == nil || *capturedInput.FilterExpression != "contains(company, :company)" {
+		t.Errorf("expected FilterExpression 'contains(company, :company)', got %v", capturedInput.FilterExpression)
+	}
+	companyVal, ok := capturedInput.ExpressionAttributeValues[":company"]
+	if !ok {
+		t.Fatal("expected :company in ExpressionAttributeValues")
+	}
+	if sv, ok := companyVal.(*types.AttributeValueMemberS); !ok || sv.Value != "Google" {
+		t.Errorf("expected :company value 'Google', got %v", companyVal)
 	}
 
 	var items []AnonymizedItem
@@ -354,10 +372,12 @@ func TestListRecruiters_CompanyFilter(t *testing.T) {
 	}
 }
 
-func TestListRecruiters_CompanyFilter_CaseInsensitive(t *testing.T) {
+func TestListRecruiters_CompanyFilter_PassesValueVerbatim(t *testing.T) {
+	var capturedInput *dynamodb.ScanInput
 	mock := &mockDynamoDB{
 		scanFn: func(ctx context.Context, params *dynamodb.ScanInput, optFns ...func(*dynamodb.Options)) (*dynamodb.ScanOutput, error) {
-			return &dynamodb.ScanOutput{Items: sampleItems()}, nil
+			capturedInput = params
+			return &dynamodb.ScanOutput{Items: []map[string]types.AttributeValue{}}, nil
 		},
 	}
 	h := newTestHandler(mock)
@@ -371,15 +391,13 @@ func TestListRecruiters_CompanyFilter_CaseInsensitive(t *testing.T) {
 		t.Fatalf("expected 200, got %d", resp.StatusCode)
 	}
 
-	var items []AnonymizedItem
-	if err := json.Unmarshal([]byte(resp.Body), &items); err != nil {
-		t.Fatalf("JSON unmarshal error: %v", err)
+	// DynamoDB contains() is case-sensitive; verify the value is passed verbatim
+	if capturedInput == nil {
+		t.Fatal("expected Scan to be called")
 	}
-	if len(items) != 1 {
-		t.Fatalf("expected 1 item after case-insensitive company filter, got %d", len(items))
-	}
-	if items[0].Company != "Google" {
-		t.Errorf("expected Company Google, got %s", items[0].Company)
+	companyVal := capturedInput.ExpressionAttributeValues[":company"]
+	if sv, ok := companyVal.(*types.AttributeValueMemberS); !ok || sv.Value != "google" {
+		t.Errorf("expected :company value 'google' (verbatim), got %v", companyVal)
 	}
 }
 
@@ -410,12 +428,19 @@ func TestListRecruiters_MonthFilter_UsesGSI(t *testing.T) {
 	if *capturedInput.IndexName != "date-index" {
 		t.Errorf("expected date-index GSI, got %s", *capturedInput.IndexName)
 	}
+	// Month-only query should NOT have a FilterExpression
+	if capturedInput.FilterExpression != nil {
+		t.Errorf("expected no FilterExpression for month-only query, got %s", *capturedInput.FilterExpression)
+	}
 }
 
 func TestListRecruiters_MonthAndCompanyFilter(t *testing.T) {
+	var capturedInput *dynamodb.QueryInput
 	mock := &mockDynamoDB{
 		queryFn: func(ctx context.Context, params *dynamodb.QueryInput, optFns ...func(*dynamodb.Options)) (*dynamodb.QueryOutput, error) {
-			return &dynamodb.QueryOutput{Items: sampleItems()}, nil
+			capturedInput = params
+			// Return only matching items since DynamoDB applies the FilterExpression
+			return &dynamodb.QueryOutput{Items: sampleItems()[:1]}, nil
 		},
 	}
 	h := newTestHandler(mock)
@@ -423,10 +448,25 @@ func TestListRecruiters_MonthAndCompanyFilter(t *testing.T) {
 	resp, _ := h.Handle(context.Background(), events.APIGatewayProxyRequest{
 		HTTPMethod:            "GET",
 		Resource:              "/recruiters",
-		QueryStringParameters: map[string]string{"month": "2026-03", "company": "google"},
+		QueryStringParameters: map[string]string{"month": "2026-03", "company": "Google"},
 	})
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("expected 200, got %d", resp.StatusCode)
+	}
+
+	// Verify FilterExpression was passed to the GSI query
+	if capturedInput == nil {
+		t.Fatal("expected Query to be called for month+company filter")
+	}
+	if capturedInput.FilterExpression == nil || *capturedInput.FilterExpression != "contains(company, :company)" {
+		t.Errorf("expected FilterExpression 'contains(company, :company)', got %v", capturedInput.FilterExpression)
+	}
+	companyVal, ok := capturedInput.ExpressionAttributeValues[":company"]
+	if !ok {
+		t.Fatal("expected :company in ExpressionAttributeValues")
+	}
+	if sv, ok := companyVal.(*types.AttributeValueMemberS); !ok || sv.Value != "Google" {
+		t.Errorf("expected :company value 'Google', got %v", companyVal)
 	}
 
 	var items []AnonymizedItem
