@@ -117,9 +117,84 @@ func (h *Handler) getRecruiter(ctx context.Context, id string) (events.APIGatewa
 	return h.respond(http.StatusOK, anonymizeItem(out.Items[0])), nil
 }
 
-// getStats returns aggregate statistics. Placeholder — implemented in issue #32.
+// StatsResponse holds the aggregate statistics for the dashboard.
+type StatsResponse struct {
+	TotalEmails     int            `json:"totalEmails"`
+	UniqueCompanies int            `json:"uniqueCompanies"`
+	ByMonth         map[string]int `json:"byMonth"`
+	TopJobTitles    map[string]int `json:"topJobTitles"`
+}
+
+// getStats scans the table with a ProjectionExpression to minimize RCU usage,
+// then aggregates statistics in-memory.
 func (h *Handler) getStats(ctx context.Context) (events.APIGatewayProxyResponse, error) {
-	return h.respondError(http.StatusNotImplemented, "Not implemented"), nil
+	items, err := h.scanForStats(ctx)
+	if err != nil {
+		log.Printf("DynamoDB error in getStats: %v", err)
+		return h.respondError(http.StatusInternalServerError, "Internal server error"), nil
+	}
+
+	companies := make(map[string]struct{})
+	byMonth := make(map[string]int)
+	jobTitles := make(map[string]int)
+
+	for _, item := range items {
+		company := attributeValueString(item, "company", "")
+		if company != "" {
+			companies[company] = struct{}{}
+		}
+
+		dateDay := attributeValueString(item, "date_day", "")
+		if len(dateDay) >= 7 {
+			month := dateDay[:7]
+			byMonth[month]++
+		}
+
+		jobTitle := attributeValueString(item, "job_title", "")
+		if jobTitle != "" {
+			jobTitles[jobTitle]++
+		}
+	}
+
+	stats := StatsResponse{
+		TotalEmails:     len(items),
+		UniqueCompanies: len(companies),
+		ByMonth:         byMonth,
+		TopJobTitles:    jobTitles,
+	}
+
+	return h.respond(http.StatusOK, stats), nil
+}
+
+// scanForStats performs a paginated Scan with ProjectionExpression to fetch only
+// the fields needed for aggregation, minimizing data transfer and RCU usage.
+func (h *Handler) scanForStats(ctx context.Context) ([]map[string]types.AttributeValue, error) {
+	var allItems []map[string]types.AttributeValue
+	var exclusiveStartKey map[string]types.AttributeValue
+
+	for {
+		input := &dynamodb.ScanInput{
+			TableName:            aws.String(h.tableName),
+			ProjectionExpression: aws.String("company, job_title, date_day"),
+		}
+		if exclusiveStartKey != nil {
+			input.ExclusiveStartKey = exclusiveStartKey
+		}
+
+		out, err := h.db.Scan(ctx, input)
+		if err != nil {
+			return nil, err
+		}
+
+		allItems = append(allItems, out.Items...)
+
+		if out.LastEvaluatedKey == nil {
+			break
+		}
+		exclusiveStartKey = out.LastEvaluatedKey
+	}
+
+	return allItems, nil
 }
 
 // validateMonth checks that the month parameter is in YYYY-MM format.
