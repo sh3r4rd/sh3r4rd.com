@@ -24,7 +24,7 @@ See [`terraform.tfvars.example`](infra/recruiter-dashboard/terraform.tfvars.exam
 The recruiter dashboard is built and deployed. It includes:
 
 - **Email parsing pipeline** — SES receives recruiter emails, stores raw emails in S3, triggers a Go Lambda that parses the email, extracts recruiter data via OpenAI, and writes structured records to DynamoDB
-- **API handler** — Stub Lambda behind API Gateway at `api.sh3r4rd.com`, ready for Phase 3 dashboard endpoints
+- **API handler** — Go Lambda behind API Gateway at `api.sh3r4rd.com` serving anonymized recruiter data. Endpoints: `GET /recruiters` (list with `?company=` and `?month=` filters), `GET /recruiters/{id}`, `GET /stats` (aggregate statistics)
 
 ## Backend Development
 
@@ -36,6 +36,12 @@ make build-lambdas
 
 # Run email-parser tests
 cd infra/recruiter-dashboard/lambda-src/email-parser && go test -v -race ./...
+
+# Run api-handler tests
+cd infra/recruiter-dashboard/lambda-src/api-handler && RECRUITER_TABLE=test CORS_ALLOW_ORIGIN=http://localhost DATE_INDEX_NAME=date-index AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_REGION=us-east-1 go test -v -race ./...
+
+# Run all CI checks locally
+make ci
 ```
 
 ## Deployment

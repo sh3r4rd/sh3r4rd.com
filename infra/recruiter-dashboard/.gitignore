@@ -18,3 +18,8 @@ override.tf.json
 
 # Plan files
 *.tfplan
+
+# Go build artifacts (from direct `go build` in lambda-src/)
+lambda-src/*/api-handler
+lambda-src/*/email-parser
+lambda-src/*/bootstrap

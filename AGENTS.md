@@ -26,9 +26,10 @@ make build-lambdas       # Build all Lambda binaries (linux/arm64)
 make build-email-parser  # Build email-parser only
 make build-api-handler   # Build api-handler only
 
-# Tests (run from email-parser directory)
+# Tests
 cd infra/recruiter-dashboard/lambda-src/email-parser && go test -v -race ./...
 cd infra/recruiter-dashboard/lambda-src/email-parser && go vet ./...
+cd infra/recruiter-dashboard/lambda-src/api-handler && RECRUITER_TABLE=test CORS_ALLOW_ORIGIN=http://localhost DATE_INDEX_NAME=date-index AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_REGION=us-east-1 go test -v -race ./...
 ```
 
 ### Infrastructure (Terraform)
@@ -65,8 +66,12 @@ infra/recruiter-dashboard/
     │   ├── internal/        # 9 packages: handler, ssm, sanitizer, extractor,
     │   │                    #   models, parser, db, errors, tagger
     │   └── testdata/        # Test fixtures
-    └── api-handler/         # Go 1.25 — stub for Phase 3
-        └── main.go          # Returns 200 OK with CORS headers
+    └── api-handler/         # Go 1.25 — recruiter dashboard REST API
+        ├── main.go          # Entry point, AWS config init
+        ├── handler.go       # Routing, DynamoDB queries
+        ├── anonymizer.go    # PII stripping, response shaping
+        ├── handler_test.go  # Handler unit tests
+        └── anonymizer_test.go # Anonymizer unit tests
 ```
 
 ## Code Style
