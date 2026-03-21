@@ -1,28 +1,39 @@
-// API handler Lambda — placeholder for Phase 3 implementation.
+// API handler Lambda — serves the recruiter dashboard REST API with anonymized responses.
 package main
 
 import (
 	"context"
+	"log"
 	"os"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
-func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	corsOrigin := os.Getenv("CORS_ALLOW_ORIGIN")
-	return events.APIGatewayProxyResponse{
-		StatusCode: 200,
-		Headers: map[string]string{
-			"Content-Type":                 "application/json",
-			"Access-Control-Allow-Origin":  corsOrigin,
-			"Access-Control-Allow-Methods": "GET,OPTIONS",
-			"Access-Control-Allow-Headers": "Content-Type",
-		},
-		Body: "{}",
-	}, nil
+var h *Handler
+
+func init() {
+	cfg, err := config.LoadDefaultConfig(context.Background())
+	if err != nil {
+		log.Fatalf("unable to load AWS config: %v", err)
+	}
+
+	client := dynamodb.NewFromConfig(cfg)
+
+	h = &Handler{
+		db:            client,
+		tableName:     os.Getenv("RECRUITER_TABLE"),
+		corsOrigin:    os.Getenv("CORS_ALLOW_ORIGIN"),
+		dateIndexName: os.Getenv("DATE_INDEX_NAME"),
+	}
+}
+
+func handleRequest(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	return h.Handle(ctx, request)
 }
 
 func main() {
-	lambda.Start(handler)
+	lambda.Start(handleRequest)
 }
