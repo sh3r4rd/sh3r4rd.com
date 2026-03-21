@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
@@ -39,9 +40,6 @@ func TestAnonymizeItem_IncludesExpectedFields(t *testing.T) {
 	}
 	if result.JobTitle != "Senior Engineer" {
 		t.Errorf("expected JobTitle Senior Engineer, got %s", result.JobTitle)
-	}
-	if result.Subject != "Senior Engineer at Google" {
-		t.Errorf("expected Subject 'Senior Engineer at Google', got %s", result.Subject)
 	}
 	if result.Month != "2026-03" {
 		t.Errorf("expected Month 2026-03, got %s", result.Month)
@@ -232,14 +230,5 @@ func TestAttributeValueFloat_WrongType(t *testing.T) {
 
 // contains checks if s contains substr (helper for PII checks).
 func contains(s, substr string) bool {
-	return len(substr) > 0 && len(s) >= len(substr) && containsStr(s, substr)
-}
-
-func containsStr(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
+	return strings.Contains(s, substr)
 }

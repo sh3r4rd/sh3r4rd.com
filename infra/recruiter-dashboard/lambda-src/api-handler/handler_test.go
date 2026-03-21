@@ -298,7 +298,9 @@ func TestListRecruiters_EmptyTable(t *testing.T) {
 	}
 
 	var items []AnonymizedItem
-	json.Unmarshal([]byte(resp.Body), &items)
+	if err := json.Unmarshal([]byte(resp.Body), &items); err != nil {
+		t.Fatalf("JSON unmarshal error: %v", err)
+	}
 	if len(items) != 0 {
 		t.Errorf("expected empty list, got %d items", len(items))
 	}
@@ -326,11 +328,8 @@ func TestListRecruiters_DynamoDBError(t *testing.T) {
 func TestListRecruiters_CompanyFilter(t *testing.T) {
 	mock := &mockDynamoDB{
 		scanFn: func(ctx context.Context, params *dynamodb.ScanInput, optFns ...func(*dynamodb.Options)) (*dynamodb.ScanOutput, error) {
-			// Verify FilterExpression is used
-			if params.FilterExpression == nil {
-				t.Error("expected FilterExpression for company filter")
-			}
-			return &dynamodb.ScanOutput{Items: sampleItems()[:1]}, nil
+			// Return both Google and Meta items; handler filters in-memory
+			return &dynamodb.ScanOutput{Items: sampleItems()}, nil
 		},
 	}
 	h := newTestHandler(mock)
@@ -341,7 +340,18 @@ func TestListRecruiters_CompanyFilter(t *testing.T) {
 		QueryStringParameters: map[string]string{"company": "Google"},
 	})
 	if resp.StatusCode != http.StatusOK {
-		t.Errorf("expected 200, got %d", resp.StatusCode)
+		t.Fatalf("expected 200, got %d", resp.StatusCode)
+	}
+
+	var items []AnonymizedItem
+	if err := json.Unmarshal([]byte(resp.Body), &items); err != nil {
+		t.Fatalf("JSON unmarshal error: %v", err)
+	}
+	if len(items) != 1 {
+		t.Fatalf("expected 1 item after company filter, got %d", len(items))
+	}
+	if items[0].Company != "Google" {
+		t.Errorf("expected Company Google, got %s", items[0].Company)
 	}
 }
 
@@ -392,7 +402,9 @@ func TestListRecruiters_MonthAndCompanyFilter(t *testing.T) {
 	}
 
 	var items []AnonymizedItem
-	json.Unmarshal([]byte(resp.Body), &items)
+	if err := json.Unmarshal([]byte(resp.Body), &items); err != nil {
+		t.Fatalf("JSON unmarshal error: %v", err)
+	}
 	// Only Google items should remain after in-memory company filter
 	for _, item := range items {
 		if item.Company != "Google" {
@@ -421,7 +433,9 @@ func TestGetRecruiter_Success(t *testing.T) {
 	}
 
 	var item AnonymizedItem
-	json.Unmarshal([]byte(resp.Body), &item)
+	if err := json.Unmarshal([]byte(resp.Body), &item); err != nil {
+		t.Fatalf("JSON unmarshal error: %v", err)
+	}
 	if item.ID != "msg-001" {
 		t.Errorf("expected ID msg-001, got %s", item.ID)
 	}
@@ -578,7 +592,9 @@ func TestGetStats_EmptyTable(t *testing.T) {
 	}
 
 	var stats StatsResponse
-	json.Unmarshal([]byte(resp.Body), &stats)
+	if err := json.Unmarshal([]byte(resp.Body), &stats); err != nil {
+		t.Fatalf("JSON unmarshal error: %v", err)
+	}
 	if stats.TotalEmails != 0 {
 		t.Errorf("expected totalEmails 0, got %d", stats.TotalEmails)
 	}
@@ -703,7 +719,9 @@ func TestGetStats_PaginatedScan(t *testing.T) {
 	})
 
 	var stats StatsResponse
-	json.Unmarshal([]byte(resp.Body), &stats)
+	if err := json.Unmarshal([]byte(resp.Body), &stats); err != nil {
+		t.Fatalf("JSON unmarshal error: %v", err)
+	}
 
 	if callCount != 2 {
 		t.Errorf("expected 2 Scan calls for pagination, got %d", callCount)
