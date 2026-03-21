@@ -54,7 +54,7 @@ func (h *Handler) Handle(ctx context.Context, req events.APIGatewayProxyRequest)
 }
 
 // listRecruiters returns a list of anonymized recruiter emails.
-// Supports optional filters: ?company=X (Scan with filter) or ?month=YYYY-MM (date-index GSI query).
+// Supports optional filters: ?month=YYYY-MM (date-index GSI query) and/or ?company=X (in-memory filter after scan/query).
 func (h *Handler) listRecruiters(ctx context.Context, params map[string]string) (events.APIGatewayProxyResponse, error) {
 	company := params["company"]
 	month := params["month"]
