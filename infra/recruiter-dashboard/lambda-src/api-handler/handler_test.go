@@ -326,10 +326,12 @@ func TestListRecruiters_DynamoDBError(t *testing.T) {
 // --- GET /recruiters?company=X Tests ---
 
 func TestListRecruiters_CompanyFilter(t *testing.T) {
+	var capturedInput *dynamodb.ScanInput
 	mock := &mockDynamoDB{
 		scanFn: func(ctx context.Context, params *dynamodb.ScanInput, optFns ...func(*dynamodb.Options)) (*dynamodb.ScanOutput, error) {
-			// Return both Google and Meta items; handler filters in-memory
-			return &dynamodb.ScanOutput{Items: sampleItems()}, nil
+			capturedInput = params
+			// Simulate DynamoDB server-side filtering: return only Google items
+			return &dynamodb.ScanOutput{Items: sampleItems()[:1]}, nil
 		},
 	}
 	h := newTestHandler(mock)
@@ -341,6 +343,20 @@ func TestListRecruiters_CompanyFilter(t *testing.T) {
 	})
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("expected 200, got %d", resp.StatusCode)
+	}
+
+	if capturedInput == nil {
+		t.Fatal("expected Scan to be called for company filter")
+	}
+	if capturedInput.FilterExpression == nil || *capturedInput.FilterExpression != "contains(company, :company)" {
+		t.Errorf("expected FilterExpression 'contains(company, :company)', got %v", capturedInput.FilterExpression)
+	}
+	companyVal, ok := capturedInput.ExpressionAttributeValues[":company"]
+	if !ok {
+		t.Fatal("expected :company in ExpressionAttributeValues")
+	}
+	if sv, ok := companyVal.(*types.AttributeValueMemberS); !ok || sv.Value != "Google" {
+		t.Errorf("expected :company = Google, got %v", companyVal)
 	}
 
 	var items []AnonymizedItem
@@ -385,9 +401,12 @@ func TestListRecruiters_MonthFilter_UsesGSI(t *testing.T) {
 }
 
 func TestListRecruiters_MonthAndCompanyFilter(t *testing.T) {
+	var capturedInput *dynamodb.QueryInput
 	mock := &mockDynamoDB{
 		queryFn: func(ctx context.Context, params *dynamodb.QueryInput, optFns ...func(*dynamodb.Options)) (*dynamodb.QueryOutput, error) {
-			return &dynamodb.QueryOutput{Items: sampleItems()}, nil
+			capturedInput = params
+			// Simulate DynamoDB server-side filtering: return only Google items
+			return &dynamodb.QueryOutput{Items: sampleItems()[:1]}, nil
 		},
 	}
 	h := newTestHandler(mock)
@@ -401,11 +420,25 @@ func TestListRecruiters_MonthAndCompanyFilter(t *testing.T) {
 		t.Errorf("expected 200, got %d", resp.StatusCode)
 	}
 
+	if capturedInput == nil {
+		t.Fatal("expected Query to be called for month+company filter")
+	}
+	if capturedInput.FilterExpression == nil || *capturedInput.FilterExpression != "contains(company, :company)" {
+		t.Errorf("expected FilterExpression 'contains(company, :company)', got %v", capturedInput.FilterExpression)
+	}
+	companyVal, ok := capturedInput.ExpressionAttributeValues[":company"]
+	if !ok {
+		t.Fatal("expected :company in ExpressionAttributeValues")
+	}
+	if sv, ok := companyVal.(*types.AttributeValueMemberS); !ok || sv.Value != "Google" {
+		t.Errorf("expected :company = Google, got %v", companyVal)
+	}
+
 	var items []AnonymizedItem
 	if err := json.Unmarshal([]byte(resp.Body), &items); err != nil {
 		t.Fatalf("JSON unmarshal error: %v", err)
 	}
-	// Only Google items should remain after in-memory company filter
+	// Only Google items should remain after server-side company filter
 	for _, item := range items {
 		if item.Company != "Google" {
 			t.Errorf("expected only Google items after company filter, got %s", item.Company)

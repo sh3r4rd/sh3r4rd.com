@@ -54,7 +54,8 @@ func (h *Handler) Handle(ctx context.Context, req events.APIGatewayProxyRequest)
 }
 
 // listRecruiters returns a list of anonymized recruiter emails.
-// Supports optional filters: ?month=YYYY-MM (date-index GSI query) and/or ?company=X (in-memory filter after scan/query).
+// Supports optional filters: ?month=YYYY-MM (date-index GSI query) and/or ?company=X
+// (server-side FilterExpression on scan or query to reduce data transfer).
 func (h *Handler) listRecruiters(ctx context.Context, params map[string]string) (events.APIGatewayProxyResponse, error) {
 	company := params["company"]
 	month := params["month"]
@@ -67,15 +68,9 @@ func (h *Handler) listRecruiters(ctx context.Context, params map[string]string) 
 		if err := validateMonth(month); err != nil {
 			return h.respondError(http.StatusBadRequest, err.Error()), nil
 		}
-		items, err = h.queryByMonth(ctx, month)
-		if err == nil && company != "" {
-			items = filterByCompany(items, company)
-		}
+		items, err = h.queryByMonth(ctx, month, company)
 	case company != "":
-		items, err = h.scanAll(ctx)
-		if err == nil {
-			items = filterByCompany(items, company)
-		}
+		items, err = h.scanWithCompanyFilter(ctx, company)
 	default:
 		items, err = h.scanAll(ctx)
 	}
@@ -238,10 +233,11 @@ func validateMonth(month string) error {
 }
 
 // queryByMonth queries the date-index GSI for a specific month (e.g., "2026-02").
-func (h *Handler) queryByMonth(ctx context.Context, month string) ([]map[string]types.AttributeValue, error) {
+// If company is non-empty, a server-side FilterExpression is applied to reduce data transfer.
+func (h *Handler) queryByMonth(ctx context.Context, month string, company string) ([]map[string]types.AttributeValue, error) {
 	year := strings.SplitN(month, "-", 2)[0]
 
-	out, err := h.db.Query(ctx, &dynamodb.QueryInput{
+	input := &dynamodb.QueryInput{
 		TableName:              aws.String(h.tableName),
 		IndexName:              aws.String(h.dateIndexName),
 		KeyConditionExpression: aws.String("date_year = :year AND begins_with(date_day, :month)"),
@@ -250,7 +246,14 @@ func (h *Handler) queryByMonth(ctx context.Context, month string) ([]map[string]
 			":month": &types.AttributeValueMemberS{Value: month},
 		},
 		ScanIndexForward: aws.Bool(false),
-	})
+	}
+
+	if company != "" {
+		input.FilterExpression = aws.String("contains(company, :company)")
+		input.ExpressionAttributeValues[":company"] = &types.AttributeValueMemberS{Value: company}
+	}
+
+	out, err := h.db.Query(ctx, input)
 	if err != nil {
 		return nil, err
 	}
@@ -280,6 +283,36 @@ func (h *Handler) scanAll(ctx context.Context) ([]map[string]types.AttributeValu
 	return items, nil
 }
 
+// scanWithCompanyFilter performs a paginated table scan with a server-side FilterExpression
+// that matches items where the company attribute contains the given string. This reduces
+// data transfer and Lambda memory usage compared to scanning all items and filtering
+// in-memory, while keeping infrastructure changes to a minimum (RCU consumed is unchanged).
+func (h *Handler) scanWithCompanyFilter(ctx context.Context, company string) ([]map[string]types.AttributeValue, error) {
+	var items []map[string]types.AttributeValue
+	var lastKey map[string]types.AttributeValue
+
+	for {
+		input := &dynamodb.ScanInput{
+			TableName:         aws.String(h.tableName),
+			ExclusiveStartKey: lastKey,
+			FilterExpression:  aws.String("contains(company, :company)"),
+			ExpressionAttributeValues: map[string]types.AttributeValue{
+				":company": &types.AttributeValueMemberS{Value: company},
+			},
+		}
+		out, err := h.db.Scan(ctx, input)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, out.Items...)
+		if out.LastEvaluatedKey == nil {
+			break
+		}
+		lastKey = out.LastEvaluatedKey
+	}
+	return items, nil
+}
+
 // sortByReceivedAtDesc sorts items by received_at in descending order.
 func sortByReceivedAtDesc(items []map[string]types.AttributeValue) {
 	sort.Slice(items, func(i, j int) bool {
@@ -287,19 +320,6 @@ func sortByReceivedAtDesc(items []map[string]types.AttributeValue) {
 		b := attributeValueString(items[j], "received_at", "")
 		return a > b
 	})
-}
-
-// filterByCompany filters items in-memory by company name (case-insensitive contains).
-func filterByCompany(items []map[string]types.AttributeValue, company string) []map[string]types.AttributeValue {
-	lowerCompany := strings.ToLower(company)
-	var filtered []map[string]types.AttributeValue
-	for _, item := range items {
-		val := attributeValueString(item, "company", "")
-		if strings.Contains(strings.ToLower(val), lowerCompany) {
-			filtered = append(filtered, item)
-		}
-	}
-	return filtered
 }
 
 // respond builds an API Gateway response with CORS headers and JSON body.
