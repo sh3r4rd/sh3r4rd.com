@@ -1,0 +1,27 @@
+Makefile
+  b05e5db6a735ba9a 36-38,41-45
+.github/copilot-setup-steps.yml
+  b05e5db6a735ba9a 15
+CLAUDE.md
+  b05e5db6a735ba9a 69,105
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.17",
+  "base_commit_sha": "4aa1b3e3f054902bd887d28384d4af66c90a1c38",
+  "prompts": {
+    "b05e5db6a735ba9a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b5947e57-22c8-4198-baa2-3b6b559b9d9f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Sherard Bailey <sbailey@gobloominghealth.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 11,
+      "overriden_lines": 0
+    }
+  }
+}
