@@ -24,9 +24,10 @@ type AnonymizedItem struct {
 // are never included in the output.
 func anonymizeItem(item map[string]types.AttributeValue) AnonymizedItem {
 	company := attributeValueString(item, "company", "Unknown")
-	month := attributeValueString(item, "date_day", "")
-	if len(month) >= 7 {
-		month = month[:7] // "2026-03-15" -> "2026-03"
+	dateDay := attributeValueString(item, "date_day", "")
+	var month string
+	if len(dateDay) >= 7 {
+		month = dateDay[:7] // "2026-03-15" -> "2026-03"
 	}
 
 	return AnonymizedItem{
