@@ -33,8 +33,16 @@ build-api-handler:
 	@cd $(INFRA_DIR)/lambda-src/api-handler && $(GOFLAGS) go build -o $(CURDIR)/$(BUILD_DIR)/api-handler/bootstrap .
 
 # Go tests
-test-go:
+test-go: test-email-parser test-api-handler
+
+test-email-parser:
 	@cd $(INFRA_DIR)/lambda-src/email-parser && go test -v -race ./...
+
+test-api-handler:
+	@cd $(INFRA_DIR)/lambda-src/api-handler && \
+		RECRUITER_TABLE=test CORS_ALLOW_ORIGIN=http://localhost DATE_INDEX_NAME=date-index \
+		AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_REGION=us-east-1 \
+		go test -v -race ./...
 
 # Terraform
 tf-init:

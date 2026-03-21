@@ -66,7 +66,7 @@ All commands run from `infra/recruiter-dashboard/`:
 - **api-handler** (`infra/recruiter-dashboard/lambda-src/api-handler/`) — Go 1.25, serves recruiter dashboard REST API
   - 3 source files: `main.go` (entry point), `handler.go` (routing + DynamoDB queries), `anonymizer.go` (PII stripping)
   - 3 endpoints: `GET /recruiters` (list, filterable by `?company=` or `?month=YYYY-MM`), `GET /recruiters/{id}`, `GET /stats`
-  - Anonymization layer removes PII (recruiter_email, name, phone, s3_key, dedup_key) from all responses
+  - Anonymization layer removes PII (recruiter_email, first_name, last_name, phone, s3_key, s3_bucket, dedup_key) from all responses
   - Env vars: `RECRUITER_TABLE`, `CORS_ALLOW_ORIGIN`, `DATE_INDEX_NAME`
 
 ### SES Email Flow
@@ -102,7 +102,7 @@ SES receives email → stores raw email in S3 → triggers email-parser Lambda �
 - Icons from `lucide-react`
 - Conventional commits required (see [conventionalcommits.org](https://www.conventionalcommits.org/en/v1.0.0/))
 - Terraform: HCL files only, module pattern (`modules/<name>/main.tf`, `variables.tf`, `outputs.tf`), see `terraform.tfvars.example` for variable defaults
-- Go: `internal/` package pattern, `bootstrap` binaries compiled for `linux/arm64`, colocated `_test.go` files, table-driven tests, test fixtures in `testdata/`
+- Go: `internal/` package pattern (email-parser) or flat package (api-handler), `bootstrap` binaries compiled for `linux/arm64`, colocated `_test.go` files, table-driven tests, test fixtures in `testdata/`
 - Custom Claude Code commands in `.claude/commands/` (`component`, `add-skill`, `deploy-check`, `pr-fix`)
 
 ### Stale Boilerplate

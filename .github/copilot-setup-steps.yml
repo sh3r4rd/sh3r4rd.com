@@ -12,7 +12,7 @@ steps:
   - uses: actions/setup-go@v6
     with:
       go-version: '1.25'
-      cache-dependency-path: infra/recruiter-dashboard/lambda-src/email-parser/go.sum
+      cache-dependency-path: infra/recruiter-dashboard/lambda-src/**/go.sum
 
   - uses: hashicorp/setup-terraform@v4
     with:
