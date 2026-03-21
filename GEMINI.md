@@ -28,7 +28,12 @@ This is a monorepo for the personal website `sh3r4rd.com`. It consists of a Reac
     *   `cmd/handler/main.go`: Entry point
     *   `internal/`: 9 packages — `handler`, `ssm`, `sanitizer`, `extractor`, `models`, `parser`, `db`, `errors`, `tagger`
     *   `testdata/`: Test fixtures
-*   `infra/recruiter-dashboard/lambda-src/api-handler/`: Stub Lambda for Phase 3 API endpoints.
+*   `infra/recruiter-dashboard/lambda-src/api-handler/`: Go Lambda serving the recruiter dashboard REST API with anonymized responses.
+    *   `main.go`: Entry point, AWS config init
+    *   `handler.go`: Request routing, DynamoDB queries
+    *   `anonymizer.go`: PII stripping, response shaping
+    *   Endpoints: `GET /recruiters`, `GET /recruiters/{id}`, `GET /stats`
+    *   Env vars: `RECRUITER_TABLE`, `CORS_ALLOW_ORIGIN`, `DATE_INDEX_NAME`
 *   `.github/workflows/`: GitHub Actions workflows (ci, deploy, release).
 
 ## Building and Running
@@ -63,6 +68,14 @@ This is a monorepo for the personal website `sh3r4rd.com`. It consists of a Reac
 2.  **Run email-parser tests**:
     ```bash
     cd infra/recruiter-dashboard/lambda-src/email-parser && go test -v -race ./...
+    ```
+3.  **Run api-handler tests**:
+    ```bash
+    cd infra/recruiter-dashboard/lambda-src/api-handler && RECRUITER_TABLE=test CORS_ALLOW_ORIGIN=http://localhost DATE_INDEX_NAME=date-index AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_REGION=us-east-1 go test -v -race ./...
+    ```
+4.  **Run all CI checks locally**:
+    ```bash
+    make ci
     ```
 
 ### Backend (Terraform)

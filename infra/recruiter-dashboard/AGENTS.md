@@ -6,9 +6,12 @@ These supplement the root [AGENTS.md](../../AGENTS.md).
 ## Quick Reference
 
 ```bash
-# Go tests
+# Go tests — email-parser
 cd lambda-src/email-parser && go test -v -race ./...
 cd lambda-src/email-parser && go vet ./...
+
+# Go tests — api-handler
+cd lambda-src/api-handler && RECRUITER_TABLE=test CORS_ALLOW_ORIGIN=http://localhost DATE_INDEX_NAME=date-index AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_REGION=us-east-1 go test -v -race ./...
 
 # Lambda builds
 make -C ../.. build-lambdas
@@ -52,12 +55,22 @@ SES receives email → stores raw email in S3 → triggers email-parser Lambda �
 - No hardcoded ARNs or account IDs — use data sources or variables
 - IAM module constructs log group ARNs from function names (not module outputs) to avoid circular dependencies
 
+## API Handler
+
+Serves the recruiter dashboard REST API with anonymized responses:
+
+- `GET /recruiters` — List anonymized recruiter emails. Filters: `?company=X`, `?month=YYYY-MM`
+- `GET /recruiters/{id}` — Single anonymized recruiter email
+- `GET /stats` — Aggregate statistics (totalEmails, uniqueCompanies, byMonth, topJobTitles)
+- Source: `main.go` (entry), `handler.go` (routing/queries), `anonymizer.go` (PII stripping)
+- Env vars: `RECRUITER_TABLE`, `CORS_ALLOW_ORIGIN`, `DATE_INDEX_NAME`
+
 ## Go Conventions
 
 - Entry points: `cmd/handler/main.go` (email-parser), `main.go` (api-handler)
-- All internal logic in `internal/` packages
+- All internal logic in `internal/` packages (email-parser); api-handler uses flat package
 - Initialize AWS clients once on cold start in `main.go`, reuse across invocations
 - Define interfaces for AWS service clients (testability)
-- Custom error types in `internal/errors/`
+- Custom error types in `internal/errors/` (email-parser)
 - Test naming: `TestFunctionName_scenario`
 - Test fixtures in `testdata/` — never modify without explicit instruction

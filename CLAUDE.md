@@ -23,8 +23,10 @@ Personal portfolio website (sh3r4rd.com) built with React, Tailwind CSS, and Vit
 - **Build all Lambdas:** `make build-lambdas`
 - **Build email parser:** `make build-email-parser`
 - **Build API handler:** `make build-api-handler`
-- **Run tests:** `cd infra/recruiter-dashboard/lambda-src/email-parser && go test ./...`
-- **Run tests (verbose + race):** `cd infra/recruiter-dashboard/lambda-src/email-parser && go test -v -race ./...`
+- **Run email-parser tests:** `cd infra/recruiter-dashboard/lambda-src/email-parser && go test ./...`
+- **Run email-parser tests (verbose + race):** `cd infra/recruiter-dashboard/lambda-src/email-parser && go test -v -race ./...`
+- **Run api-handler tests:** `cd infra/recruiter-dashboard/lambda-src/api-handler && RECRUITER_TABLE=test CORS_ALLOW_ORIGIN=http://localhost DATE_INDEX_NAME=date-index AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_REGION=us-east-1 go test -v -race ./...`
+- **Run all CI checks locally:** `make ci`
 
 ### Infrastructure (Terraform)
 
@@ -61,9 +63,11 @@ All commands run from `infra/recruiter-dashboard/`:
   - 9 internal packages: `handler`, `ssm`, `sanitizer`, `extractor`, `models`, `parser`, `db`, `errors`, `tagger`
   - Env vars: `RECRUITER_TABLE`, `EMAIL_BUCKET`, `S3_KEY_PREFIX`, `SSM_OPENAI_KEY_NAME`
   - Test fixtures in `testdata/`
-- **api-handler** (`infra/recruiter-dashboard/lambda-src/api-handler/`) — stub for Phase 3
-  - Single `main.go`, returns 200 OK with CORS headers
-  - Env vars: `CORS_ALLOW_ORIGIN`
+- **api-handler** (`infra/recruiter-dashboard/lambda-src/api-handler/`) — Go 1.25, serves recruiter dashboard REST API
+  - 3 source files: `main.go` (entry point), `handler.go` (routing + DynamoDB queries), `anonymizer.go` (PII stripping)
+  - 3 endpoints: `GET /recruiters` (list, filterable by `?company=` or `?month=YYYY-MM`), `GET /recruiters/{id}`, `GET /stats`
+  - Anonymization layer removes PII (recruiter_email, name, phone, s3_key, dedup_key) from all responses
+  - Env vars: `RECRUITER_TABLE`, `CORS_ALLOW_ORIGIN`, `DATE_INDEX_NAME`
 
 ### SES Email Flow
 

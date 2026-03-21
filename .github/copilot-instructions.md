@@ -75,9 +75,10 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `ci`
 Lambda source code lives under `infra/recruiter-dashboard/lambda-src/`.
 
 - **email-parser** (`lambda-src/email-parser/`): Entry point `cmd/handler/main.go`, 9 internal packages (`handler`, `ssm`, `sanitizer`, `extractor`, `models`, `parser`, `db`, `errors`, `tagger`)
-- **api-handler** (`lambda-src/api-handler/`): Stub `main.go` for Phase 3
+- **api-handler** (`lambda-src/api-handler/`): REST API with anonymized responses. Source: `main.go` (entry), `handler.go` (routing/DynamoDB queries), `anonymizer.go` (PII stripping). Endpoints: `GET /recruiters`, `GET /recruiters/{id}`, `GET /stats`. Env vars: `RECRUITER_TABLE`, `CORS_ALLOW_ORIGIN`, `DATE_INDEX_NAME`
 - Build: `make build-lambdas` (compiles `bootstrap` binaries for `linux/arm64`)
-- Test: `cd infra/recruiter-dashboard/lambda-src/email-parser && go test -v -race ./...`
+- Test email-parser: `cd infra/recruiter-dashboard/lambda-src/email-parser && go test -v -race ./...`
+- Test api-handler: `cd infra/recruiter-dashboard/lambda-src/api-handler && RECRUITER_TABLE=test CORS_ALLOW_ORIGIN=http://localhost DATE_INDEX_NAME=date-index AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_REGION=us-east-1 go test -v -race ./...`
 - Go uses `internal/` package pattern — all packages are unexported
 - Custom error types in `internal/errors/`; wrap errors with `%w`
 

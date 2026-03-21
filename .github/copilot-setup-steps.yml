@@ -1,0 +1,19 @@
+# Environment setup for GitHub Copilot Coding Agent
+# https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot
+
+steps:
+  - uses: actions/setup-node@v6
+    with:
+      node-version: '22'
+      cache: 'npm'
+
+  - run: npm ci
+
+  - uses: actions/setup-go@v6
+    with:
+      go-version: '1.25'
+      cache-dependency-path: infra/recruiter-dashboard/lambda-src/email-parser/go.sum
+
+  - uses: hashicorp/setup-terraform@v4
+    with:
+      terraform_version: '1.5.7'

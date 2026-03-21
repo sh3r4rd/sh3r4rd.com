@@ -7,8 +7,11 @@ applyTo: "infra/recruiter-dashboard/lambda-src/**"
 ## Package Structure
 
 - Entry points live in `cmd/handler/main.go` (email-parser) or `main.go` (api-handler)
-- All internal logic goes in `internal/` packages — these are unexported by Go convention
-- email-parser packages: `handler`, `ssm`, `sanitizer`, `extractor`, `models`, `parser`, `db`, `errors`, `tagger`
+- email-parser: All internal logic in `internal/` packages (unexported by Go convention)
+  - Packages: `handler`, `ssm`, `sanitizer`, `extractor`, `models`, `parser`, `db`, `errors`, `tagger`
+- api-handler: Flat package with `main.go` (entry), `handler.go` (routing/DynamoDB), `anonymizer.go` (PII stripping)
+  - `DynamoDBAPI` interface for testability
+  - `AnonymizedItem` struct strips PII from all responses
 
 ## Testing
 

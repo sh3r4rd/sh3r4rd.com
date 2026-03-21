@@ -12,7 +12,8 @@
       "Bash(go test:*)",
       "Bash(make build-lambdas)",
       "Bash(make build-email-parser)",
-      "Bash(make build-api-handler)"
+      "Bash(make build-api-handler)",
+      "Bash(RECRUITER_TABLE=test CORS_ALLOW_ORIGIN=http://localhost DATE_INDEX_NAME=date-index AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_REGION=us-east-1 go test:*)"
     ],
     "deny": [
       "Bash(make deploy:*)"
