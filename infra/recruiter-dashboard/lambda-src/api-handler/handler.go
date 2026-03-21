@@ -160,10 +160,35 @@ func (h *Handler) getStats(ctx context.Context) (events.APIGatewayProxyResponse,
 		TotalEmails:     len(items),
 		UniqueCompanies: len(companies),
 		ByMonth:         byMonth,
-		TopJobTitles:    jobTitles,
+		TopJobTitles:    topN(jobTitles, 10),
 	}
 
 	return h.respond(http.StatusOK, stats), nil
+}
+
+// topN returns the n highest-count entries from a frequency map.
+func topN(counts map[string]int, n int) map[string]int {
+	type kv struct {
+		key   string
+		count int
+	}
+
+	entries := make([]kv, 0, len(counts))
+	for k, v := range counts {
+		entries = append(entries, kv{k, v})
+	}
+	sort.Slice(entries, func(i, j int) bool {
+		return entries[i].count > entries[j].count
+	})
+
+	if n > len(entries) {
+		n = len(entries)
+	}
+	result := make(map[string]int, n)
+	for _, e := range entries[:n] {
+		result[e.key] = e.count
+	}
+	return result
 }
 
 // scanForStats performs a paginated Scan with ProjectionExpression to fetch only
