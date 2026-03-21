@@ -1,0 +1,25 @@
+CLAUDE.md
+  2ecea2d5d3731eed 102
+.claude/commands/pr-fix.md
+  2ecea2d5d3731eed 1-55
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.17",
+  "base_commit_sha": "41b0998ec3be56f763211d384ad5a86d370ce522",
+  "prompts": {
+    "2ecea2d5d3731eed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b2d02ad4-203e-4727-8968-9fec634aa28a",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Sherard Bailey <sbailey@gobloominghealth.com>",
+      "messages": [],
+      "total_additions": 56,
+      "total_deletions": 1,
+      "accepted_lines": 56,
+      "overriden_lines": 0
+    }
+  }
+}
