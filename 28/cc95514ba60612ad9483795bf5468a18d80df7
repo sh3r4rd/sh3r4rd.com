@@ -1,0 +1,49 @@
+CLAUDE.md
+  cfa3a97cbae4faec 26-29,66-70
+.claude/rules/api-handler.md
+  cfa3a97cbae4faec 1-47
+README.md
+  cfa3a97cbae4faec 27,39-44
+.claude/settings.json
+  cfa3a97cbae4faec 15-16
+.github/copilot-setup-steps.yml
+  cfa3a97cbae4faec 1-19
+AGENTS.md
+  cfa3a97cbae4faec 29,32,69-74
+.gemini/settings.json
+  cfa3a97cbae4faec 8-9
+.github/instructions/go.instructions.md
+  cfa3a97cbae4faec 10-14
+.claude/rules/email-parser.md
+  cfa3a97cbae4faec 1-53
+infra/recruiter-dashboard/AGENTS.md
+  cfa3a97cbae4faec 9,13-14,58-67,71,74
+infra/recruiter-dashboard/CLAUDE.md
+  cfa3a97cbae4faec 1-52
+.claude/rules/terraform.md
+  cfa3a97cbae4faec 1-48
+GEMINI.md
+  cfa3a97cbae4faec 31-36,72-79
+.github/copilot-instructions.md
+  cfa3a97cbae4faec 78,80-81
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.17",
+  "base_commit_sha": "28cc95514ba60612ad9483795bf5468a18d80df7",
+  "prompts": {
+    "cfa3a97cbae4faec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3b45bd9b-7be3-4140-8f13-3ac22f07df10",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Sherard Bailey <sbailey@gobloominghealth.com>",
+      "messages": [],
+      "total_additions": 285,
+      "total_deletions": 19,
+      "accepted_lines": 285,
+      "overriden_lines": 0
+    }
+  }
+}
