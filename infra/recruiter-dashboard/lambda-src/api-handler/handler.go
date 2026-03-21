@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -222,11 +223,16 @@ func (h *Handler) scanForStats(ctx context.Context) ([]map[string]types.Attribut
 	return allItems, nil
 }
 
-// validateMonth checks that the month parameter is in YYYY-MM format.
+// validateMonth checks that the month parameter is in YYYY-MM format
+// with a valid month value (01–12).
 func validateMonth(month string) error {
 	parts := strings.SplitN(month, "-", 2)
 	if len(parts) != 2 || len(parts[0]) != 4 || len(parts[1]) != 2 {
 		return fmt.Errorf("invalid month format: %s (expected YYYY-MM)", month)
+	}
+	monthNum, err := strconv.Atoi(parts[1])
+	if err != nil || monthNum < 1 || monthNum > 12 {
+		return fmt.Errorf("invalid month value: %s", parts[1])
 	}
 	return nil
 }
