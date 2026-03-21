@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
@@ -13,7 +14,6 @@ type AnonymizedItem struct {
 	ID             string  `json:"id"`
 	Company        string  `json:"company"`
 	JobTitle       string  `json:"jobTitle"`
-	Subject        string  `json:"subject"`
 	Month          string  `json:"month"`
 	RecruiterLabel string  `json:"recruiterLabel"`
 	Confidence     float64 `json:"confidence"`
@@ -33,7 +33,6 @@ func anonymizeItem(item map[string]types.AttributeValue) AnonymizedItem {
 		ID:             attributeValueString(item, "id", ""),
 		Company:        company,
 		JobTitle:       attributeValueString(item, "job_title", "Unknown"),
-		Subject:        attributeValueString(item, "subject", ""),
 		Month:          month,
 		RecruiterLabel: fmt.Sprintf("Recruiter at %s", company),
 		Confidence:     attributeValueFloat(item, "confidence"),
@@ -63,8 +62,10 @@ func attributeValueString(item map[string]types.AttributeValue, key, defaultVal 
 func attributeValueFloat(item map[string]types.AttributeValue, key string) float64 {
 	if val, ok := item[key]; ok {
 		if n, ok := val.(*types.AttributeValueMemberN); ok {
-			var f float64
-			fmt.Sscanf(n.Value, "%f", &f)
+			f, err := strconv.ParseFloat(n.Value, 64)
+			if err != nil {
+				return 0
+			}
 			return f
 		}
 	}

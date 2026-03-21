@@ -22,11 +22,24 @@ func init() {
 
 	client := dynamodb.NewFromConfig(cfg)
 
+	tableName := os.Getenv("RECRUITER_TABLE")
+	if tableName == "" {
+		log.Fatal("RECRUITER_TABLE environment variable is required")
+	}
+	corsOrigin := os.Getenv("CORS_ALLOW_ORIGIN")
+	if corsOrigin == "" {
+		log.Fatal("CORS_ALLOW_ORIGIN environment variable is required")
+	}
+	dateIndexName := os.Getenv("DATE_INDEX_NAME")
+	if dateIndexName == "" {
+		log.Fatal("DATE_INDEX_NAME environment variable is required")
+	}
+
 	h = &Handler{
 		db:            client,
-		tableName:     os.Getenv("RECRUITER_TABLE"),
-		corsOrigin:    os.Getenv("CORS_ALLOW_ORIGIN"),
-		dateIndexName: os.Getenv("DATE_INDEX_NAME"),
+		tableName:     tableName,
+		corsOrigin:    corsOrigin,
+		dateIndexName: dateIndexName,
 	}
 }
 

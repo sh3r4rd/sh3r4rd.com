@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sort"
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -62,12 +63,18 @@ func (h *Handler) listRecruiters(ctx context.Context, params map[string]string) 
 
 	switch {
 	case month != "":
+		if err := validateMonth(month); err != nil {
+			return h.respondError(http.StatusBadRequest, err.Error()), nil
+		}
 		items, err = h.queryByMonth(ctx, month)
 		if err == nil && company != "" {
 			items = filterByCompany(items, company)
 		}
 	case company != "":
-		items, err = h.scanByCompany(ctx, company)
+		items, err = h.scanAll(ctx)
+		if err == nil {
+			items = filterByCompany(items, company)
+		}
 	default:
 		items, err = h.scanAll(ctx)
 	}
@@ -77,6 +84,7 @@ func (h *Handler) listRecruiters(ctx context.Context, params map[string]string) 
 		return h.respondError(http.StatusInternalServerError, "Internal server error"), nil
 	}
 
+	sortByReceivedAtDesc(items)
 	return h.respond(http.StatusOK, anonymizeItems(items)), nil
 }
 
@@ -114,13 +122,18 @@ func (h *Handler) getStats(ctx context.Context) (events.APIGatewayProxyResponse,
 	return h.respondError(http.StatusNotImplemented, "Not implemented"), nil
 }
 
+// validateMonth checks that the month parameter is in YYYY-MM format.
+func validateMonth(month string) error {
+	parts := strings.SplitN(month, "-", 2)
+	if len(parts) != 2 || len(parts[0]) != 4 || len(parts[1]) != 2 {
+		return fmt.Errorf("invalid month format: %s (expected YYYY-MM)", month)
+	}
+	return nil
+}
+
 // queryByMonth queries the date-index GSI for a specific month (e.g., "2026-02").
 func (h *Handler) queryByMonth(ctx context.Context, month string) ([]map[string]types.AttributeValue, error) {
-	parts := strings.SplitN(month, "-", 2)
-	if len(parts) != 2 {
-		return nil, fmt.Errorf("invalid month format: %s", month)
-	}
-	year := parts[0]
+	year := strings.SplitN(month, "-", 2)[0]
 
 	out, err := h.db.Query(ctx, &dynamodb.QueryInput{
 		TableName:              aws.String(h.tableName),
@@ -138,32 +151,36 @@ func (h *Handler) queryByMonth(ctx context.Context, month string) ([]map[string]
 	return out.Items, nil
 }
 
-// scanByCompany performs a table scan filtered by company name (case-insensitive contains).
-func (h *Handler) scanByCompany(ctx context.Context, company string) ([]map[string]types.AttributeValue, error) {
-	out, err := h.db.Scan(ctx, &dynamodb.ScanInput{
-		TableName:        aws.String(h.tableName),
-		FilterExpression: aws.String("contains(company, :company)"),
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":company": &types.AttributeValueMemberS{Value: company},
-		},
-		Limit: aws.Int32(100),
-	})
-	if err != nil {
-		return nil, err
+// scanAll performs a full table scan with pagination.
+func (h *Handler) scanAll(ctx context.Context) ([]map[string]types.AttributeValue, error) {
+	var items []map[string]types.AttributeValue
+	var lastKey map[string]types.AttributeValue
+
+	for {
+		input := &dynamodb.ScanInput{
+			TableName:         aws.String(h.tableName),
+			ExclusiveStartKey: lastKey,
+		}
+		out, err := h.db.Scan(ctx, input)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, out.Items...)
+		if out.LastEvaluatedKey == nil {
+			break
+		}
+		lastKey = out.LastEvaluatedKey
 	}
-	return out.Items, nil
+	return items, nil
 }
 
-// scanAll performs an unfiltered table scan with a limit.
-func (h *Handler) scanAll(ctx context.Context) ([]map[string]types.AttributeValue, error) {
-	out, err := h.db.Scan(ctx, &dynamodb.ScanInput{
-		TableName: aws.String(h.tableName),
-		Limit:     aws.Int32(100),
+// sortByReceivedAtDesc sorts items by received_at in descending order.
+func sortByReceivedAtDesc(items []map[string]types.AttributeValue) {
+	sort.Slice(items, func(i, j int) bool {
+		a := attributeValueString(items[i], "received_at", "")
+		b := attributeValueString(items[j], "received_at", "")
+		return a > b
 	})
-	if err != nil {
-		return nil, err
-	}
-	return out.Items, nil
 }
 
 // filterByCompany filters items in-memory by company name (case-insensitive contains).
