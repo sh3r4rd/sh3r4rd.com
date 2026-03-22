@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/sh3r4rd/sh3r4rd.com/compare/v1.0.0...v1.0.1) (2026-03-22)
+
+
+### Performance Improvements
+
+* **lambda:** replace in-memory company filtering with DynamoDB FilterExpression ([#78](https://github.com/sh3r4rd/sh3r4rd.com/issues/78)) ([d7ff7ab](https://github.com/sh3r4rd/sh3r4rd.com/commit/d7ff7ab42e6d11f9e8837c6da6d6763d39597a39))
+
 # 1.0.0 (2026-03-16)
 
 
