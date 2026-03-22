@@ -1,0 +1,27 @@
+infra/recruiter-dashboard/lambda-src/api-handler/handler.go
+  e177c9e7bdd04948 73,75,127,190-191,193-197,199,201,203-206,259-261,270-271
+infra/recruiter-dashboard/lambda-src/api-handler/handler_test.go
+  e177c9e7bdd04948 404-444
+.claude/rules/api-handler.md
+  e177c9e7bdd04948 12,47-48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.17",
+  "base_commit_sha": "649641e4d0b2a9ed94fb74ed8a93a9571658adad",
+  "prompts": {
+    "e177c9e7bdd04948": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b89448ce-48ad-42ed-9e2f-c528ec60ac1c",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Sherard Bailey <sbailey@gobloominghealth.com>",
+      "messages": [],
+      "total_additions": 68,
+      "total_deletions": 63,
+      "accepted_lines": 68,
+      "overriden_lines": 0
+    }
+  }
+}
