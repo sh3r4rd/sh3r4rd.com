@@ -54,7 +54,8 @@ func (h *Handler) Handle(ctx context.Context, req events.APIGatewayProxyRequest)
 }
 
 // listRecruiters returns a list of anonymized recruiter emails.
-// Supports optional filters: ?month=YYYY-MM (date-index GSI query) and/or ?company=X (in-memory filter after scan/query).
+// Supports optional filters: ?month=YYYY-MM (date-index GSI query) and/or ?company=X
+// (DynamoDB FilterExpression with case-sensitive contains).
 func (h *Handler) listRecruiters(ctx context.Context, params map[string]string) (events.APIGatewayProxyResponse, error) {
 	company := params["company"]
 	month := params["month"]
@@ -67,17 +68,11 @@ func (h *Handler) listRecruiters(ctx context.Context, params map[string]string) 
 		if err := validateMonth(month); err != nil {
 			return h.respondError(http.StatusBadRequest, err.Error()), nil
 		}
-		items, err = h.queryByMonth(ctx, month)
-		if err == nil && company != "" {
-			items = filterByCompany(items, company)
-		}
+		items, err = h.queryByMonth(ctx, month, company)
 	case company != "":
-		items, err = h.scanAll(ctx)
-		if err == nil {
-			items = filterByCompany(items, company)
-		}
+		items, err = h.scan(ctx, withCompanyFilter(company))
 	default:
-		items, err = h.scanAll(ctx)
+		items, err = h.scan(ctx)
 	}
 
 	if err != nil {
@@ -129,7 +124,7 @@ type StatsResponse struct {
 // getStats scans the table with a ProjectionExpression to minimize RCU usage,
 // then aggregates statistics in-memory.
 func (h *Handler) getStats(ctx context.Context) (events.APIGatewayProxyResponse, error) {
-	items, err := h.scanForStats(ctx)
+	items, err := h.scan(ctx, withProjection("company, job_title, date_day"))
 	if err != nil {
 		log.Printf("DynamoDB error in getStats: %v", err)
 		return h.respondError(http.StatusInternalServerError, "Internal server error"), nil
@@ -192,35 +187,23 @@ func topN(counts map[string]int, n int) map[string]int {
 	return result
 }
 
-// scanForStats performs a paginated Scan with ProjectionExpression to fetch only
-// the fields needed for aggregation, minimizing data transfer and RCU usage.
-func (h *Handler) scanForStats(ctx context.Context) ([]map[string]types.AttributeValue, error) {
-	var allItems []map[string]types.AttributeValue
-	var exclusiveStartKey map[string]types.AttributeValue
+// scanOption configures optional fields on a ScanInput.
+type scanOption func(*dynamodb.ScanInput)
 
-	for {
-		input := &dynamodb.ScanInput{
-			TableName:            aws.String(h.tableName),
-			ProjectionExpression: aws.String("company, job_title, date_day"),
+func withCompanyFilter(company string) scanOption {
+	return func(input *dynamodb.ScanInput) {
+		input.FilterExpression = aws.String("contains(company, :company)")
+		if input.ExpressionAttributeValues == nil {
+			input.ExpressionAttributeValues = make(map[string]types.AttributeValue)
 		}
-		if exclusiveStartKey != nil {
-			input.ExclusiveStartKey = exclusiveStartKey
-		}
-
-		out, err := h.db.Scan(ctx, input)
-		if err != nil {
-			return nil, err
-		}
-
-		allItems = append(allItems, out.Items...)
-
-		if out.LastEvaluatedKey == nil {
-			break
-		}
-		exclusiveStartKey = out.LastEvaluatedKey
+		input.ExpressionAttributeValues[":company"] = &types.AttributeValueMemberS{Value: company}
 	}
+}
 
-	return allItems, nil
+func withProjection(expr string) scanOption {
+	return func(input *dynamodb.ScanInput) {
+		input.ProjectionExpression = aws.String(expr)
+	}
 }
 
 // validateMonth checks that the month parameter is in YYYY-MM format
@@ -238,10 +221,11 @@ func validateMonth(month string) error {
 }
 
 // queryByMonth queries the date-index GSI for a specific month (e.g., "2026-02").
-func (h *Handler) queryByMonth(ctx context.Context, month string) ([]map[string]types.AttributeValue, error) {
+// When company is non-empty, a FilterExpression with contains(company, :company) is added.
+func (h *Handler) queryByMonth(ctx context.Context, month string, company string) ([]map[string]types.AttributeValue, error) {
 	year := strings.SplitN(month, "-", 2)[0]
 
-	out, err := h.db.Query(ctx, &dynamodb.QueryInput{
+	input := &dynamodb.QueryInput{
 		TableName:              aws.String(h.tableName),
 		IndexName:              aws.String(h.dateIndexName),
 		KeyConditionExpression: aws.String("date_year = :year AND begins_with(date_day, :month)"),
@@ -250,15 +234,31 @@ func (h *Handler) queryByMonth(ctx context.Context, month string) ([]map[string]
 			":month": &types.AttributeValueMemberS{Value: month},
 		},
 		ScanIndexForward: aws.Bool(false),
-	})
-	if err != nil {
-		return nil, err
 	}
-	return out.Items, nil
+
+	if company != "" {
+		input.FilterExpression = aws.String("contains(company, :company)")
+		input.ExpressionAttributeValues[":company"] = &types.AttributeValueMemberS{Value: company}
+	}
+
+	var items []map[string]types.AttributeValue
+	for {
+		out, err := h.db.Query(ctx, input)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, out.Items...)
+		if out.LastEvaluatedKey == nil {
+			break
+		}
+		input.ExclusiveStartKey = out.LastEvaluatedKey
+	}
+	return items, nil
 }
 
-// scanAll performs a full table scan with pagination.
-func (h *Handler) scanAll(ctx context.Context) ([]map[string]types.AttributeValue, error) {
+// scan performs a paginated table scan, applying any provided options
+// (e.g. FilterExpression, ProjectionExpression) to each page.
+func (h *Handler) scan(ctx context.Context, opts ...scanOption) ([]map[string]types.AttributeValue, error) {
 	var items []map[string]types.AttributeValue
 	var lastKey map[string]types.AttributeValue
 
@@ -266,6 +266,9 @@ func (h *Handler) scanAll(ctx context.Context) ([]map[string]types.AttributeValu
 		input := &dynamodb.ScanInput{
 			TableName:         aws.String(h.tableName),
 			ExclusiveStartKey: lastKey,
+		}
+		for _, o := range opts {
+			o(input)
 		}
 		out, err := h.db.Scan(ctx, input)
 		if err != nil {
@@ -287,19 +290,6 @@ func sortByReceivedAtDesc(items []map[string]types.AttributeValue) {
 		b := attributeValueString(items[j], "received_at", "")
 		return a > b
 	})
-}
-
-// filterByCompany filters items in-memory by company name (case-insensitive contains).
-func filterByCompany(items []map[string]types.AttributeValue, company string) []map[string]types.AttributeValue {
-	lowerCompany := strings.ToLower(company)
-	var filtered []map[string]types.AttributeValue
-	for _, item := range items {
-		val := attributeValueString(item, "company", "")
-		if strings.Contains(strings.ToLower(val), lowerCompany) {
-			filtered = append(filtered, item)
-		}
-	}
-	return filtered
 }
 
 // respond builds an API Gateway response with CORS headers and JSON body.
