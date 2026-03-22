@@ -9,7 +9,7 @@ Serves the recruiter dashboard REST API with anonymized responses. All PII is st
 
 ## Endpoints
 
-- `GET /recruiters` — List anonymized recruiter emails. Filters: `?company=X` (case-insensitive contains), `?month=YYYY-MM` (date-index GSI query)
+- `GET /recruiters` — List anonymized recruiter emails. Filters: `?company=X` (case-sensitive substring via DynamoDB `contains()` FilterExpression), `?month=YYYY-MM` (date-index GSI query)
 - `GET /recruiters/{id}` — Single anonymized recruiter email by ID (queries partition key, returns most recent)
 - `GET /stats` — Aggregate statistics: totalEmails, uniqueCompanies, byMonth, topJobTitles (top 10)
 - `OPTIONS *` — CORS preflight (returns 204 No Content)
@@ -44,4 +44,5 @@ RECRUITER_TABLE=test CORS_ALLOW_ORIGIN=http://localhost DATE_INDEX_NAME=date-ind
 - `DynamoDBAPI` interface for testability (GetItem, Query, Scan)
 - Paginated scans with `ExclusiveStartKey` loop
 - `ProjectionExpression` in stats scan to minimize RCU
-- In-memory filtering and sorting after DynamoDB reads
+- DynamoDB `FilterExpression` for server-side company filtering (case-sensitive `contains()`)
+- In-memory sorting after DynamoDB reads

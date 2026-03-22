@@ -70,9 +70,9 @@ func (h *Handler) listRecruiters(ctx context.Context, params map[string]string) 
 		}
 		items, err = h.queryByMonth(ctx, month, company)
 	case company != "":
-		items, err = h.scanWithCompanyFilter(ctx, company)
+		items, err = h.scan(ctx, withCompanyFilter(company))
 	default:
-		items, err = h.scanAll(ctx)
+		items, err = h.scan(ctx)
 	}
 
 	if err != nil {
@@ -124,7 +124,7 @@ type StatsResponse struct {
 // getStats scans the table with a ProjectionExpression to minimize RCU usage,
 // then aggregates statistics in-memory.
 func (h *Handler) getStats(ctx context.Context) (events.APIGatewayProxyResponse, error) {
-	items, err := h.scanForStats(ctx)
+	items, err := h.scan(ctx, withProjection("company, job_title, date_day"))
 	if err != nil {
 		log.Printf("DynamoDB error in getStats: %v", err)
 		return h.respondError(http.StatusInternalServerError, "Internal server error"), nil
@@ -187,35 +187,23 @@ func topN(counts map[string]int, n int) map[string]int {
 	return result
 }
 
-// scanForStats performs a paginated Scan with ProjectionExpression to fetch only
-// the fields needed for aggregation, minimizing data transfer and RCU usage.
-func (h *Handler) scanForStats(ctx context.Context) ([]map[string]types.AttributeValue, error) {
-	var allItems []map[string]types.AttributeValue
-	var exclusiveStartKey map[string]types.AttributeValue
+// scanOption configures optional fields on a ScanInput.
+type scanOption func(*dynamodb.ScanInput)
 
-	for {
-		input := &dynamodb.ScanInput{
-			TableName:            aws.String(h.tableName),
-			ProjectionExpression: aws.String("company, job_title, date_day"),
+func withCompanyFilter(company string) scanOption {
+	return func(input *dynamodb.ScanInput) {
+		input.FilterExpression = aws.String("contains(company, :company)")
+		if input.ExpressionAttributeValues == nil {
+			input.ExpressionAttributeValues = make(map[string]types.AttributeValue)
 		}
-		if exclusiveStartKey != nil {
-			input.ExclusiveStartKey = exclusiveStartKey
-		}
-
-		out, err := h.db.Scan(ctx, input)
-		if err != nil {
-			return nil, err
-		}
-
-		allItems = append(allItems, out.Items...)
-
-		if out.LastEvaluatedKey == nil {
-			break
-		}
-		exclusiveStartKey = out.LastEvaluatedKey
+		input.ExpressionAttributeValues[":company"] = &types.AttributeValueMemberS{Value: company}
 	}
+}
 
-	return allItems, nil
+func withProjection(expr string) scanOption {
+	return func(input *dynamodb.ScanInput) {
+		input.ProjectionExpression = aws.String(expr)
+	}
 }
 
 // validateMonth checks that the month parameter is in YYYY-MM format
@@ -268,8 +256,9 @@ func (h *Handler) queryByMonth(ctx context.Context, month string, company string
 	return items, nil
 }
 
-// scanAll performs a full table scan with pagination.
-func (h *Handler) scanAll(ctx context.Context) ([]map[string]types.AttributeValue, error) {
+// scan performs a paginated table scan, applying any provided options
+// (e.g. FilterExpression, ProjectionExpression) to each page.
+func (h *Handler) scan(ctx context.Context, opts ...scanOption) ([]map[string]types.AttributeValue, error) {
 	var items []map[string]types.AttributeValue
 	var lastKey map[string]types.AttributeValue
 
@@ -278,34 +267,8 @@ func (h *Handler) scanAll(ctx context.Context) ([]map[string]types.AttributeValu
 			TableName:         aws.String(h.tableName),
 			ExclusiveStartKey: lastKey,
 		}
-		out, err := h.db.Scan(ctx, input)
-		if err != nil {
-			return nil, err
-		}
-		items = append(items, out.Items...)
-		if out.LastEvaluatedKey == nil {
-			break
-		}
-		lastKey = out.LastEvaluatedKey
-	}
-	return items, nil
-}
-
-// scanWithCompanyFilter performs a paginated scan with a FilterExpression
-// using contains(company, :company) so DynamoDB filters server-side,
-// reducing data transfer and Lambda memory pressure.
-func (h *Handler) scanWithCompanyFilter(ctx context.Context, company string) ([]map[string]types.AttributeValue, error) {
-	var items []map[string]types.AttributeValue
-	var lastKey map[string]types.AttributeValue
-
-	for {
-		input := &dynamodb.ScanInput{
-			TableName:        aws.String(h.tableName),
-			FilterExpression: aws.String("contains(company, :company)"),
-			ExpressionAttributeValues: map[string]types.AttributeValue{
-				":company": &types.AttributeValueMemberS{Value: company},
-			},
-			ExclusiveStartKey: lastKey,
+		for _, o := range opts {
+			o(input)
 		}
 		out, err := h.db.Scan(ctx, input)
 		if err != nil {

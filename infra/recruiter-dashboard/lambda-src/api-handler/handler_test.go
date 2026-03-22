@@ -401,6 +401,47 @@ func TestListRecruiters_CompanyFilter_PassesValueVerbatim(t *testing.T) {
 	}
 }
 
+func TestListRecruiters_CompanyFilter_EmptyPageContinues(t *testing.T) {
+	callCount := 0
+	mock := &mockDynamoDB{
+		scanFn: func(ctx context.Context, params *dynamodb.ScanInput, optFns ...func(*dynamodb.Options)) (*dynamodb.ScanOutput, error) {
+			callCount++
+			if callCount == 1 {
+				// Page 1: FilterExpression excluded everything, but more pages exist
+				return &dynamodb.ScanOutput{
+					Items: []map[string]types.AttributeValue{},
+					LastEvaluatedKey: map[string]types.AttributeValue{
+						"id": &types.AttributeValueMemberS{Value: "cursor"},
+					},
+				}, nil
+			}
+			// Page 2: match found
+			return &dynamodb.ScanOutput{Items: sampleItems()[:1]}, nil
+		},
+	}
+	h := newTestHandler(mock)
+
+	resp, _ := h.Handle(context.Background(), events.APIGatewayProxyRequest{
+		HTTPMethod:            "GET",
+		Resource:              "/recruiters",
+		QueryStringParameters: map[string]string{"company": "Google"},
+	})
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200, got %d", resp.StatusCode)
+	}
+	if callCount != 2 {
+		t.Errorf("expected 2 Scan calls to paginate through empty page, got %d", callCount)
+	}
+
+	var items []AnonymizedItem
+	if err := json.Unmarshal([]byte(resp.Body), &items); err != nil {
+		t.Fatalf("JSON unmarshal error: %v", err)
+	}
+	if len(items) != 1 {
+		t.Errorf("expected 1 item after paginated company filter, got %d", len(items))
+	}
+}
+
 // --- GET /recruiters?month=YYYY-MM Tests ---
 
 func TestListRecruiters_MonthFilter_UsesGSI(t *testing.T) {
