@@ -80,6 +80,11 @@ resource "aws_dynamodb_table" "recruiter_emails" {
 
   deletion_protection_enabled = true
 
+  ttl {
+    attribute_name = "stats_ttl"
+    enabled        = true
+  }
+
   point_in_time_recovery {
     enabled = false
   }

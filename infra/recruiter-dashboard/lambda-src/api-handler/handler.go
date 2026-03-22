@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -19,6 +20,7 @@ import (
 // DynamoDBAPI defines the DynamoDB operations used by the handler.
 type DynamoDBAPI interface {
 	GetItem(ctx context.Context, params *dynamodb.GetItemInput, optFns ...func(*dynamodb.Options)) (*dynamodb.GetItemOutput, error)
+	PutItem(ctx context.Context, params *dynamodb.PutItemInput, optFns ...func(*dynamodb.Options)) (*dynamodb.PutItemOutput, error)
 	Query(ctx context.Context, params *dynamodb.QueryInput, optFns ...func(*dynamodb.Options)) (*dynamodb.QueryOutput, error)
 	Scan(ctx context.Context, params *dynamodb.ScanInput, optFns ...func(*dynamodb.Options)) (*dynamodb.ScanOutput, error)
 }
@@ -121,9 +123,52 @@ type StatsResponse struct {
 	TopJobTitles    map[string]int `json:"topJobTitles"`
 }
 
-// getStats scans the table with a ProjectionExpression to minimize RCU usage,
-// then aggregates statistics in-memory.
+// Stats cache constants.
+const (
+	statsCacheKey      = "STATS#cache"
+	statsCacheRangeKey = "CACHE"
+	statsCacheDuration = 5 * time.Minute
+	// statsCacheTTLSlack expires the cache slightly early so a refetch starts
+	// before DynamoDB's background TTL deletion removes the item.
+	statsCacheTTLSlack = 2 * time.Second
+	statsTTLAttr       = "stats_ttl"
+	statsJSONAttr      = "stats_json"
+)
+
+// getStats returns aggregate statistics for the dashboard.
+// It checks for a cached result in DynamoDB first (TTL-based, 5-minute window).
+// On a cache miss or expiry, it falls back to a full table scan and writes the
+// fresh result back to the cache before returning.
 func (h *Handler) getStats(ctx context.Context) (events.APIGatewayProxyResponse, error) {
+	// Check for a cached stats item.
+	cacheOut, err := h.db.GetItem(ctx, &dynamodb.GetItemInput{
+		TableName: aws.String(h.tableName),
+		Key: map[string]types.AttributeValue{
+			"id":          &types.AttributeValueMemberS{Value: statsCacheKey},
+			"received_at": &types.AttributeValueMemberS{Value: statsCacheRangeKey},
+		},
+	})
+	if err != nil {
+		log.Printf("DynamoDB error reading stats cache: %v", err)
+	} else if len(cacheOut.Item) > 0 {
+		if ttlVal, ok := cacheOut.Item[statsTTLAttr]; ok {
+			if ttlN, ok := ttlVal.(*types.AttributeValueMemberN); ok {
+				if ttl, parseErr := strconv.ParseInt(ttlN.Value, 10, 64); parseErr == nil && ttl > time.Now().Add(statsCacheTTLSlack).Unix() {
+					cachedJSON := attributeValueString(cacheOut.Item, statsJSONAttr, "")
+					if cachedJSON != "" {
+						var stats StatsResponse
+						if unmarshalErr := json.Unmarshal([]byte(cachedJSON), &stats); unmarshalErr == nil {
+							return h.respond(http.StatusOK, stats), nil
+						} else {
+							log.Printf("failed to unmarshal cached stats: %v", unmarshalErr)
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Cache miss or expired — scan the table and aggregate.
 	items, err := h.scan(ctx, withProjection("company, job_title, date_day"))
 	if err != nil {
 		log.Printf("DynamoDB error in getStats: %v", err)
@@ -157,6 +202,22 @@ func (h *Handler) getStats(ctx context.Context) (events.APIGatewayProxyResponse,
 		UniqueCompanies: len(companies),
 		ByMonth:         byMonth,
 		TopJobTitles:    topN(jobTitles, 10),
+	}
+
+	// Write the aggregated stats to the cache (non-fatal if it fails).
+	if statsBytes, marshalErr := json.Marshal(stats); marshalErr == nil {
+		ttl := time.Now().Add(statsCacheDuration).Unix()
+		if _, putErr := h.db.PutItem(ctx, &dynamodb.PutItemInput{
+			TableName: aws.String(h.tableName),
+			Item: map[string]types.AttributeValue{
+				"id":          &types.AttributeValueMemberS{Value: statsCacheKey},
+				"received_at": &types.AttributeValueMemberS{Value: statsCacheRangeKey},
+				statsJSONAttr: &types.AttributeValueMemberS{Value: string(statsBytes)},
+				statsTTLAttr:  &types.AttributeValueMemberN{Value: strconv.FormatInt(ttl, 10)},
+			},
+		}); putErr != nil {
+			log.Printf("DynamoDB error writing stats cache: %v", putErr)
+		}
 	}
 
 	return h.respond(http.StatusOK, stats), nil
