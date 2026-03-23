@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -19,6 +20,7 @@ import (
 // DynamoDBAPI defines the DynamoDB operations used by the handler.
 type DynamoDBAPI interface {
 	GetItem(ctx context.Context, params *dynamodb.GetItemInput, optFns ...func(*dynamodb.Options)) (*dynamodb.GetItemOutput, error)
+	PutItem(ctx context.Context, params *dynamodb.PutItemInput, optFns ...func(*dynamodb.Options)) (*dynamodb.PutItemOutput, error)
 	Query(ctx context.Context, params *dynamodb.QueryInput, optFns ...func(*dynamodb.Options)) (*dynamodb.QueryOutput, error)
 	Scan(ctx context.Context, params *dynamodb.ScanInput, optFns ...func(*dynamodb.Options)) (*dynamodb.ScanOutput, error)
 }
@@ -91,6 +93,9 @@ func (h *Handler) getRecruiter(ctx context.Context, id string) (events.APIGatewa
 	if id == "" {
 		return h.respondError(http.StatusBadRequest, "Missing id parameter"), nil
 	}
+	if id == statsCacheKey {
+		return h.respondError(http.StatusNotFound, "Recruiter not found"), nil
+	}
 
 	out, err := h.db.Query(ctx, &dynamodb.QueryInput{
 		TableName:              aws.String(h.tableName),
@@ -121,9 +126,37 @@ type StatsResponse struct {
 	TopJobTitles    map[string]int `json:"topJobTitles"`
 }
 
-// getStats scans the table with a ProjectionExpression to minimize RCU usage,
-// then aggregates statistics in-memory.
+// Stats cache constants.
+const (
+	statsCacheKey      = "STATS#cache"
+	statsCacheRangeKey = "CACHE"
+	statsCacheDuration = 5 * time.Minute
+	// statsCacheTTLSlack expires the cache slightly early so a refetch starts
+	// before DynamoDB's background TTL deletion removes the item.
+	statsCacheTTLSlack = 2 * time.Second
+	statsTTLAttr       = "stats_ttl"
+	statsJSONAttr      = "stats_json"
+)
+
+// getStats returns aggregate statistics for the dashboard.
+// It checks for a cached result in DynamoDB first (TTL-based, 5-minute window).
+// On a cache miss or expiry, it falls back to a full table scan and writes the
+// fresh result back to the cache before returning.
 func (h *Handler) getStats(ctx context.Context) (events.APIGatewayProxyResponse, error) {
+	cacheOut, err := h.db.GetItem(ctx, &dynamodb.GetItemInput{
+		TableName: aws.String(h.tableName),
+		Key: map[string]types.AttributeValue{
+			"id":          &types.AttributeValueMemberS{Value: statsCacheKey},
+			"received_at": &types.AttributeValueMemberS{Value: statsCacheRangeKey},
+		},
+	})
+	if err != nil {
+		log.Printf("DynamoDB error reading stats cache: %v", err)
+	} else if stats, ok := parseCachedStats(cacheOut.Item); ok {
+		return h.respond(http.StatusOK, stats), nil
+	}
+
+	// Cache miss or expired — scan the table and aggregate.
 	items, err := h.scan(ctx, withProjection("company, job_title, date_day"))
 	if err != nil {
 		log.Printf("DynamoDB error in getStats: %v", err)
@@ -159,7 +192,53 @@ func (h *Handler) getStats(ctx context.Context) (events.APIGatewayProxyResponse,
 		TopJobTitles:    topN(jobTitles, 10),
 	}
 
+	// Write the aggregated stats to the cache (non-fatal if it fails).
+	if statsBytes, marshalErr := json.Marshal(stats); marshalErr == nil {
+		ttl := time.Now().Add(statsCacheDuration).Unix()
+		if _, putErr := h.db.PutItem(ctx, &dynamodb.PutItemInput{
+			TableName: aws.String(h.tableName),
+			Item: map[string]types.AttributeValue{
+				"id":          &types.AttributeValueMemberS{Value: statsCacheKey},
+				"received_at": &types.AttributeValueMemberS{Value: statsCacheRangeKey},
+				statsJSONAttr: &types.AttributeValueMemberS{Value: string(statsBytes)},
+				statsTTLAttr:  &types.AttributeValueMemberN{Value: strconv.FormatInt(ttl, 10)},
+			},
+		}); putErr != nil {
+			log.Printf("DynamoDB error writing stats cache: %v", putErr)
+		}
+	}
+
 	return h.respond(http.StatusOK, stats), nil
+}
+
+// parseCachedStats extracts a StatsResponse from a cached DynamoDB item.
+// Returns the stats and true if the item is present, unexpired, and valid.
+func parseCachedStats(item map[string]types.AttributeValue) (StatsResponse, bool) {
+	if len(item) == 0 {
+		return StatsResponse{}, false
+	}
+	ttlVal, ok := item[statsTTLAttr]
+	if !ok {
+		return StatsResponse{}, false
+	}
+	ttlN, ok := ttlVal.(*types.AttributeValueMemberN)
+	if !ok {
+		return StatsResponse{}, false
+	}
+	ttl, err := strconv.ParseInt(ttlN.Value, 10, 64)
+	if err != nil || ttl <= time.Now().Add(statsCacheTTLSlack).Unix() {
+		return StatsResponse{}, false
+	}
+	cachedJSON := attributeValueString(item, statsJSONAttr, "")
+	if cachedJSON == "" {
+		return StatsResponse{}, false
+	}
+	var stats StatsResponse
+	if err := json.Unmarshal([]byte(cachedJSON), &stats); err != nil {
+		log.Printf("failed to unmarshal cached stats: %v", err)
+		return StatsResponse{}, false
+	}
+	return stats, true
 }
 
 // topN returns the n highest-count entries from a frequency map.
@@ -258,6 +337,7 @@ func (h *Handler) queryByMonth(ctx context.Context, month string, company string
 
 // scan performs a paginated table scan, applying any provided options
 // (e.g. FilterExpression, ProjectionExpression) to each page.
+// It always excludes the stats cache sentinel item from results.
 func (h *Handler) scan(ctx context.Context, opts ...scanOption) ([]map[string]types.AttributeValue, error) {
 	var items []map[string]types.AttributeValue
 	var lastKey map[string]types.AttributeValue
@@ -269,6 +349,18 @@ func (h *Handler) scan(ctx context.Context, opts ...scanOption) ([]map[string]ty
 		}
 		for _, o := range opts {
 			o(input)
+		}
+		// Exclude the stats cache sentinel from all scans.
+		if input.ExpressionAttributeValues == nil {
+			input.ExpressionAttributeValues = make(map[string]types.AttributeValue)
+		}
+		input.ExpressionAttributeValues[":_cacheId"] = &types.AttributeValueMemberS{Value: statsCacheKey}
+		cacheFilter := "id <> :_cacheId"
+		if input.FilterExpression != nil {
+			combined := fmt.Sprintf("(%s) AND %s", *input.FilterExpression, cacheFilter)
+			input.FilterExpression = aws.String(combined)
+		} else {
+			input.FilterExpression = aws.String(cacheFilter)
 		}
 		out, err := h.db.Scan(ctx, input)
 		if err != nil {

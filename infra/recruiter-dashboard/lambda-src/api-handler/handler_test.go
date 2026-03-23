@@ -5,7 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -15,6 +18,7 @@ import (
 // mockDynamoDB implements DynamoDBAPI for testing.
 type mockDynamoDB struct {
 	getItemFn func(ctx context.Context, params *dynamodb.GetItemInput, optFns ...func(*dynamodb.Options)) (*dynamodb.GetItemOutput, error)
+	putItemFn func(ctx context.Context, params *dynamodb.PutItemInput, optFns ...func(*dynamodb.Options)) (*dynamodb.PutItemOutput, error)
 	queryFn   func(ctx context.Context, params *dynamodb.QueryInput, optFns ...func(*dynamodb.Options)) (*dynamodb.QueryOutput, error)
 	scanFn    func(ctx context.Context, params *dynamodb.ScanInput, optFns ...func(*dynamodb.Options)) (*dynamodb.ScanOutput, error)
 }
@@ -24,6 +28,13 @@ func (m *mockDynamoDB) GetItem(ctx context.Context, params *dynamodb.GetItemInpu
 		return m.getItemFn(ctx, params, optFns...)
 	}
 	return &dynamodb.GetItemOutput{}, nil
+}
+
+func (m *mockDynamoDB) PutItem(ctx context.Context, params *dynamodb.PutItemInput, optFns ...func(*dynamodb.Options)) (*dynamodb.PutItemOutput, error) {
+	if m.putItemFn != nil {
+		return m.putItemFn(ctx, params, optFns...)
+	}
+	return &dynamodb.PutItemOutput{}, nil
 }
 
 func (m *mockDynamoDB) Query(ctx context.Context, params *dynamodb.QueryInput, optFns ...func(*dynamodb.Options)) (*dynamodb.QueryOutput, error) {
@@ -323,6 +334,40 @@ func TestListRecruiters_DynamoDBError(t *testing.T) {
 	}
 }
 
+func TestListRecruiters_ExcludesCacheItem(t *testing.T) {
+	var capturedInput *dynamodb.ScanInput
+	mock := &mockDynamoDB{
+		scanFn: func(ctx context.Context, params *dynamodb.ScanInput, optFns ...func(*dynamodb.Options)) (*dynamodb.ScanOutput, error) {
+			capturedInput = params
+			return &dynamodb.ScanOutput{Items: sampleItems()}, nil
+		},
+	}
+	h := newTestHandler(mock)
+
+	resp, _ := h.Handle(context.Background(), events.APIGatewayProxyRequest{
+		HTTPMethod: "GET",
+		Resource:   "/recruiters",
+	})
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200, got %d", resp.StatusCode)
+	}
+
+	// Verify scan includes a FilterExpression that excludes the cache sentinel.
+	if capturedInput == nil {
+		t.Fatal("expected Scan to be called")
+	}
+	if capturedInput.FilterExpression == nil || !strings.Contains(*capturedInput.FilterExpression, "id <> :_cacheId") {
+		t.Errorf("expected FilterExpression to exclude cache item, got %v", capturedInput.FilterExpression)
+	}
+	cacheVal, ok := capturedInput.ExpressionAttributeValues[":_cacheId"]
+	if !ok {
+		t.Fatal("expected :_cacheId in ExpressionAttributeValues")
+	}
+	if sv, ok := cacheVal.(*types.AttributeValueMemberS); !ok || sv.Value != statsCacheKey {
+		t.Errorf("expected :_cacheId value %q, got %v", statsCacheKey, cacheVal)
+	}
+}
+
 // --- GET /recruiters?company=X Tests ---
 
 func TestListRecruiters_CompanyFilter(t *testing.T) {
@@ -349,8 +394,8 @@ func TestListRecruiters_CompanyFilter(t *testing.T) {
 	if capturedInput == nil {
 		t.Fatal("expected Scan to be called for company filter")
 	}
-	if capturedInput.FilterExpression == nil || *capturedInput.FilterExpression != "contains(company, :company)" {
-		t.Errorf("expected FilterExpression 'contains(company, :company)', got %v", capturedInput.FilterExpression)
+	if capturedInput.FilterExpression == nil || !strings.Contains(*capturedInput.FilterExpression, "contains(company, :company)") {
+		t.Errorf("expected FilterExpression to contain 'contains(company, :company)', got %v", capturedInput.FilterExpression)
 	}
 	companyVal, ok := capturedInput.ExpressionAttributeValues[":company"]
 	if !ok {
@@ -499,8 +544,8 @@ func TestListRecruiters_MonthAndCompanyFilter(t *testing.T) {
 	if capturedInput == nil {
 		t.Fatal("expected Query to be called for month+company filter")
 	}
-	if capturedInput.FilterExpression == nil || *capturedInput.FilterExpression != "contains(company, :company)" {
-		t.Errorf("expected FilterExpression 'contains(company, :company)', got %v", capturedInput.FilterExpression)
+	if capturedInput.FilterExpression == nil || !strings.Contains(*capturedInput.FilterExpression, "contains(company, :company)") {
+		t.Errorf("expected FilterExpression to contain 'contains(company, :company)', got %v", capturedInput.FilterExpression)
 	}
 	companyVal, ok := capturedInput.ExpressionAttributeValues[":company"]
 	if !ok {
@@ -621,6 +666,29 @@ func TestGetRecruiter_ResponseDoesNotContainPII(t *testing.T) {
 		if contains(resp.Body, pii) {
 			t.Errorf("response body must NOT contain PII value %q", pii)
 		}
+	}
+}
+
+func TestGetRecruiter_RejectsCacheKey(t *testing.T) {
+	queryCalled := false
+	mock := &mockDynamoDB{
+		queryFn: func(ctx context.Context, params *dynamodb.QueryInput, optFns ...func(*dynamodb.Options)) (*dynamodb.QueryOutput, error) {
+			queryCalled = true
+			return &dynamodb.QueryOutput{}, nil
+		},
+	}
+	h := newTestHandler(mock)
+
+	resp, _ := h.Handle(context.Background(), events.APIGatewayProxyRequest{
+		HTTPMethod:     "GET",
+		Resource:       "/recruiters/{id}",
+		PathParameters: map[string]string{"id": statsCacheKey},
+	})
+	if resp.StatusCode != http.StatusNotFound {
+		t.Errorf("expected 404 for cache key ID, got %d", resp.StatusCode)
+	}
+	if queryCalled {
+		t.Error("DynamoDB Query must NOT be called for the cache key ID")
 	}
 }
 
@@ -837,6 +905,208 @@ func TestGetStats_PaginatedScan(t *testing.T) {
 	}
 	if stats.TotalEmails != 2 {
 		t.Errorf("expected totalEmails 2 from paginated scan, got %d", stats.TotalEmails)
+	}
+}
+
+func TestGetStats_CacheHit(t *testing.T) {
+	// Build a valid cached stats JSON with a TTL far in the future.
+	cached := StatsResponse{
+		TotalEmails:     42,
+		UniqueCompanies: 7,
+		ByMonth:         map[string]int{"2026-03": 42},
+		TopJobTitles:    map[string]int{"Engineer": 42},
+	}
+	cachedBytes, _ := json.Marshal(cached)
+	futureTTL := strconv.FormatInt(time.Now().Add(statsCacheDuration).Unix(), 10)
+
+	scanCalled := false
+	mock := &mockDynamoDB{
+		getItemFn: func(ctx context.Context, params *dynamodb.GetItemInput, optFns ...func(*dynamodb.Options)) (*dynamodb.GetItemOutput, error) {
+			return &dynamodb.GetItemOutput{
+				Item: map[string]types.AttributeValue{
+					"id":          &types.AttributeValueMemberS{Value: statsCacheKey},
+					"received_at": &types.AttributeValueMemberS{Value: statsCacheRangeKey},
+					statsJSONAttr: &types.AttributeValueMemberS{Value: string(cachedBytes)},
+					statsTTLAttr:  &types.AttributeValueMemberN{Value: futureTTL},
+				},
+			}, nil
+		},
+		scanFn: func(ctx context.Context, params *dynamodb.ScanInput, optFns ...func(*dynamodb.Options)) (*dynamodb.ScanOutput, error) {
+			scanCalled = true
+			return &dynamodb.ScanOutput{}, nil
+		},
+	}
+	h := newTestHandler(mock)
+
+	resp, _ := h.Handle(context.Background(), events.APIGatewayProxyRequest{
+		HTTPMethod: "GET",
+		Resource:   "/stats",
+	})
+
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200, got %d", resp.StatusCode)
+	}
+	if scanCalled {
+		t.Error("Scan must NOT be called on a cache hit")
+	}
+
+	var stats StatsResponse
+	if err := json.Unmarshal([]byte(resp.Body), &stats); err != nil {
+		t.Fatalf("JSON unmarshal error: %v", err)
+	}
+	if stats.TotalEmails != 42 {
+		t.Errorf("expected cached totalEmails 42, got %d", stats.TotalEmails)
+	}
+}
+
+func TestGetStats_CacheMiss_WritesCacheAndReturnsStats(t *testing.T) {
+	var capturedPutItem *dynamodb.PutItemInput
+	mock := &mockDynamoDB{
+		// getItemFn is nil → returns empty GetItemOutput → cache miss
+		scanFn: func(ctx context.Context, params *dynamodb.ScanInput, optFns ...func(*dynamodb.Options)) (*dynamodb.ScanOutput, error) {
+			return &dynamodb.ScanOutput{
+				Items: []map[string]types.AttributeValue{
+					{
+						"company":   &types.AttributeValueMemberS{Value: "Google"},
+						"job_title": &types.AttributeValueMemberS{Value: "Engineer"},
+						"date_day":  &types.AttributeValueMemberS{Value: "2026-03-15"},
+					},
+				},
+			}, nil
+		},
+		putItemFn: func(ctx context.Context, params *dynamodb.PutItemInput, optFns ...func(*dynamodb.Options)) (*dynamodb.PutItemOutput, error) {
+			capturedPutItem = params
+			return &dynamodb.PutItemOutput{}, nil
+		},
+	}
+	h := newTestHandler(mock)
+
+	resp, _ := h.Handle(context.Background(), events.APIGatewayProxyRequest{
+		HTTPMethod: "GET",
+		Resource:   "/stats",
+	})
+
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200, got %d", resp.StatusCode)
+	}
+
+	// Verify stats are correct.
+	var stats StatsResponse
+	if err := json.Unmarshal([]byte(resp.Body), &stats); err != nil {
+		t.Fatalf("JSON unmarshal error: %v", err)
+	}
+	if stats.TotalEmails != 1 {
+		t.Errorf("expected totalEmails 1, got %d", stats.TotalEmails)
+	}
+
+	// Verify PutItem was called to write the cache.
+	if capturedPutItem == nil {
+		t.Fatal("expected PutItem to be called to write stats cache")
+	}
+	if id, ok := capturedPutItem.Item["id"].(*types.AttributeValueMemberS); !ok || id.Value != statsCacheKey {
+		t.Errorf("expected cache item id=%q", statsCacheKey)
+	}
+	if _, ok := capturedPutItem.Item[statsTTLAttr]; !ok {
+		t.Error("expected stats_ttl attribute in cached item")
+	}
+	if _, ok := capturedPutItem.Item[statsJSONAttr]; !ok {
+		t.Error("expected stats_json attribute in cached item")
+	}
+}
+
+func TestGetStats_CacheExpired(t *testing.T) {
+	// Build a cached item with a TTL in the past.
+	cached := StatsResponse{TotalEmails: 99}
+	cachedBytes, _ := json.Marshal(cached)
+	pastTTL := strconv.FormatInt(time.Now().Add(-1*time.Minute).Unix(), 10)
+
+	scanCalled := false
+	mock := &mockDynamoDB{
+		getItemFn: func(ctx context.Context, params *dynamodb.GetItemInput, optFns ...func(*dynamodb.Options)) (*dynamodb.GetItemOutput, error) {
+			return &dynamodb.GetItemOutput{
+				Item: map[string]types.AttributeValue{
+					"id":          &types.AttributeValueMemberS{Value: statsCacheKey},
+					"received_at": &types.AttributeValueMemberS{Value: statsCacheRangeKey},
+					statsJSONAttr: &types.AttributeValueMemberS{Value: string(cachedBytes)},
+					statsTTLAttr:  &types.AttributeValueMemberN{Value: pastTTL},
+				},
+			}, nil
+		},
+		scanFn: func(ctx context.Context, params *dynamodb.ScanInput, optFns ...func(*dynamodb.Options)) (*dynamodb.ScanOutput, error) {
+			scanCalled = true
+			return &dynamodb.ScanOutput{Items: []map[string]types.AttributeValue{}}, nil
+		},
+	}
+	h := newTestHandler(mock)
+
+	resp, _ := h.Handle(context.Background(), events.APIGatewayProxyRequest{
+		HTTPMethod: "GET",
+		Resource:   "/stats",
+	})
+
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200, got %d", resp.StatusCode)
+	}
+	if !scanCalled {
+		t.Error("Scan must be called when cache is expired")
+	}
+
+	// The result should come from the scan (0 items), not the stale cache (99).
+	var stats StatsResponse
+	if err := json.Unmarshal([]byte(resp.Body), &stats); err != nil {
+		t.Fatalf("JSON unmarshal error: %v", err)
+	}
+	if stats.TotalEmails != 0 {
+		t.Errorf("expected totalEmails 0 from fresh scan, got %d (stale cache has 99)", stats.TotalEmails)
+	}
+}
+
+func TestGetStats_CacheReadError_FallsBackToScan(t *testing.T) {
+	scanCalled := false
+	mock := &mockDynamoDB{
+		getItemFn: func(ctx context.Context, params *dynamodb.GetItemInput, optFns ...func(*dynamodb.Options)) (*dynamodb.GetItemOutput, error) {
+			return nil, fmt.Errorf("DynamoDB unavailable")
+		},
+		scanFn: func(ctx context.Context, params *dynamodb.ScanInput, optFns ...func(*dynamodb.Options)) (*dynamodb.ScanOutput, error) {
+			scanCalled = true
+			return &dynamodb.ScanOutput{Items: []map[string]types.AttributeValue{}}, nil
+		},
+	}
+	h := newTestHandler(mock)
+
+	resp, _ := h.Handle(context.Background(), events.APIGatewayProxyRequest{
+		HTTPMethod: "GET",
+		Resource:   "/stats",
+	})
+
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200, got %d", resp.StatusCode)
+	}
+	if !scanCalled {
+		t.Error("Scan must be called when cache read fails")
+	}
+}
+
+func TestGetStats_CacheWriteError_StillReturnsStats(t *testing.T) {
+	mock := &mockDynamoDB{
+		// getItemFn nil → cache miss
+		scanFn: func(ctx context.Context, params *dynamodb.ScanInput, optFns ...func(*dynamodb.Options)) (*dynamodb.ScanOutput, error) {
+			return &dynamodb.ScanOutput{Items: []map[string]types.AttributeValue{}}, nil
+		},
+		putItemFn: func(ctx context.Context, params *dynamodb.PutItemInput, optFns ...func(*dynamodb.Options)) (*dynamodb.PutItemOutput, error) {
+			return nil, fmt.Errorf("DynamoDB write unavailable")
+		},
+	}
+	h := newTestHandler(mock)
+
+	resp, _ := h.Handle(context.Background(), events.APIGatewayProxyRequest{
+		HTTPMethod: "GET",
+		Resource:   "/stats",
+	})
+
+	// A cache write failure must not affect the response.
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200 even when cache write fails, got %d", resp.StatusCode)
 	}
 }
 
