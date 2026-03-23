@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/sh3r4rd/sh3r4rd.com/compare/v1.0.1...v1.0.2) (2026-03-23)
+
+
+### Performance Improvements
+
+* **lambda:** replace full table scan in /stats with TTL-cached aggregation ([#79](https://github.com/sh3r4rd/sh3r4rd.com/issues/79)) ([82ddb10](https://github.com/sh3r4rd/sh3r4rd.com/commit/82ddb10f30569faa4436f9e2557c2b4d77608954)), closes [STATS#cache](https://github.com/STATS/issues/cache)
+
 ## [1.0.1](https://github.com/sh3r4rd/sh3r4rd.com/compare/v1.0.0...v1.0.1) (2026-03-22)
 
 
