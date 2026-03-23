@@ -143,7 +143,6 @@ const (
 // On a cache miss or expiry, it falls back to a full table scan and writes the
 // fresh result back to the cache before returning.
 func (h *Handler) getStats(ctx context.Context) (events.APIGatewayProxyResponse, error) {
-	// Check for a cached stats item.
 	cacheOut, err := h.db.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: aws.String(h.tableName),
 		Key: map[string]types.AttributeValue{
@@ -153,22 +152,8 @@ func (h *Handler) getStats(ctx context.Context) (events.APIGatewayProxyResponse,
 	})
 	if err != nil {
 		log.Printf("DynamoDB error reading stats cache: %v", err)
-	} else if len(cacheOut.Item) > 0 {
-		if ttlVal, ok := cacheOut.Item[statsTTLAttr]; ok {
-			if ttlN, ok := ttlVal.(*types.AttributeValueMemberN); ok {
-				if ttl, parseErr := strconv.ParseInt(ttlN.Value, 10, 64); parseErr == nil && ttl > time.Now().Add(statsCacheTTLSlack).Unix() {
-					cachedJSON := attributeValueString(cacheOut.Item, statsJSONAttr, "")
-					if cachedJSON != "" {
-						var stats StatsResponse
-						if unmarshalErr := json.Unmarshal([]byte(cachedJSON), &stats); unmarshalErr == nil {
-							return h.respond(http.StatusOK, stats), nil
-						} else {
-							log.Printf("failed to unmarshal cached stats: %v", unmarshalErr)
-						}
-					}
-				}
-			}
-		}
+	} else if stats, ok := parseCachedStats(cacheOut.Item); ok {
+		return h.respond(http.StatusOK, stats), nil
 	}
 
 	// Cache miss or expired — scan the table and aggregate.
@@ -224,6 +209,36 @@ func (h *Handler) getStats(ctx context.Context) (events.APIGatewayProxyResponse,
 	}
 
 	return h.respond(http.StatusOK, stats), nil
+}
+
+// parseCachedStats extracts a StatsResponse from a cached DynamoDB item.
+// Returns the stats and true if the item is present, unexpired, and valid.
+func parseCachedStats(item map[string]types.AttributeValue) (StatsResponse, bool) {
+	if len(item) == 0 {
+		return StatsResponse{}, false
+	}
+	ttlVal, ok := item[statsTTLAttr]
+	if !ok {
+		return StatsResponse{}, false
+	}
+	ttlN, ok := ttlVal.(*types.AttributeValueMemberN)
+	if !ok {
+		return StatsResponse{}, false
+	}
+	ttl, err := strconv.ParseInt(ttlN.Value, 10, 64)
+	if err != nil || ttl <= time.Now().Add(statsCacheTTLSlack).Unix() {
+		return StatsResponse{}, false
+	}
+	cachedJSON := attributeValueString(item, statsJSONAttr, "")
+	if cachedJSON == "" {
+		return StatsResponse{}, false
+	}
+	var stats StatsResponse
+	if err := json.Unmarshal([]byte(cachedJSON), &stats); err != nil {
+		log.Printf("failed to unmarshal cached stats: %v", err)
+		return StatsResponse{}, false
+	}
+	return stats, true
 }
 
 // topN returns the n highest-count entries from a frequency map.
