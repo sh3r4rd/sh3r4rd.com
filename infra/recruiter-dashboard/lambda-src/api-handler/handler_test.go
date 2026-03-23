@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -333,6 +334,40 @@ func TestListRecruiters_DynamoDBError(t *testing.T) {
 	}
 }
 
+func TestListRecruiters_ExcludesCacheItem(t *testing.T) {
+	var capturedInput *dynamodb.ScanInput
+	mock := &mockDynamoDB{
+		scanFn: func(ctx context.Context, params *dynamodb.ScanInput, optFns ...func(*dynamodb.Options)) (*dynamodb.ScanOutput, error) {
+			capturedInput = params
+			return &dynamodb.ScanOutput{Items: sampleItems()}, nil
+		},
+	}
+	h := newTestHandler(mock)
+
+	resp, _ := h.Handle(context.Background(), events.APIGatewayProxyRequest{
+		HTTPMethod: "GET",
+		Resource:   "/recruiters",
+	})
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200, got %d", resp.StatusCode)
+	}
+
+	// Verify scan includes a FilterExpression that excludes the cache sentinel.
+	if capturedInput == nil {
+		t.Fatal("expected Scan to be called")
+	}
+	if capturedInput.FilterExpression == nil || !strings.Contains(*capturedInput.FilterExpression, "id <> :_cacheId") {
+		t.Errorf("expected FilterExpression to exclude cache item, got %v", capturedInput.FilterExpression)
+	}
+	cacheVal, ok := capturedInput.ExpressionAttributeValues[":_cacheId"]
+	if !ok {
+		t.Fatal("expected :_cacheId in ExpressionAttributeValues")
+	}
+	if sv, ok := cacheVal.(*types.AttributeValueMemberS); !ok || sv.Value != statsCacheKey {
+		t.Errorf("expected :_cacheId value %q, got %v", statsCacheKey, cacheVal)
+	}
+}
+
 // --- GET /recruiters?company=X Tests ---
 
 func TestListRecruiters_CompanyFilter(t *testing.T) {
@@ -359,8 +394,8 @@ func TestListRecruiters_CompanyFilter(t *testing.T) {
 	if capturedInput == nil {
 		t.Fatal("expected Scan to be called for company filter")
 	}
-	if capturedInput.FilterExpression == nil || *capturedInput.FilterExpression != "contains(company, :company)" {
-		t.Errorf("expected FilterExpression 'contains(company, :company)', got %v", capturedInput.FilterExpression)
+	if capturedInput.FilterExpression == nil || !strings.Contains(*capturedInput.FilterExpression, "contains(company, :company)") {
+		t.Errorf("expected FilterExpression to contain 'contains(company, :company)', got %v", capturedInput.FilterExpression)
 	}
 	companyVal, ok := capturedInput.ExpressionAttributeValues[":company"]
 	if !ok {
@@ -509,8 +544,8 @@ func TestListRecruiters_MonthAndCompanyFilter(t *testing.T) {
 	if capturedInput == nil {
 		t.Fatal("expected Query to be called for month+company filter")
 	}
-	if capturedInput.FilterExpression == nil || *capturedInput.FilterExpression != "contains(company, :company)" {
-		t.Errorf("expected FilterExpression 'contains(company, :company)', got %v", capturedInput.FilterExpression)
+	if capturedInput.FilterExpression == nil || !strings.Contains(*capturedInput.FilterExpression, "contains(company, :company)") {
+		t.Errorf("expected FilterExpression to contain 'contains(company, :company)', got %v", capturedInput.FilterExpression)
 	}
 	companyVal, ok := capturedInput.ExpressionAttributeValues[":company"]
 	if !ok {
@@ -631,6 +666,29 @@ func TestGetRecruiter_ResponseDoesNotContainPII(t *testing.T) {
 		if contains(resp.Body, pii) {
 			t.Errorf("response body must NOT contain PII value %q", pii)
 		}
+	}
+}
+
+func TestGetRecruiter_RejectsCacheKey(t *testing.T) {
+	queryCalled := false
+	mock := &mockDynamoDB{
+		queryFn: func(ctx context.Context, params *dynamodb.QueryInput, optFns ...func(*dynamodb.Options)) (*dynamodb.QueryOutput, error) {
+			queryCalled = true
+			return &dynamodb.QueryOutput{}, nil
+		},
+	}
+	h := newTestHandler(mock)
+
+	resp, _ := h.Handle(context.Background(), events.APIGatewayProxyRequest{
+		HTTPMethod:     "GET",
+		Resource:       "/recruiters/{id}",
+		PathParameters: map[string]string{"id": statsCacheKey},
+	})
+	if resp.StatusCode != http.StatusNotFound {
+		t.Errorf("expected 404 for cache key ID, got %d", resp.StatusCode)
+	}
+	if queryCalled {
+		t.Error("DynamoDB Query must NOT be called for the cache key ID")
 	}
 }
 

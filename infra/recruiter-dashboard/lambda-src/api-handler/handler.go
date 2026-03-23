@@ -93,6 +93,9 @@ func (h *Handler) getRecruiter(ctx context.Context, id string) (events.APIGatewa
 	if id == "" {
 		return h.respondError(http.StatusBadRequest, "Missing id parameter"), nil
 	}
+	if id == statsCacheKey {
+		return h.respondError(http.StatusNotFound, "Recruiter not found"), nil
+	}
 
 	out, err := h.db.Query(ctx, &dynamodb.QueryInput{
 		TableName:              aws.String(h.tableName),
@@ -319,6 +322,7 @@ func (h *Handler) queryByMonth(ctx context.Context, month string, company string
 
 // scan performs a paginated table scan, applying any provided options
 // (e.g. FilterExpression, ProjectionExpression) to each page.
+// It always excludes the stats cache sentinel item from results.
 func (h *Handler) scan(ctx context.Context, opts ...scanOption) ([]map[string]types.AttributeValue, error) {
 	var items []map[string]types.AttributeValue
 	var lastKey map[string]types.AttributeValue
@@ -330,6 +334,18 @@ func (h *Handler) scan(ctx context.Context, opts ...scanOption) ([]map[string]ty
 		}
 		for _, o := range opts {
 			o(input)
+		}
+		// Exclude the stats cache sentinel from all scans.
+		if input.ExpressionAttributeValues == nil {
+			input.ExpressionAttributeValues = make(map[string]types.AttributeValue)
+		}
+		input.ExpressionAttributeValues[":_cacheId"] = &types.AttributeValueMemberS{Value: statsCacheKey}
+		cacheFilter := "id <> :_cacheId"
+		if input.FilterExpression != nil {
+			combined := fmt.Sprintf("(%s) AND %s", *input.FilterExpression, cacheFilter)
+			input.FilterExpression = aws.String(combined)
+		} else {
+			input.FilterExpression = aws.String(cacheFilter)
 		}
 		out, err := h.db.Scan(ctx, input)
 		if err != nil {
