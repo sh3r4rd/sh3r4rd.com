@@ -1,16 +1,10 @@
 import { Mail, Building2, Briefcase, CalendarDays } from "lucide-react";
 import { Card, CardContent } from "../ui/card";
 
-function computeTopJobTitle(items) {
-  const counts = new Map();
-  for (const item of items) {
-    const title = item?.jobTitle;
-    if (!title) continue;
-    counts.set(title, (counts.get(title) || 0) + 1);
-  }
+function pickTopJobTitle(topJobTitles) {
   let top = null;
   let topCount = 0;
-  for (const [title, count] of counts) {
+  for (const [title, count] of Object.entries(topJobTitles)) {
     if (count > topCount) {
       top = title;
       topCount = count;
@@ -19,17 +13,18 @@ function computeTopJobTitle(items) {
   return top ?? "N/A";
 }
 
-export default function StatsCards({ data }) {
-  const items = Array.isArray(data) ? data : [];
+export default function StatsCards({ stats }) {
+  const s = stats ?? {};
+  const byMonth = s.byMonth ?? {};
+  const topJobTitles = s.topJobTitles ?? {};
 
+  // UTC key — matches the server's byMonth keys (derived from date_day[:7]).
   const currentMonth = new Date().toISOString().slice(0, 7);
 
-  const totalRequests = items.length;
-  const uniqueCompanies = new Set(
-    items.map((r) => r?.company).filter(Boolean)
-  ).size;
-  const topJobTitle = computeTopJobTitle(items);
-  const thisMonthCount = items.filter((r) => r?.month === currentMonth).length;
+  const totalRequests = s.totalEmails ?? 0;
+  const uniqueCompanies = s.uniqueCompanies ?? 0;
+  const topJobTitle = pickTopJobTitle(topJobTitles);
+  const thisMonthCount = byMonth[currentMonth] ?? 0;
 
   const cards = [
     {
