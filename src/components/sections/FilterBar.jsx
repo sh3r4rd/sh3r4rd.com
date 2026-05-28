@@ -1,18 +1,40 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Search } from "lucide-react";
 import { Button } from "../ui/button";
 
 const inputClass =
   "p-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100";
 
-export default function FilterBar({ data, filters, onFilterChange }) {
+const EMPTY_FILTERS = {
+  search: "",
+  company: "",
+  jobTitle: "",
+  monthFrom: "",
+  monthTo: "",
+};
+
+// `allData` must be the unfiltered recruiter list — dropdown options are
+// derived from it, so passing a filtered list would collapse the options
+// as the user drills in.
+export default function FilterBar({
+  allData,
+  filters = EMPTY_FILTERS,
+  onFilterChange,
+}) {
   const [searchInput, setSearchInput] = useState(filters.search);
+
+  // Mirror latest filters in a ref so the debounced timer merges against
+  // fresh state instead of a stale closure snapshot.
+  const filtersRef = useRef(filters);
+  useEffect(() => {
+    filtersRef.current = filters;
+  }, [filters]);
 
   // Debounce search input changes (200ms) before pushing up to parent.
   useEffect(() => {
     const t = setTimeout(() => {
-      if (searchInput !== filters.search) {
-        onFilterChange({ ...filters, search: searchInput });
+      if (searchInput !== filtersRef.current.search) {
+        onFilterChange({ ...filtersRef.current, search: searchInput });
       }
     }, 200);
     return () => clearTimeout(t);
@@ -31,16 +53,18 @@ export default function FilterBar({ data, filters, onFilterChange }) {
   }, [filters.search]);
 
   const companyOptions = useMemo(
-    () => [...new Set((data || []).map((r) => r.company).filter(Boolean))].sort(),
-    [data],
+    () => [...new Set((allData || []).map((r) => r.company).filter(Boolean))].sort(),
+    [allData],
   );
   const jobTitleOptions = useMemo(
-    () => [...new Set((data || []).map((r) => r.jobTitle).filter(Boolean))].sort(),
-    [data],
+    () => [...new Set((allData || []).map((r) => r.jobTitle).filter(Boolean))].sort(),
+    [allData],
   );
 
+  // Use `searchInput` (not `filters.search`) so the Clear button reflects the
+  // user's intent immediately instead of lagging the 200ms debounce.
   const hasActiveFilters = Boolean(
-    filters.search ||
+    searchInput ||
       filters.company ||
       filters.jobTitle ||
       filters.monthFrom ||
