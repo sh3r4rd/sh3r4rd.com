@@ -43,17 +43,19 @@ export default function DashboardPage() {
     setLoading(true);
     setError(null);
     try {
-      const [recruitersRes, statsRes] = await Promise.all([
-        fetch(RECRUITERS_URL),
-        fetch(STATS_URL),
-      ]);
+      // Stats are supplementary; isolate their failure so a stats network/CORS
+      // rejection (not just a non-ok status) can never blank the recruiter table.
+      const statsPromise = fetch(STATS_URL)
+        .then((res) => (res.ok ? res.json() : null))
+        .catch(() => null);
+
+      const recruitersRes = await fetch(RECRUITERS_URL);
       if (!recruitersRes.ok) {
         throw new Error(`Request failed: ${recruitersRes.status}`);
       }
       const body = await recruitersRes.json();
       setData(Array.isArray(body) ? body : []);
-      // Stats are supplementary; a stats failure shouldn't blank the table.
-      setStats(statsRes.ok ? await statsRes.json() : null);
+      setStats(await statsPromise);
     } catch (err) {
       setError(err.message || "Failed to load recruiter data");
     } finally {

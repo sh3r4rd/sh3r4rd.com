@@ -209,6 +209,8 @@ export default function RecruiterTable({
                   key={n}
                   type="button"
                   onClick={() => onPageChange(n)}
+                  aria-label={`Go to page ${n}`}
+                  aria-current={n === currentPage ? "page" : undefined}
                   className={
                     n === currentPage
                       ? `${pageBtnBase} bg-blue-600 text-white`

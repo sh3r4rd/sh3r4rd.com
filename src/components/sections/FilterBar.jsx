@@ -65,6 +65,12 @@ export default function FilterBar({
   );
 
   const handleClear = () => {
+    // Reset local input too. Without this, clearing while a debounce is still
+    // pending (parent's `filters.search` not yet updated) leaves `searchInput`
+    // stale, so the sync effect never fires and the pending timer re-applies the
+    // old search. Setting it here re-runs the debounce effect, whose cleanup
+    // clears that timer.
+    setSearchInput("");
     onFilterChange({ ...EMPTY_FILTERS });
   };
 

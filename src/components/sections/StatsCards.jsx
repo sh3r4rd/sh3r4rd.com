@@ -18,7 +18,12 @@ export default function StatsCards({ stats }) {
   const byMonth = s.byMonth ?? {};
   const topJobTitles = s.topJobTitles ?? {};
 
-  // UTC key — matches the server's byMonth keys (derived from date_day[:7]).
+  // Current month as a UTC "YYYY-MM" key. Note: the server's byMonth keys are
+  // derived from date_day[:7], which the email-parser formats from the email's
+  // Date header in its *original* timezone (not UTC). So for emails whose Date
+  // header straddles a month boundary relative to UTC, this lookup can under- or
+  // over-count "This Month". The robust fix is to format date_day in UTC server
+  // side; until then this is a known low-severity edge case.
   const currentMonth = new Date().toISOString().slice(0, 7);
 
   const totalRequests = s.totalEmails ?? 0;
