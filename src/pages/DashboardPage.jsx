@@ -6,17 +6,11 @@ import Header from "../components/layout/Header";
 import StatsCards from "../components/sections/StatsCards";
 import FilterBar from "../components/sections/FilterBar";
 import RecruiterTable from "../components/sections/RecruiterTable";
+import { EMPTY_FILTERS } from "../lib/filters";
 
-const API_URL = "https://api.sh3r4rd.com/recruiters";
+const RECRUITERS_URL = "https://api.sh3r4rd.com/recruiters";
+const STATS_URL = "https://api.sh3r4rd.com/stats";
 const PAGE_SIZE = 10;
-
-const EMPTY_FILTERS = {
-  search: "",
-  company: "",
-  jobTitle: "",
-  monthFrom: "",
-  monthTo: "",
-};
 
 function matchesFilters(item, filters) {
   const { search, company, jobTitle, monthFrom, monthTo } = filters;
@@ -38,6 +32,7 @@ function matchesFilters(item, filters) {
 
 export default function DashboardPage() {
   const [data, setData] = useState([]);
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
@@ -48,12 +43,17 @@ export default function DashboardPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(API_URL);
-      if (!res.ok) {
-        throw new Error(`Request failed: ${res.status}`);
+      const [recruitersRes, statsRes] = await Promise.all([
+        fetch(RECRUITERS_URL),
+        fetch(STATS_URL),
+      ]);
+      if (!recruitersRes.ok) {
+        throw new Error(`Request failed: ${recruitersRes.status}`);
       }
-      const body = await res.json();
+      const body = await recruitersRes.json();
       setData(Array.isArray(body) ? body : []);
+      // Stats are supplementary; a stats failure shouldn't blank the table.
+      setStats(statsRes.ok ? await statsRes.json() : null);
     } catch (err) {
       setError(err.message || "Failed to load recruiter data");
     } finally {
@@ -117,15 +117,15 @@ export default function DashboardPage() {
             <AlertCircle className="w-10 h-10 text-red-500 dark:text-red-400" />
             <p className="mt-4 text-gray-700 dark:text-gray-300">{error}</p>
             <div className="mt-4">
-              <Button onClick={handleRefresh}>Try Again</Button>
+              <Button onClick={loadData}>Try Again</Button>
             </div>
           </div>
         ) : (
           <>
-            <StatsCards data={data} />
+            <StatsCards stats={stats} />
 
             <FilterBar
-              data={data}
+              allData={data}
               filters={filters}
               onFilterChange={handleFilterChange}
             />

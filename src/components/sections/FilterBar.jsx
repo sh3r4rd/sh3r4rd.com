@@ -1,17 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Search } from "lucide-react";
 import { Button } from "../ui/button";
+import { EMPTY_FILTERS } from "../../lib/filters";
 
 const inputClass =
   "p-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100";
-
-const EMPTY_FILTERS = {
-  search: "",
-  company: "",
-  jobTitle: "",
-  monthFrom: "",
-  monthTo: "",
-};
 
 // `allData` must be the unfiltered recruiter list — dropdown options are
 // derived from it, so passing a filtered list would collapse the options
@@ -72,13 +65,7 @@ export default function FilterBar({
   );
 
   const handleClear = () => {
-    onFilterChange({
-      search: "",
-      company: "",
-      jobTitle: "",
-      monthFrom: "",
-      monthTo: "",
-    });
+    onFilterChange({ ...EMPTY_FILTERS });
   };
 
   return (
