@@ -38,7 +38,12 @@ function getPageNumbers(page, totalPages) {
   return result;
 }
 
-export default function RecruiterTable({ data, page, pageSize, onPageChange }) {
+export default function RecruiterTable({
+  data = [],
+  page,
+  pageSize = 10,
+  onPageChange,
+}) {
   const [sort, setSort] = useState({ key: "month", direction: "desc" });
 
   const sortedData = useMemo(() => {
@@ -51,15 +56,19 @@ export default function RecruiterTable({ data, page, pageSize, onPageChange }) {
       if (aEmpty && bEmpty) return 0;
       if (aEmpty) return 1;
       if (bEmpty) return -1;
-      if (av < bv) return sort.direction === "asc" ? -1 : 1;
-      if (av > bv) return sort.direction === "asc" ? 1 : -1;
-      return 0;
+      const cmp =
+        typeof av === "number" && typeof bv === "number"
+          ? av - bv
+          : String(av).localeCompare(String(bv), undefined, {
+              sensitivity: "base",
+            });
+      return sort.direction === "asc" ? cmp : -cmp;
     });
     return copy;
   }, [data, sort]);
 
   const totalPages = Math.max(1, Math.ceil(sortedData.length / pageSize));
-  const currentPage = Math.min(page, totalPages);
+  const currentPage = Math.max(1, Math.min(page, totalPages));
   const startIdx = (currentPage - 1) * pageSize;
   const endIdx = Math.min(currentPage * pageSize, sortedData.length);
   const pageRows = sortedData.slice(startIdx, endIdx);
