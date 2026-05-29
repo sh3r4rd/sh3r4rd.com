@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/sh3r4rd/sh3r4rd.com/compare/v1.0.2...v1.1.0) (2026-05-29)
+
+
+### Features
+
+* **dashboard:** recruiter dashboard frontend (Phase 4) ([#84](https://github.com/sh3r4rd/sh3r4rd.com/issues/84)) ([5820b5f](https://github.com/sh3r4rd/sh3r4rd.com/commit/5820b5fb0024a2bc453158585420e43413f40802)), closes [#80](https://github.com/sh3r4rd/sh3r4rd.com/issues/80) [#81](https://github.com/sh3r4rd/sh3r4rd.com/issues/81) [#82](https://github.com/sh3r4rd/sh3r4rd.com/issues/82) [#83](https://github.com/sh3r4rd/sh3r4rd.com/issues/83) [#34](https://github.com/sh3r4rd/sh3r4rd.com/issues/34) [#80](https://github.com/sh3r4rd/sh3r4rd.com/issues/80)
+
 ## [1.0.2](https://github.com/sh3r4rd/sh3r4rd.com/compare/v1.0.1...v1.0.2) (2026-03-23)
 
 
