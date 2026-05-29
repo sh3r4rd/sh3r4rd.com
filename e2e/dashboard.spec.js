@@ -1,7 +1,10 @@
 import { test, expect } from "@playwright/test";
 
-const RECRUITERS_URL = "https://api.sh3r4rd.com/recruiters";
-const STATS_URL = "https://api.sh3r4rd.com/stats";
+// Glob route patterns (not exact URLs) so the mocks still intercept if a query
+// string is ever appended (e.g. /recruiters?company=…). An exact-string match
+// would miss that and let the request escape to the real API.
+const RECRUITERS_ROUTE = "**/recruiters*";
+const STATS_ROUTE = "**/stats*";
 
 /**
  * Deterministic fixture: 12 recruiters spanning 3 companies, several job titles,
@@ -27,7 +30,9 @@ const STATS = {
   totalEmails: 12,
   uniqueCompanies: 3,
   byMonth: { "2025-01": 4, "2025-02": 4, "2025-03": 4 },
-  topJobTitles: { "Frontend Engineer": 3, "Backend Engineer": 3, "DevOps Engineer": 2 },
+  // Frontend Engineer is a unique max (3) so the "Top Job Title" assertion is
+  // unambiguous — it does not rely on object key order to break a tie.
+  topJobTitles: { "Frontend Engineer": 3, "Backend Engineer": 2, "DevOps Engineer": 2 },
 };
 
 /**
@@ -35,14 +40,14 @@ const STATS = {
  * called BEFORE page.goto so neither request escapes to the network.
  */
 async function mockApi(page, { recruiters = RECRUITERS, recruitersStatus = 200, stats = STATS } = {}) {
-  await page.route(RECRUITERS_URL, (route) =>
+  await page.route(RECRUITERS_ROUTE, (route) =>
     route.fulfill({
       status: recruitersStatus,
       contentType: "application/json",
       body: JSON.stringify(recruiters),
     }),
   );
-  await page.route(STATS_URL, (route) =>
+  await page.route(STATS_ROUTE, (route) =>
     route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -56,6 +61,19 @@ function statValue(page, label) {
   return page
     .locator("p", { hasText: new RegExp(`^${label}$`) })
     .locator("xpath=following-sibling::p[1]");
+}
+
+/** Tailwind `md` breakpoint (px): at/above this the desktop table renders. */
+const MD_BREAKPOINT = 768;
+
+/**
+ * True when the viewport is at/above the md breakpoint. An unset viewport
+ * (full-size window) counts as desktop — this guards against viewportSize()
+ * returning null, mirroring the `!viewport ||` defense the Mobile suite uses.
+ */
+function isDesktop(page) {
+  const vp = page.viewportSize();
+  return !vp || vp.width >= MD_BREAKPOINT;
 }
 
 test.describe("Recruiter Dashboard", () => {
@@ -100,7 +118,7 @@ test.describe("Recruiter Dashboard", () => {
     ).toBeVisible();
     // Row-level cell assertion is desktop-only: the <table> is display:none
     // below the md breakpoint, so its cells leave the accessibility tree.
-    if (page.viewportSize().width >= 768) {
+    if (isDesktop(page)) {
       await expect(
         page.getByRole("cell", { name: "Data Scientist" }),
       ).toHaveCount(2);
@@ -119,7 +137,7 @@ test.describe("Recruiter Dashboard", () => {
       page.getByText("4 results (filtered from 12)"),
     ).toBeVisible();
     // Desktop-only: see note in the search-filter test.
-    if (page.viewportSize().width >= 768) {
+    if (isDesktop(page)) {
       await expect(page.getByRole("cell", { name: "Initech" })).toHaveCount(4);
     }
   });
@@ -144,10 +162,7 @@ test.describe("Recruiter Dashboard", () => {
   test("sort by column and toggle direction", async ({ page }) => {
     // Sortable column headers exist only in the desktop table; the mobile card
     // layout has no sortable headers, so this journey is desktop-only.
-    test.skip(
-      page.viewportSize().width < 768,
-      "sortable table headers are desktop-only",
-    );
+    test.skip(!isDesktop(page), "sortable table headers are desktop-only");
     await mockApi(page);
     await page.goto("/dashboard");
     await expect(page.getByText("12 results", { exact: true })).toBeVisible();
