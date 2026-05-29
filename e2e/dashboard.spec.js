@@ -98,9 +98,13 @@ test.describe("Recruiter Dashboard", () => {
     await expect(
       page.getByText("2 results (filtered from 12)"),
     ).toBeVisible();
-    await expect(
-      page.getByRole("cell", { name: "Data Scientist" }),
-    ).toHaveCount(2);
+    // Row-level cell assertion is desktop-only: the <table> is display:none
+    // below the md breakpoint, so its cells leave the accessibility tree.
+    if (page.viewportSize().width >= 768) {
+      await expect(
+        page.getByRole("cell", { name: "Data Scientist" }),
+      ).toHaveCount(2);
+    }
   });
 
   test("company filter narrows results", async ({ page }) => {
@@ -114,7 +118,10 @@ test.describe("Recruiter Dashboard", () => {
     await expect(
       page.getByText("4 results (filtered from 12)"),
     ).toBeVisible();
-    await expect(page.getByRole("cell", { name: "Initech" })).toHaveCount(4);
+    // Desktop-only: see note in the search-filter test.
+    if (page.viewportSize().width >= 768) {
+      await expect(page.getByRole("cell", { name: "Initech" })).toHaveCount(4);
+    }
   });
 
   test("clear filters restores full dataset", async ({ page }) => {
@@ -135,6 +142,12 @@ test.describe("Recruiter Dashboard", () => {
   });
 
   test("sort by column and toggle direction", async ({ page }) => {
+    // Sortable column headers exist only in the desktop table; the mobile card
+    // layout has no sortable headers, so this journey is desktop-only.
+    test.skip(
+      page.viewportSize().width < 768,
+      "sortable table headers are desktop-only",
+    );
     await mockApi(page);
     await page.goto("/dashboard");
     await expect(page.getByText("12 results", { exact: true })).toBeVisible();
@@ -202,9 +215,14 @@ test.describe("Mobile layout", () => {
     // The desktop <table> is hidden below the md breakpoint.
     await expect(page.locator("table")).toBeHidden();
 
-    // Card content (a company name) is visible instead.
+    // Card content (a company name) is visible instead. Filter to visible
+    // matches so we don't latch onto the hidden <option> in the company
+    // dropdown, which also contains the text "Acme Corp".
     await expect(
-      page.getByText("Acme Corp", { exact: true }).first(),
+      page
+        .getByText("Acme Corp", { exact: true })
+        .filter({ visible: true })
+        .first(),
     ).toBeVisible();
   });
 });
