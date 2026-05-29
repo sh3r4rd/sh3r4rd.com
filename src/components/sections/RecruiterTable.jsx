@@ -11,12 +11,12 @@ const COLUMNS = [
 
 function SortIcon({ active, direction }) {
   if (!active) {
-    return <ArrowUpDown className="w-4 h-4" />;
+    return <ArrowUpDown className="w-4 h-4" aria-hidden="true" />;
   }
   return direction === "asc" ? (
-    <ArrowUp className="w-4 h-4" />
+    <ArrowUp className="w-4 h-4" aria-hidden="true" />
   ) : (
-    <ArrowDown className="w-4 h-4" />
+    <ArrowDown className="w-4 h-4" aria-hidden="true" />
   );
 }
 
@@ -107,13 +107,24 @@ export default function RecruiterTable({
                 return (
                   <th
                     key={col.key}
-                    onClick={() => handleSort(col.key)}
-                    className="px-4 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
+                    scope="col"
+                    aria-sort={
+                      active
+                        ? sort.direction === "asc"
+                          ? "ascending"
+                          : "descending"
+                        : "none"
+                    }
+                    className="p-0"
                   >
-                    <span className="inline-flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleSort(col.key)}
+                      className="flex w-full items-center gap-2 px-4 py-3 text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
+                    >
                       {col.label}
                       <SortIcon active={active} direction={sort.direction} />
-                    </span>
+                    </button>
                   </th>
                 );
               })}
