@@ -9,6 +9,9 @@ const COLUMNS = [
   { key: "month", label: "Month" },
 ];
 
+const pageBtnBase = "px-3 py-1 text-sm rounded-md";
+const pageBtnIdle = `${pageBtnBase} border border-gray-300 dark:border-gray-700 bg-white text-gray-700 dark:bg-gray-800 dark:text-gray-300`;
+
 function SortIcon({ active, direction }) {
   if (!active) {
     return <ArrowUpDown className="w-4 h-4" aria-hidden="true" />;
@@ -187,7 +190,7 @@ export default function RecruiterTable({
               type="button"
               onClick={() => onPageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className={`px-3 py-1 text-sm rounded-md border border-gray-300 dark:border-gray-700 bg-white text-gray-700 dark:bg-gray-800 dark:text-gray-300 ${
+              className={`${pageBtnIdle} ${
                 currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >
@@ -206,11 +209,11 @@ export default function RecruiterTable({
                   key={n}
                   type="button"
                   onClick={() => onPageChange(n)}
-                  className={`px-3 py-1 text-sm rounded-md ${
+                  className={
                     n === currentPage
-                      ? "bg-blue-600 text-white"
-                      : "bg-white text-gray-700 dark:bg-gray-800 dark:text-gray-300 border border-gray-300 dark:border-gray-700"
-                  }`}
+                      ? `${pageBtnBase} bg-blue-600 text-white`
+                      : pageBtnIdle
+                  }
                 >
                   {n}
                 </button>
@@ -220,10 +223,8 @@ export default function RecruiterTable({
               type="button"
               onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className={`px-3 py-1 text-sm rounded-md border border-gray-300 dark:border-gray-700 bg-white text-gray-700 dark:bg-gray-800 dark:text-gray-300 ${
-                currentPage === totalPages
-                  ? "opacity-50 cursor-not-allowed"
-                  : ""
+              className={`${pageBtnIdle} ${
+                currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >
               Next
