@@ -44,7 +44,42 @@ Confirmed against `infra/recruiter-dashboard/lambda-src/api-handler`:
 
 ## Decisions / deviations (Phase 5)
 
-_(appended as work proceeds)_
+### #38 — Vitest / MSW / fixtures (PR #86)
+- **Mocked `/stats` in addition to `/recruiters`.** The issue named only `/recruiters`, but `DashboardPage` fetches both; the #39 integration tests assert stats totals.
+- **Coverage `include` scoped to the 6 dashboard files** (DashboardPage, StatsCards, FilterBar, RecruiterTable, card, filters). Including the pre-existing non-dashboard pages — which have zero Phase 5 tests — would make the "75% overall" AC unachievable in scope. Documented in `vitest.config.js`.
+- **`passWithNoTests: true`** so `npm run test` exits 0 with zero tests (an explicit #38 AC). A fixture/MSW smoke test (`src/mocks/__tests__/mocks.test.js`) is included regardless and validates the other #38 ACs.
+- **Vitest `include` scoped to `src/**`** so it never picks up Playwright specs in `e2e/` (a Playwright spec run under Vitest throws) or specs inside agent worktrees under `.claude/`.
+- **ESLint override** added for `**/*.{test,spec}.{js,jsx}` + `src/mocks/**` exposing Vitest + Node globals (the base config is browser-only). `coverage/` added to ESLint `globalIgnores` (the v8 HTML report ships JS with its own eslint-disable directives, which ESLint 9 flags by default).
+
+### #39 — Component & integration tests (PR #87)
+- **Stacked on #38**, not the epic: it needs the test infra to run. PR base is `feat/38-...`; GitHub auto-retargets it to the epic when #38 merges, so the #39 diff stays limited to the test files.
+- Final coverage on the dashboard surface: **96% lines / 80% branches** (threshold 75%). 43 tests.
+- "This Month" in StatsCards depends on `new Date()`; the test pins it with `vi.setSystemTime` for determinism.
+
+### #40 — Playwright E2E (PR #85)
+- Built by a **worktree-isolated background subagent**, in parallel with #38.
+- **`test:e2e` uses `--config e2e/playwright.config.js`** (config lives in `e2e/`, not repo root) — deviates from the issue's bare `playwright test`.
+- Targeted **ESLint `e2e/**` Node-globals override** instead of disabling rules globally.
+- Lockfile resolved `@playwright/test` to `1.60.0` (satisfies the issue's `^1.52.0`).
+- **Subagent verification gap, then fixed by me:** the subagent's environment denied the Playwright browser download, so it shipped the suite **unrun**. I installed Chromium and ran it — 4 mobile-chrome tests failed because the desktop `<table>` is `display:none` below the `md` breakpoint (so cell/row assertions and sortable headers don't exist on mobile) and one card assertion latched onto the hidden `<option>` of the same company name in the dropdown. Fixed (commit `d34e01b`): viewport-guarded the desktop cell assertions, skipped the sort journey on mobile, and `.filter({ visible: true })` on the card assertion. Final: **18 passed, 2 skipped** across both projects. → **Lesson:** delegated test work must be executed before it's trusted; an agent that can't run the tests is writing them blind.
+
+### #41 — CI workflow (PR #88)
+- **Trigger is `push:[main]` + `pull_request:` (all PRs)**, mirroring `ci.yml` — the issue said "PRs to main", but an unfiltered PR trigger is what lets the workflow validate this epic's own subtask PRs (a `main`-only filter would skip every PR here).
+- **Per-job path gating** for `tf-validate` via `dorny/paths-filter@v3` (a `changes` job output); `on.*.paths` would gate the whole workflow instead of one job.
+- Playwright report uploaded **`if: failure()`** (per AC); coverage uploaded unconditionally.
+- **Overlap with `ci.yml`** (lint/build/tf-validate appear in both) is intentional for now; consolidating the two workflows is a sensible follow-up, out of scope here.
+- Branched off the epic (depends on #38/#39/#40 for the scripts/tests). Its `unit-tests`/`e2e-tests` jobs stay red on its own PR until the siblings merge into the epic — same pattern Phase 4 used for its dependent PR.
+
+## PR map
+
+| Subtask | Branch | PR | Base | Status |
+|---|---|---|---|---|
+| #38 | `feat/38-setup-vitest-msw-fixtures` | #86 | epic | open, not merged |
+| #39 | `feat/39-component-integration-tests` | #87 | `feat/38-...` (auto-retargets to epic) | open, not merged |
+| #40 | `feat/40-playwright-e2e-tests` | #85 | epic | open, not merged |
+| #41 | `feat/41-ci-test-workflow` | #88 | epic | open, not merged |
+
+**Suggested merge order:** #40 (independent) and #38 first, then #39 (after #38), then #41 last (so its CI is green on the epic).
 
 ---
 
