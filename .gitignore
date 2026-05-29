@@ -32,3 +32,8 @@ scratch/
 
 # Terraform build artifacts
 .build/
+
+# Playwright E2E
+playwright-report/
+test-results/
+/e2e/.cache

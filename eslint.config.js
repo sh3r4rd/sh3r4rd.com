@@ -26,4 +26,16 @@ export default defineConfig([
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
     },
   },
+  {
+    // Playwright E2E tests run under Node, not the browser. Give them Node
+    // globals (e.g. `process`) and disable the react-refresh component-export
+    // rule, which is irrelevant to test modules.
+    files: ['e2e/**/*.js'],
+    languageOptions: {
+      globals: globals.node,
+    },
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
 ])
