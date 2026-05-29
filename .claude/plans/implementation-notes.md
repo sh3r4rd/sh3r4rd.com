@@ -1,3 +1,53 @@
+# Phase 5: Testing & CI Pipeline — Implementation Notes
+
+Running log for issue [#20](https://github.com/sh3r4rd/sh3r4rd.com/issues/20) and subtasks #38, #39, #40, #41.
+
+Base branch: `epic/phase-5-testing-and-ci-pipeline` (off `main`, which already contains the merged Phase 4 dashboard — `5820b5f`). All subtask PRs target this epic branch.
+
+## Issue tracker
+
+The prompt referenced "subtasks in Linear," but this repo tracks work on **GitHub Issues** (`sh3r4rd/sh3r4rd.com`) and has no `.linear/` directory — same as Phase 4. Proceeding with GitHub. The four subtasks are GitHub issues #38 (5.1), #39 (5.2), #40 (5.3), #41 (5.4).
+
+## Dependency graph & parallelism
+
+```
+#38 (vitest/MSW/fixtures) ──┐
+                            ├──► #39 (component+integration tests, needs #38)
+#40 (Playwright E2E) ───────┤            │
+  (independent of #38/#39)  │            │
+                            └────────────┴──► #41 (CI workflow, runs all of the above)
+```
+
+- **#38 and #40 are independent** and run in parallel: #40 uses Playwright `page.route()` mocking — it needs neither Vitest nor MSW, only the Phase 4 dashboard (already in `main`). Built #40 via a **worktree-isolated background subagent** while #38 was built in the main worktree.
+- **#39 depends on #38** (needs the Vitest config + MSW infra to run). Branched `feat/39-...` **off `feat/38-...`** (stacked PR). Its PR base is `feat/38-...`; GitHub auto-retargets it to the epic when #38 merges, keeping the #39 diff clean (only the test files, not #38's infra).
+- **#41 depends on #38, #39, #40** (its workflow runs `test:coverage` and `test:e2e`, which those PRs add). Branched off the epic; its `test.yml` will only go fully green once the sibling PRs merge into the epic and the scripts exist there. Flagged in the PR body. (Same pattern Phase 4 used for the dependent DashboardPage PR.)
+
+## Agent / skill mapping
+
+| Task | Tool | Why |
+|---|---|---|
+| #40 Playwright E2E | `general-purpose` agent, `isolation: "worktree"`, background | Fully independent of #38/#39; isolated worktree lets it run concurrently with #38 without file/lock contention. |
+| #38, #39, #41 | Main worktree, hands-on | #38 is foundational (everything depends on it — verify carefully); #39 stacks on it; #41 is small YAML/shell glue. |
+| Verification | `npm run test` / `test:coverage` after each test PR; `npx playwright test` for #40 | Each PR proves its own tests pass before opening. |
+| `code-review` skill | Optional post-implementation pass | Reserved if a test file grows complex. |
+
+Linear/`linear-workflow` skill not used (no `.linear/` dir — see above).
+
+## API response shapes (ground truth for fixtures/mocks)
+
+Confirmed against `infra/recruiter-dashboard/lambda-src/api-handler`:
+
+- **`GET /recruiters`** → array of `AnonymizedItem`: `{ id, company, jobTitle, month: "YYYY-MM", recruiterLabel: "Recruiter at {company}", confidence: float }`. **No PII** (anonymized server-side).
+- **`GET /stats`** → `{ totalEmails: int, uniqueCompanies: int, byMonth: {"YYYY-MM": int}, topJobTitles: {"title": int} }`.
+
+`DashboardPage` fetches **both** endpoints. Issue #38 names only `/recruiters`, but MSW must also mock `/stats` or the integration tests' stats assertions break — **added a `/stats` handler too** (decision; superset of the issue spec).
+
+## Decisions / deviations (Phase 5)
+
+_(appended as work proceeds)_
+
+---
+
 # Phase 4: Dashboard Frontend — Implementation Notes
 
 Running log of decisions, deviations from issue specs, and tradeoffs made while implementing issue [#19](https://github.com/sh3r4rd/sh3r4rd.com/issues/19) and subtasks #34, #35, #36, #37.
