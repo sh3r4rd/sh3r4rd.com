@@ -37,3 +37,6 @@ scratch/
 playwright-report/
 test-results/
 /e2e/.cache
+
+# Test artifacts
+coverage

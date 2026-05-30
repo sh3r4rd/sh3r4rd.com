@@ -5,7 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', '.claude']),
+  globalIgnores(['dist', '.claude', 'coverage']),
   {
     files: ['**/*.{js,jsx}'],
     extends: [
@@ -36,6 +36,25 @@ export default defineConfig([
     },
     rules: {
       'react-refresh/only-export-components': 'off',
+    },
+  },
+  {
+    // Test and mock files run under Vitest with `globals: true`, so expose the
+    // Vitest lifecycle/assertion globals plus Node globals (MSW's node server).
+    files: ['**/*.{test,spec}.{js,jsx}', 'src/mocks/**/*.{js,jsx}'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        describe: 'readonly',
+        it: 'readonly',
+        test: 'readonly',
+        expect: 'readonly',
+        vi: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+      },
     },
   },
 ])
