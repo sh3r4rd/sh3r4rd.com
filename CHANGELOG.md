@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/sh3r4rd/sh3r4rd.com/compare/v1.1.0...v1.2.0) (2026-05-30)
+
+
+### Features
+
+* Recruiter Dashboard — Phase 5: Testing & CI Pipeline ([#20](https://github.com/sh3r4rd/sh3r4rd.com/issues/20)) ([#89](https://github.com/sh3r4rd/sh3r4rd.com/issues/89)) ([ca473fa](https://github.com/sh3r4rd/sh3r4rd.com/commit/ca473fa5a0f9bc4174f589ad5d992779c19b607d)), closes [#85](https://github.com/sh3r4rd/sh3r4rd.com/issues/85)
+
 # [1.1.0](https://github.com/sh3r4rd/sh3r4rd.com/compare/v1.0.2...v1.1.0) (2026-05-29)
 
 
