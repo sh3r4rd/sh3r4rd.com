@@ -39,4 +39,4 @@ test-results/
 /e2e/.cache
 
 # Test artifacts
-coverage
+coverage/
