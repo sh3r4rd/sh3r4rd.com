@@ -1,0 +1,157 @@
+name: Test
+
+# Runs the frontend test pyramid (lint -> unit -> e2e) plus Terraform
+# validation. Triggers on pushes to main and on every pull request (so the
+# Phase 5 epic's subtask PRs are checked too), matching ci.yml's PR trigger.
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+# Cancel superseded runs on the same ref. A distinct group from ci.yml so the
+# two workflows don't cancel each other.
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+  unit-tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests with coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 7
+
+  e2e-tests:
+    name: E2E tests
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The Playwright projects are all Chromium-based, so only Chromium is
+      # needed. --with-deps installs the required OS libraries on the runner.
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+          # A config error / early crash may leave no report; don't let a
+          # missing path turn into a second failure that masks the real one.
+          if-no-files-found: ignore
+
+  # Detect whether any infra/ files changed so Terraform validation only runs
+  # when relevant (per-job path gating; on.*.paths would gate the whole file).
+  changes:
+    name: Detect infra changes
+    runs-on: ubuntu-latest
+    # paths-filter lists PR files via the API; grant the read scope explicitly
+    # so a hardened default token (contents: read only) can't 403 and silently
+    # skip Terraform validation while the workflow still reports green.
+    permissions:
+      pull-requests: read
+    outputs:
+      infra: ${{ steps.filter.outputs.infra }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        # Full history so paths-filter can diff on push events (the default
+        # fetch-depth: 1 leaves no base commit to compare against).
+        with:
+          fetch-depth: 0
+
+      - name: Filter changed paths
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            infra:
+              - 'infra/**'
+
+  tf-validate:
+    # Distinct from ci.yml's always-on "Terraform validate" check so the two
+    # are unambiguous when wired up as branch-protection required checks.
+    name: Terraform validate (test)
+    runs-on: ubuntu-latest
+    needs: changes
+    # The job always runs (no job-level `if`-skip) so it reports a conclusion
+    # even on frontend-only PRs — a skipped job never reports `success` and
+    # would leave a required check pending forever. The steps below no-op when
+    # infra/ is unchanged, so the job passes without doing Terraform work.
+    steps:
+      - name: No infra changes — skip
+        if: ${{ needs.changes.outputs.infra != 'true' }}
+        run: echo "No infra/ changes; Terraform validation not required for this PR."
+
+      - name: Checkout code
+        if: ${{ needs.changes.outputs.infra == 'true' }}
+        uses: actions/checkout@v6
+
+      - name: Setup Terraform
+        if: ${{ needs.changes.outputs.infra == 'true' }}
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: '1.5.7'
+
+      # init uses -backend=false (see the script), so no AWS credentials needed.
+      - name: Validate Terraform
+        if: ${{ needs.changes.outputs.infra == 'true' }}
+        run: ./infra/recruiter-dashboard/scripts/validate.sh
