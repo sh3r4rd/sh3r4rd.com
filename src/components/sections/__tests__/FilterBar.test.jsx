@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import FilterBar from '../FilterBar'
 import { EMPTY_FILTERS } from '../../../lib/filters'
@@ -71,10 +71,15 @@ describe('FilterBar', () => {
     )
   })
 
-  it('emits month range changes', async () => {
-    const user = userEvent.setup()
+  it('emits month range changes', () => {
     const { onFilterChange } = renderBar()
-    await user.type(screen.getByLabelText('From month'), '2026-01')
+    // A native <input type="month"> is a segmented control; character-by-
+    // character typing via userEvent is unreliable in jsdom (it can fire
+    // onChange with partial/empty values). Set the value directly to mirror a
+    // real month pick.
+    fireEvent.change(screen.getByLabelText('From month'), {
+      target: { value: '2026-01' },
+    })
     expect(onFilterChange).toHaveBeenCalledWith(
       expect.objectContaining({ monthFrom: '2026-01' }),
     )

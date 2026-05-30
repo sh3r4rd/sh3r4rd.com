@@ -54,7 +54,14 @@ export function buildStats(recruiters = RECRUITERS) {
     totalEmails: recruiters.length,
     uniqueCompanies: companies.size,
     byMonth,
-    topJobTitles: byJobTitle,
+    // Mirror the api-handler, which returns only the top 10 job titles
+    // (topN(jobTitles, 10)). Sort by count desc and keep the first 10 so the
+    // fixture can never produce a shape the real /stats endpoint wouldn't.
+    topJobTitles: Object.fromEntries(
+      Object.entries(byJobTitle)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10),
+    ),
   }
 }
 

@@ -10,20 +10,28 @@ const STATS_ROUTE = "**/stats*";
  * Deterministic fixture: 12 recruiters spanning 3 companies, several job titles,
  * and 3 months. >10 rows exercises pagination (PAGE_SIZE = 10). Months are fixed
  * (never "current") so the data is stable regardless of when the suite runs.
+ *
+ * This is intentionally a separate, purpose-built dataset from
+ * src/mocks/fixtures.js: the assertions below depend on a specific
+ * company/job-title/month distribution (Frontend Engineer as the unique top
+ * title, Initech = 4 rows, Data Scientist = 2 rows, a known sort order). It
+ * mirrors the real AnonymizedItem shape — including `recruiterLabel` in the
+ * server's "Recruiter at {company}" format — so the E2E exercises the real
+ * contract rather than an invented label shape.
  */
 const RECRUITERS = [
-  { id: "1", company: "Acme Corp", jobTitle: "Frontend Engineer", month: "2025-01", recruiterLabel: "Alice", confidence: 0.9 },
-  { id: "2", company: "Acme Corp", jobTitle: "Backend Engineer", month: "2025-01", recruiterLabel: "Bob", confidence: 0.8 },
-  { id: "3", company: "Acme Corp", jobTitle: "DevOps Engineer", month: "2025-02", recruiterLabel: "Carol", confidence: 0.7 },
-  { id: "4", company: "Globex", jobTitle: "Frontend Engineer", month: "2025-02", recruiterLabel: "Dave", confidence: 0.95 },
-  { id: "5", company: "Globex", jobTitle: "Data Scientist", month: "2025-02", recruiterLabel: "Eve", confidence: 0.6 },
-  { id: "6", company: "Globex", jobTitle: "Product Manager", month: "2025-03", recruiterLabel: "Frank", confidence: 0.5 },
-  { id: "7", company: "Initech", jobTitle: "Backend Engineer", month: "2025-03", recruiterLabel: "Grace", confidence: 0.85 },
-  { id: "8", company: "Initech", jobTitle: "Frontend Engineer", month: "2025-03", recruiterLabel: "Heidi", confidence: 0.75 },
-  { id: "9", company: "Initech", jobTitle: "DevOps Engineer", month: "2025-01", recruiterLabel: "Ivan", confidence: 0.65 },
-  { id: "10", company: "Initech", jobTitle: "Data Scientist", month: "2025-02", recruiterLabel: "Judy", confidence: 0.55 },
-  { id: "11", company: "Acme Corp", jobTitle: "Product Manager", month: "2025-03", recruiterLabel: "Mallory", confidence: 0.45 },
-  { id: "12", company: "Globex", jobTitle: "Backend Engineer", month: "2025-01", recruiterLabel: "Niaj", confidence: 0.35 },
+  { id: "1", company: "Acme Corp", jobTitle: "Frontend Engineer", month: "2025-01", recruiterLabel: "Recruiter at Acme Corp", confidence: 0.9 },
+  { id: "2", company: "Acme Corp", jobTitle: "Backend Engineer", month: "2025-01", recruiterLabel: "Recruiter at Acme Corp", confidence: 0.8 },
+  { id: "3", company: "Acme Corp", jobTitle: "DevOps Engineer", month: "2025-02", recruiterLabel: "Recruiter at Acme Corp", confidence: 0.7 },
+  { id: "4", company: "Globex", jobTitle: "Frontend Engineer", month: "2025-02", recruiterLabel: "Recruiter at Globex", confidence: 0.95 },
+  { id: "5", company: "Globex", jobTitle: "Data Scientist", month: "2025-02", recruiterLabel: "Recruiter at Globex", confidence: 0.6 },
+  { id: "6", company: "Globex", jobTitle: "Product Manager", month: "2025-03", recruiterLabel: "Recruiter at Globex", confidence: 0.5 },
+  { id: "7", company: "Initech", jobTitle: "Backend Engineer", month: "2025-03", recruiterLabel: "Recruiter at Initech", confidence: 0.85 },
+  { id: "8", company: "Initech", jobTitle: "Frontend Engineer", month: "2025-03", recruiterLabel: "Recruiter at Initech", confidence: 0.75 },
+  { id: "9", company: "Initech", jobTitle: "DevOps Engineer", month: "2025-01", recruiterLabel: "Recruiter at Initech", confidence: 0.65 },
+  { id: "10", company: "Initech", jobTitle: "Data Scientist", month: "2025-02", recruiterLabel: "Recruiter at Initech", confidence: 0.55 },
+  { id: "11", company: "Acme Corp", jobTitle: "Product Manager", month: "2025-03", recruiterLabel: "Recruiter at Acme Corp", confidence: 0.45 },
+  { id: "12", company: "Globex", jobTitle: "Backend Engineer", month: "2025-01", recruiterLabel: "Recruiter at Globex", confidence: 0.35 },
 ];
 
 const STATS = {
@@ -103,7 +111,12 @@ test.describe("Recruiter Dashboard", () => {
     await expect(statValue(page, "Top Job Title")).toHaveText("Frontend Engineer");
   });
 
+  // These two assert row-level table cells, which only exist on desktop (the
+  // <table> is display:none below the md breakpoint). Marked desktop-only so
+  // they don't run as count-only near-no-ops on the mobile project — the Mobile
+  // suite has its own filtering coverage against the card layout.
   test("search filter narrows results", async ({ page }) => {
+    test.skip(!isDesktop(page), "row-level cell assertions are desktop-only");
     await mockApi(page);
     await page.goto("/dashboard");
     await expect(page.getByText("12 results", { exact: true })).toBeVisible();
@@ -116,16 +129,15 @@ test.describe("Recruiter Dashboard", () => {
     await expect(
       page.getByText("2 results (filtered from 12)"),
     ).toBeVisible();
-    // Row-level cell assertion is desktop-only: the <table> is display:none
-    // below the md breakpoint, so its cells leave the accessibility tree.
-    if (isDesktop(page)) {
-      await expect(
-        page.getByRole("cell", { name: "Data Scientist" }),
-      ).toHaveCount(2);
-    }
+    // exact: the Recruiter column now carries "Recruiter at {company}" labels,
+    // so a substring match would also catch those cells.
+    await expect(
+      page.getByRole("cell", { name: "Data Scientist", exact: true }),
+    ).toHaveCount(2);
   });
 
   test("company filter narrows results", async ({ page }) => {
+    test.skip(!isDesktop(page), "row-level cell assertions are desktop-only");
     await mockApi(page);
     await page.goto("/dashboard");
     await expect(page.getByText("12 results", { exact: true })).toBeVisible();
@@ -136,10 +148,11 @@ test.describe("Recruiter Dashboard", () => {
     await expect(
       page.getByText("4 results (filtered from 12)"),
     ).toBeVisible();
-    // Desktop-only: see note in the search-filter test.
-    if (isDesktop(page)) {
-      await expect(page.getByRole("cell", { name: "Initech" })).toHaveCount(4);
-    }
+    // exact: "Initech" is a substring of the "Recruiter at Initech" labels in
+    // the Recruiter column, so a non-exact match would count 8 cells, not 4.
+    await expect(
+      page.getByRole("cell", { name: "Initech", exact: true }),
+    ).toHaveCount(4);
   });
 
   test("clear filters restores full dataset", async ({ page }) => {
@@ -216,9 +229,9 @@ test.describe("Recruiter Dashboard", () => {
 });
 
 test.describe("Mobile layout", () => {
-  // Only meaningful at the mobile viewport (< 768px md breakpoint).
+  // Only meaningful at the mobile viewport (< md breakpoint).
   test.skip(
-    ({ viewport }) => !viewport || viewport.width >= 768,
+    ({ viewport }) => !viewport || viewport.width >= MD_BREAKPOINT,
     "mobile-only assertions",
   );
 
@@ -238,6 +251,22 @@ test.describe("Mobile layout", () => {
         .getByText("Acme Corp", { exact: true })
         .filter({ visible: true })
         .first(),
+    ).toBeVisible();
+  });
+
+  test("search filter narrows the card list", async ({ page }) => {
+    await mockApi(page);
+    await page.goto("/dashboard");
+    await expect(page.getByText("12 results", { exact: true })).toBeVisible();
+
+    await page
+      .getByLabel("Search company or job title")
+      .fill("data scientist");
+
+    // The results-count line is layout-independent, so it verifies filtering
+    // on the mobile card layout (the desktop suite covers the row cells).
+    await expect(
+      page.getByText("2 results (filtered from 12)"),
     ).toBeVisible();
   });
 });

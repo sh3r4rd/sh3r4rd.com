@@ -42,25 +42,36 @@ describe('StatsCards', () => {
   })
 
   describe('This Month (time-dependent)', () => {
+    let originalTz
     beforeEach(() => {
+      // Force a non-UTC zone AND pick an instant that lands in a different
+      // month locally than in UTC: just past midnight UTC is still the prior
+      // month in America/Los_Angeles. A local-time implementation would read
+      // the wrong bucket, so this genuinely guards the UTC computation — a
+      // noon-UTC instant resolves to the same month in every timezone and
+      // would pass even against a local-time regression.
+      originalTz = process.env.TZ
+      process.env.TZ = 'America/Los_Angeles'
       vi.useFakeTimers()
-      // Fixed instant so the UTC "YYYY-MM" key is deterministic.
-      vi.setSystemTime(new Date('2026-05-15T12:00:00Z'))
+      vi.setSystemTime(new Date('2026-06-01T03:00:00Z')) // UTC: Jun, LA: May 31
     })
     afterEach(() => {
       vi.useRealTimers()
+      process.env.TZ = originalTz
     })
 
-    it('reads the current UTC month bucket from byMonth', () => {
+    it('reads the current UTC month bucket from byMonth (not local time)', () => {
       const stats = {
         totalEmails: 10,
         uniqueCompanies: 3,
-        byMonth: { '2026-05': 4, '2026-04': 6 },
+        // Distinct values so the UTC bucket (2026-06 → 7) is distinguishable
+        // from the local-time bucket a buggy impl would read (2026-05 → 99).
+        byMonth: { '2026-06': 7, '2026-05': 99 },
         topJobTitles: { 'Software Engineer': 10 },
       }
       render(<StatsCards stats={stats} />)
-      // "This Month" → 2026-05 → 4
-      expect(screen.getByText('4')).toBeInTheDocument()
+      expect(screen.getByText('7')).toBeInTheDocument()
+      expect(screen.queryByText('99')).toBeNull()
     })
   })
 })
