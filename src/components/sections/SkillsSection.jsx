@@ -1,7 +1,6 @@
 import { useState } from "react";
 
-export default function SkillsSection() {
-  const skills = [
+const skills = [
     {
       name: "Golang",
       category: "Languages",
@@ -91,19 +90,29 @@ export default function SkillsSection() {
       description: (<>Currently, I use <span className="font-semibold dark:text-white">TypeScript</span> on two backend services. I appreciate TypeScript's static typing, which helps catch errors early in the development process, and strong community support.
       While I do enjoy <span className="font-semibold dark:text-white">Golang</span>, it lacks the same level of ecosystem maturity. I use <span className="font-semibold dark:text-white">TypeScript</span> with frameworks like <span className="font-semibold dark:text-white">React</span> and <span className="font-semibold dark:text-white">Node.js</span> to enhance code quality and developer productivity.</>)
     },
-  ];
-  const [selected, setSelected] = useState(0);
+];
 
-  // Render order for category groups.
-  const categoryOrder = ["Languages", "Data", "Cloud & Infra", "Architecture", "Practice"];
-  const groups = categoryOrder
-    .map((category) => ({
-      category,
-      items: skills
-        .map((skill, idx) => ({ skill, idx }))
-        .filter(({ skill }) => skill.category === category),
-    }))
-    .filter((group) => group.items.length > 0);
+// Preferred render order; any category not listed here is appended afterwards
+// (so a new or mistyped category still renders instead of silently vanishing).
+const categoryOrder = ["Languages", "Data", "Cloud & Infra", "Architecture", "Practice"];
+
+const groups = (() => {
+  const byCategory = new Map();
+  skills.forEach((skill, idx) => {
+    const category = skill.category || "Other";
+    if (!byCategory.has(category)) byCategory.set(category, []);
+    byCategory.get(category).push({ skill, idx });
+  });
+  const known = categoryOrder.filter((category) => byCategory.has(category));
+  const extra = [...byCategory.keys()].filter((category) => !categoryOrder.includes(category));
+  return [...known, ...extra].map((category) => ({
+    category,
+    items: byCategory.get(category),
+  }));
+})();
+
+export default function SkillsSection() {
+  const [selected, setSelected] = useState(0);
 
   const pillBase =
     "transition-all duration-200 px-4 py-2 rounded-full text-sm font-medium border";
