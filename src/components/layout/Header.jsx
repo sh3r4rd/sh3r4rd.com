@@ -11,27 +11,29 @@ const proofStats = [
   ["Lead", "Engineer & mentor"],
 ];
 
+const SOCIAL_LINKS = [
+  { href: "https://www.linkedin.com/in/sherardbailey", label: "LinkedIn", Icon: Linkedin },
+  { href: "https://github.com/sh3r4rd", label: "GitHub", Icon: Github },
+];
+
+const socialLinkClass =
+  "inline-flex items-center justify-center w-11 h-11 rounded-full text-gray-600 dark:text-gray-300 bg-white/70 dark:bg-white/10 border border-gray-200 dark:border-white/10 transition hover:-translate-y-0.5 hover:text-teal-600 dark:hover:text-teal-300 hover:border-teal-300";
+
 function SocialLinks({ className = "" }) {
   return (
     <div className={`flex gap-3 ${className}`}>
-      <a
-        href="https://www.linkedin.com/in/sherardbailey"
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="LinkedIn"
-        className="inline-flex items-center justify-center w-11 h-11 rounded-full text-gray-600 dark:text-gray-300 bg-white/70 dark:bg-white/10 border border-gray-200 dark:border-white/10 transition hover:-translate-y-0.5 hover:text-teal-600 dark:hover:text-teal-300 hover:border-teal-300"
-      >
-        <Linkedin className="w-5 h-5" />
-      </a>
-      <a
-        href="https://github.com/sh3r4rd"
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="GitHub"
-        className="inline-flex items-center justify-center w-11 h-11 rounded-full text-gray-600 dark:text-gray-300 bg-white/70 dark:bg-white/10 border border-gray-200 dark:border-white/10 transition hover:-translate-y-0.5 hover:text-teal-600 dark:hover:text-teal-300 hover:border-teal-300"
-      >
-        <Github className="w-5 h-5" />
-      </a>
+      {SOCIAL_LINKS.map((social) => (
+        <a
+          key={social.label}
+          href={social.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={social.label}
+          className={socialLinkClass}
+        >
+          <social.Icon className="w-5 h-5" />
+        </a>
+      ))}
     </div>
   );
 }
