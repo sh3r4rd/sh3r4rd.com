@@ -66,7 +66,7 @@ resource "aws_ses_active_receipt_rule_set" "this" {
 resource "aws_lambda_permission" "ses_invoke" {
   statement_id   = "AllowSESInvoke"
   action         = "lambda:InvokeFunction"
-  function_name  = var.email_parser_function_arn
+  function_name  = var.email_parser_function_name
   principal      = "ses.amazonaws.com"
   source_account = data.aws_caller_identity.current.account_id
 }
