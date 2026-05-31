@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Cloud, Code2, Sparkles } from "lucide-react";
+import { Cloud, Code2, Sparkles, ChevronDown } from "lucide-react";
 import { Card, CardContent } from "../components/ui/card";
 import { Reveal } from "../components/ui/Reveal";
 import PageLayout from "../components/layout/PageLayout";
@@ -43,6 +43,57 @@ const projects = [
     ),
   },
 ];
+
+function ProjectCard({ project }) {
+  const [open, setOpen] = useState(false);
+  const Icon = project.icon;
+  const bodyId = `project-body-${project.title.replace(/\s+/g, "-").toLowerCase()}`;
+
+  return (
+    <Card>
+      <CardContent className="p-4 flex flex-col h-full">
+        <span className="inline-flex items-center justify-center w-11 h-11 rounded-xl text-white bg-brand-gradient shadow-brand-glow">
+          <Icon className="w-5 h-5" />
+        </span>
+        <h3 className="text-xl font-medium mt-3">{project.title}</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{project.summary}</p>
+
+        <div className="flex flex-wrap content-start gap-1.5 mt-3 min-h-[3.25rem]">
+          {project.tags.map((tag) => (
+            <span
+              key={tag}
+              className="rounded-full px-2 py-0.5 text-xs font-medium text-purple-700 dark:text-purple-200 bg-purple-50 dark:bg-white/5 border border-purple-200/60 dark:border-white/10"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          aria-controls={bodyId}
+          className="mt-4 inline-flex items-center gap-1 self-end text-sm font-semibold text-purple-700 dark:text-purple-300 hover:text-purple-900 dark:hover:text-purple-200 transition-colors"
+        >
+          {open ? "Read less" : "Read more"}
+          <ChevronDown
+            className={`w-4 h-4 transition-transform duration-300 ${open ? "rotate-180" : ""}`}
+          />
+        </button>
+
+        {open && (
+          <div
+            id={bodyId}
+            className="mt-3 pt-3 border-t border-gray-200 dark:border-white/10 animate-fade-in"
+          >
+            <p className="text-gray-700 dark:text-gray-300 text-sm">{project.body}</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 const countdownLabels = [
   ["days", "Days"],
@@ -132,37 +183,9 @@ export default function HomePage() {
       <Reveal>
         <section className="max-w-none prose-a:underline">
           <h2 className="text-2xl font-semibold mb-4">Projects</h2>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 items-start">
             {projects.map((project) => (
-              <Card key={project.title}>
-                <CardContent className="p-4 flex flex-col h-full">
-                  <span className="inline-flex items-center justify-center w-11 h-11 rounded-xl text-white bg-brand-gradient shadow-brand-glow">
-                    <project.icon className="w-5 h-5" />
-                  </span>
-                  <h3 className="text-xl font-medium mt-3">{project.title}</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{project.summary}</p>
-
-                  <div className="flex flex-wrap gap-1.5 mt-3">
-                    {project.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="rounded-full px-2 py-0.5 text-xs font-medium text-purple-700 dark:text-purple-200 bg-purple-50 dark:bg-white/5 border border-purple-200/60 dark:border-white/10"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-
-                  <details className="mt-4 group/details">
-                    <summary className="cursor-pointer text-sm font-semibold text-purple-700 dark:text-purple-300 list-none [&::-webkit-details-marker]:hidden">
-                      Read more
-                    </summary>
-                    <p className="text-gray-700 dark:text-gray-300 mt-2 text-sm">
-                      {project.body}
-                    </p>
-                  </details>
-                </CardContent>
-              </Card>
+              <ProjectCard key={project.title} project={project} />
             ))}
           </div>
         </section>
