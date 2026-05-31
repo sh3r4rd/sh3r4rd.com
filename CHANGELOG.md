@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/sh3r4rd/sh3r4rd.com/compare/v1.2.0...v1.3.0) (2026-05-31)
+
+
+### Features
+
+* **ui:** nav menu, header restyle, and title/copy refresh ([#93](https://github.com/sh3r4rd/sh3r4rd.com/issues/93)) ([ecd0c63](https://github.com/sh3r4rd/sh3r4rd.com/commit/ecd0c6385a300619b0f8fc7cf85211854213b65b))
+
 # [1.2.0](https://github.com/sh3r4rd/sh3r4rd.com/compare/v1.1.0...v1.2.0) (2026-05-30)
 
 
