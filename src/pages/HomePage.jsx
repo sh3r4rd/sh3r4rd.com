@@ -136,7 +136,7 @@ export default function HomePage() {
 
   return (
     <PageLayout>
-      <Reveal>
+      <Reveal immediate>
         <section>
           <h2 className="text-2xl font-semibold mb-4">About Me</h2>
           <p className="text-gray-700 dark:text-gray-300">

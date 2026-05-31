@@ -2,9 +2,10 @@ import useReveal from "../../hooks/useReveal";
 
 // Wrapper that fades + lifts its children into view on scroll.
 // Under prefers-reduced-motion the global CSS neutralizes the transition,
-// so the content still appears.
-export function Reveal({ children, className = "", ...props }) {
-  const [ref, visible] = useReveal();
+// so the content still appears. Pass `immediate` for above-the-fold content
+// so it renders visible right away instead of waiting for the observer.
+export function Reveal({ children, className = "", immediate = false, ...props }) {
+  const [ref, visible] = useReveal(immediate);
 
   return (
     <div
