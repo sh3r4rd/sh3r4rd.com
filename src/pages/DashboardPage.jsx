@@ -88,7 +88,7 @@ export default function DashboardPage() {
   );
 
   return (
-    <PageLayout>
+    <PageLayout variant="slim">
       <section className="space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <h2 className="text-2xl font-semibold">Recruiter Dashboard</h2>
