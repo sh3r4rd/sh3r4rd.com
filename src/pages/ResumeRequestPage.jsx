@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Button } from "../components/ui/button";
-import Breadcrumbs from "../components/layout/Breadcrumbs";
 import Header from "../components/layout/Header";
 
 export default function ResumeRequestPage() {
@@ -98,7 +97,6 @@ export default function ResumeRequestPage() {
 
   return (
     <section className="max-w-4xl mx-auto space-y-12">
-      <Breadcrumbs />
       <Header />
 
       {!submitted ? (

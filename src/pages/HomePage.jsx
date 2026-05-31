@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
-import Breadcrumbs from "../components/layout/Breadcrumbs";
 import Header from "../components/layout/Header";
 import SkillsSection from "../components/sections/SkillsSection";
 
@@ -40,8 +39,7 @@ export default function HomePage() {
 
   return (
       <section className="max-w-4xl mx-auto space-y-12">
-        <Breadcrumbs />
-        <Header /> 
+        <Header />
         <section>
           <h2 className="text-2xl font-semibold mb-4">About Me</h2>
           <p className="text-gray-700 dark:text-gray-300">

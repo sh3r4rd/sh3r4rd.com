@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertCircle, Loader2, RefreshCw } from "lucide-react";
 import { Button } from "../components/ui/button";
-import Breadcrumbs from "../components/layout/Breadcrumbs";
 import Header from "../components/layout/Header";
 import StatsCards from "../components/sections/StatsCards";
 import FilterBar from "../components/sections/FilterBar";
@@ -90,7 +89,6 @@ export default function DashboardPage() {
 
   return (
     <section className="max-w-4xl mx-auto space-y-12">
-      <Breadcrumbs />
       <Header />
 
       <section className="space-y-6">

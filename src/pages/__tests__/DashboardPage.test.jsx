@@ -8,7 +8,7 @@ import { server } from '../../mocks/server'
 import { API_BASE } from '../../mocks/handlers'
 import { createRecruiter, RECRUITERS } from '../../mocks/fixtures'
 
-// DashboardPage renders Breadcrumbs (useLocation), so a router is required.
+// Wrap in a router so any router-aware descendants render safely in isolation.
 function renderDashboard() {
   return render(
     <MemoryRouter initialEntries={['/dashboard']}>
