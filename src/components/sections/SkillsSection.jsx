@@ -139,11 +139,31 @@ export default function SkillsSection() {
       </div>
 
       {selected !== null && (
-        <div
-          key={selected}
-          className="animate-fade-in rounded-2xl border border-white/40 dark:border-white/10 bg-white/70 dark:bg-gray-900/50 backdrop-blur-xl p-5 text-gray-700 dark:text-gray-300 text-left max-w-2xl mx-auto"
-        >
-          {skills[selected].description}
+        <div key={selected} className="animate-fade-in max-w-2xl mx-auto">
+          <div className="relative overflow-hidden rounded-2xl border border-white/40 dark:border-white/10 bg-white/70 dark:bg-gray-900/50 backdrop-blur-xl shadow-md text-left">
+            {/* gradient accent bar */}
+            <span aria-hidden className="absolute inset-y-0 left-0 w-1 bg-brand-gradient" />
+
+            <div className="p-6 pl-7">
+              <div className="flex items-center gap-3">
+                <span className="inline-flex items-center justify-center w-10 h-10 shrink-0 rounded-xl text-white text-lg font-bold bg-brand-gradient shadow-brand-glow">
+                  {skills[selected].name.charAt(0)}
+                </span>
+                <div>
+                  <h3 className="text-lg font-semibold leading-tight text-gray-900 dark:text-white">
+                    {skills[selected].name}
+                  </h3>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-purple-600 dark:text-purple-300">
+                    {skills[selected].category}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 leading-relaxed">
+                {skills[selected].description}
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </section>
