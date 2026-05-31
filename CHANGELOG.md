@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/sh3r4rd/sh3r4rd.com/compare/v1.3.0...v1.4.0) (2026-05-31)
+
+
+### Features
+
+* **ui:** bold, recruiter-focused UI/UX redesign ([#95](https://github.com/sh3r4rd/sh3r4rd.com/issues/95)) ([764ec67](https://github.com/sh3r4rd/sh3r4rd.com/commit/764ec67564e81a9fd54f17f8e14a0e17ccc447d0))
+
 # [1.3.0](https://github.com/sh3r4rd/sh3r4rd.com/compare/v1.2.0...v1.3.0) (2026-05-31)
 
 
