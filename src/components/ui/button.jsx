@@ -14,9 +14,9 @@ export function Button({ children, size = "md", variant = "primary", className =
     primary:
       "text-white bg-brand-gradient bg-[length:200%_200%] animate-gradient-pan shadow-brand-glow hover:-translate-y-0.5",
     glass:
-      "text-purple-700 dark:text-purple-200 bg-white/60 dark:bg-white/10 backdrop-blur border border-purple-200/60 dark:border-white/10 hover:bg-white/80",
+      "text-teal-700 dark:text-teal-200 bg-white/60 dark:bg-white/10 backdrop-blur border border-teal-200/60 dark:border-white/10 hover:bg-white/80",
     ghost:
-      "text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-white/5",
+      "text-teal-700 dark:text-teal-300 hover:bg-teal-50 dark:hover:bg-white/5",
   };
 
   return (

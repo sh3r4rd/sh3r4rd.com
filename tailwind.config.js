@@ -14,6 +14,9 @@ export default {
       backgroundImage: {
         'brand-gradient': 'linear-gradient(135deg,#4f46e5 0%,#9333ea 55%,#c026d3 100%)',
         'brand-radial': 'radial-gradient(60% 60% at 50% 0%,rgba(147,51,234,.35),transparent 70%)',
+        // Split-complementary accents: teal (secondary) and amber (rare pop)
+        'accent-teal': 'linear-gradient(135deg,#14b8a6 0%,#06b6d4 100%)',
+        'accent-amber': 'linear-gradient(135deg,#f59e0b 0%,#f97316 100%)',
       },
       boxShadow: { 'brand-glow': '0 10px 40px -10px rgba(99,51,234,.55)' },
       fontFamily: {

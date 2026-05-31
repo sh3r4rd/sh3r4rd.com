@@ -19,7 +19,7 @@ function SocialLinks({ className = "" }) {
         target="_blank"
         rel="noopener noreferrer"
         aria-label="LinkedIn"
-        className="inline-flex items-center justify-center w-11 h-11 rounded-full text-gray-600 dark:text-gray-300 bg-white/70 dark:bg-white/10 border border-gray-200 dark:border-white/10 transition hover:-translate-y-0.5 hover:text-purple-600 dark:hover:text-purple-300 hover:border-purple-300"
+        className="inline-flex items-center justify-center w-11 h-11 rounded-full text-gray-600 dark:text-gray-300 bg-white/70 dark:bg-white/10 border border-gray-200 dark:border-white/10 transition hover:-translate-y-0.5 hover:text-teal-600 dark:hover:text-teal-300 hover:border-teal-300"
       >
         <Linkedin className="w-5 h-5" />
       </a>
@@ -28,7 +28,7 @@ function SocialLinks({ className = "" }) {
         target="_blank"
         rel="noopener noreferrer"
         aria-label="GitHub"
-        className="inline-flex items-center justify-center w-11 h-11 rounded-full text-gray-600 dark:text-gray-300 bg-white/70 dark:bg-white/10 border border-gray-200 dark:border-white/10 transition hover:-translate-y-0.5 hover:text-purple-600 dark:hover:text-purple-300 hover:border-purple-300"
+        className="inline-flex items-center justify-center w-11 h-11 rounded-full text-gray-600 dark:text-gray-300 bg-white/70 dark:bg-white/10 border border-gray-200 dark:border-white/10 transition hover:-translate-y-0.5 hover:text-teal-600 dark:hover:text-teal-300 hover:border-teal-300"
       >
         <Github className="w-5 h-5" />
       </a>
@@ -46,7 +46,7 @@ function SlimHeader() {
       />
       <div className="flex-1">
         <h1 className="text-2xl font-extrabold tracking-tight">Sherard Bailey</h1>
-        <p className="text-sm font-semibold text-purple-600 dark:text-purple-300">
+        <p className="text-sm font-semibold text-teal-600 dark:text-teal-400">
           Lead Software Engineer
         </p>
       </div>
@@ -73,7 +73,7 @@ function HeroHeader() {
         </div>
 
         <div className="flex-1">
-          <p className="text-xs font-semibold uppercase tracking-widest text-purple-600 dark:text-purple-300">
+          <p className="text-xs font-semibold uppercase tracking-widest text-teal-600 dark:text-teal-400">
             Lead Software Engineer
           </p>
           <h1 className="mt-2 text-5xl md:text-6xl font-extrabold tracking-tight text-gray-900 dark:text-white">

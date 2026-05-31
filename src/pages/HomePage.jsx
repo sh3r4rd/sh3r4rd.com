@@ -62,7 +62,7 @@ function ProjectCard({ project }) {
           {project.tags.map((tag) => (
             <span
               key={tag}
-              className="rounded-full px-2 py-0.5 text-xs font-medium text-purple-700 dark:text-purple-200 bg-purple-50 dark:bg-white/5 border border-purple-200/60 dark:border-white/10"
+              className="rounded-full px-2 py-0.5 text-xs font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10"
             >
               {tag}
             </span>
@@ -74,7 +74,7 @@ function ProjectCard({ project }) {
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
           aria-controls={bodyId}
-          className="mt-4 inline-flex items-center gap-1 self-end text-sm font-semibold text-purple-700 dark:text-purple-300 hover:text-purple-900 dark:hover:text-purple-200 transition-colors"
+          className="mt-4 inline-flex items-center gap-1 self-end text-sm font-semibold text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 transition-colors"
         >
           {open ? "Read less" : "Read more"}
           <ChevronDown
@@ -85,7 +85,7 @@ function ProjectCard({ project }) {
         {open && (
           <div
             id={bodyId}
-            className="mt-3 pt-3 border-t border-gray-200 dark:border-white/10 animate-fade-in"
+            className="mt-3 pt-3 border-t border-gray-200 dark:border-white/10 animate-fade-in [&_a]:text-teal-600 dark:[&_a]:text-teal-400 [&_a]:underline"
           >
             <p className="text-gray-700 dark:text-gray-300 text-sm">{project.body}</p>
           </div>
@@ -149,7 +149,7 @@ export default function HomePage() {
       <Reveal>
         <section className="relative overflow-hidden rounded-3xl p-8 text-white bg-brand-gradient bg-[length:200%_200%] animate-gradient-pan shadow-brand-glow text-center">
           <span className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-sm font-semibold">
-            <Sparkles className="w-4 h-4" />
+            <Sparkles className="w-4 h-4 text-amber-300" />
             AI-Powered · Launching soon
           </span>
           <h2 className="text-2xl font-bold mt-3 mb-2">Coming Soon</h2>

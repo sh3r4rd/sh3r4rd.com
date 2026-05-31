@@ -31,9 +31,9 @@ export default function NavMenu() {
             to={to}
             end={end}
             className={({ isActive }) =>
-              `relative text-sm font-medium transition-colors hover:text-indigo-600 dark:hover:text-indigo-400 ${
+              `relative text-sm font-medium transition-colors hover:text-teal-600 dark:hover:text-teal-400 ${
                 isActive
-                  ? "text-indigo-600 dark:text-indigo-400 after:absolute after:-bottom-1 after:left-0 after:right-0 after:h-0.5 after:rounded-full after:bg-brand-gradient"
+                  ? "text-gray-900 dark:text-white after:absolute after:-bottom-1 after:left-0 after:right-0 after:h-0.5 after:rounded-full after:bg-brand-gradient"
                   : "text-gray-600 dark:text-gray-300"
               }`
             }

@@ -144,7 +144,7 @@ export default function ResumeRequestPage() {
               <form className="grid gap-8" onSubmit={handleSubmit} noValidate>
                 {/* About you */}
                 <fieldset className="grid gap-4">
-                  <legend className="text-xs font-semibold uppercase tracking-widest text-purple-600 dark:text-purple-300 mb-2">
+                  <legend className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
                     About you
                   </legend>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -205,7 +205,7 @@ export default function ResumeRequestPage() {
 
                 {/* About the role */}
                 <fieldset className="grid gap-4">
-                  <legend className="text-xs font-semibold uppercase tracking-widest text-purple-600 dark:text-purple-300 mb-2">
+                  <legend className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
                     About the role
                   </legend>
                   <div>
@@ -247,7 +247,7 @@ export default function ResumeRequestPage() {
                       aria-describedby={errors.description ? "description-error" : undefined}
                     />
                     <p
-                      className={`mt-1 text-xs ${descriptionMet ? "text-green-600 dark:text-green-400" : "text-gray-500 dark:text-gray-400"}`}
+                      className={`mt-1 text-xs ${descriptionMet ? "text-teal-600 dark:text-teal-400" : "text-gray-500 dark:text-gray-400"}`}
                     >
                       {wordCount} / 50 words
                     </p>
@@ -266,7 +266,7 @@ export default function ResumeRequestPage() {
       ) : (
         <div className="text-lg text-center text-gray-700 dark:text-gray-300">
           <div className="flex justify-center mb-4">
-            <CheckCircle2 className="w-12 h-12 text-purple-600" />
+            <CheckCircle2 className="w-12 h-12 text-teal-500" />
           </div>
           <p>Thank you for your consideration — I appreciate your interest.</p>
           <p>I&apos;ve received your request and will review it shortly. I&apos;ll be in touch soon.</p>
@@ -285,7 +285,7 @@ export default function ResumeRequestPage() {
             </svg>
           </div>
 
-          <Link to="/" className="inline-block mt-4 font-medium text-purple-700 dark:text-purple-300 hover:underline">
+          <Link to="/" className="inline-block mt-4 font-medium text-teal-600 dark:text-teal-400 hover:underline">
             ← Back to portfolio
           </Link>
         </div>

@@ -6,7 +6,7 @@ export default function SkillsSection() {
       name: "Golang",
       category: "Languages",
       description: (<>This is my most proficient coding language. I write code daily in <span className="font-semibold dark:text-white">Golang</span> for backend services. The code I write is idiomatic, performant, and well-tested.
-      One of the more interesting issues I've run into recently is needing to set <span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-1.5 py-0.5 rounded">GO_MAX_PROCS</span> to accurately handle CPU resources in a containerized environment.</>)
+      One of the more interesting issues I've run into recently is needing to set <span className="inline-block bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-200 text-xs font-mono font-semibold px-1.5 py-0.5 rounded">GO_MAX_PROCS</span> to accurately handle CPU resources in a containerized environment.</>)
     },
     {
       name: "Postgres",
@@ -110,7 +110,7 @@ export default function SkillsSection() {
   const pillSelected =
     "text-white bg-brand-gradient bg-[length:200%_200%] animate-gradient-pan shadow-brand-glow scale-105 border-transparent";
   const pillDefault =
-    "text-purple-700 dark:text-purple-200 bg-white/60 dark:bg-white/5 backdrop-blur border-purple-200/60 dark:border-white/10 hover:border-purple-400 hover:-translate-y-0.5";
+    "text-slate-700 dark:text-slate-200 bg-white/60 dark:bg-white/5 backdrop-blur border-slate-200 dark:border-white/10 hover:border-teal-400 hover:text-teal-700 dark:hover:text-teal-300 hover:-translate-y-0.5";
 
   return (
     <section>
@@ -119,7 +119,7 @@ export default function SkillsSection() {
       <div className="space-y-5 mb-6">
         {groups.map(({ category, items }) => (
           <div key={category}>
-            <p className="text-xs font-semibold uppercase tracking-widest text-purple-600 dark:text-purple-300 mb-2 text-center">
+            <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2 text-center">
               {category}
             </p>
             <div className="flex flex-wrap justify-center gap-2.5">
@@ -153,7 +153,7 @@ export default function SkillsSection() {
                   <h3 className="text-lg font-semibold leading-tight text-gray-900 dark:text-white">
                     {skills[selected].name}
                   </h3>
-                  <p className="text-xs font-semibold uppercase tracking-widest text-purple-600 dark:text-purple-300">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
                     {skills[selected].category}
                   </p>
                 </div>
