@@ -2,7 +2,7 @@ import { Github, Linkedin } from "lucide-react";
 
 export default function Header() {
   return (
-    <header className="flex flex-col md:flex-row items-center justify-center md:items-start gap-6 text-center md:text-left mt-8 mb-16">
+    <header className="flex flex-col md:flex-row items-center justify-center md:items-start gap-6 md:gap-12 text-center md:text-left mt-8 mb-16">
       <img
         src="https://d241eitbp7g6mq.cloudfront.net/images/sherard-profile.jpg"
         alt="Sherard Bailey"
@@ -11,14 +11,17 @@ export default function Header() {
 
       <div>
         <h1 className="text-4xl font-bold">Sherard Bailey</h1>
-        <p className="text-lg mt-2 text-gray-600 dark:text-gray-400">
-          Senior Software Engineer —  Microservices | Event-driven Architecture | AWS | GCP 
+        <p className="text-lg mt-2 font-semibold text-gray-800 dark:text-gray-200">
+          Lead Software Engineer
+        </p>
+        <p className="text-base mt-1 text-gray-600 dark:text-gray-400">
+          Microservices | System Design | Event-driven Architecture | Agentic AI
         </p>
         <div className="flex justify-center md:justify-start gap-4 mt-4">
-          <a href="https://www.linkedin.com/in/sherardbailey" target="_blank" aria-label="LinkedIn">
+          <a href="https://www.linkedin.com/in/sherardbailey" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
             <Linkedin />
           </a>
-          <a href="https://github.com/sh3r4rd" target="_blank" aria-label="GitHub">
+          <a href="https://github.com/sh3r4rd" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
             <Github />
           </a>
         </div>

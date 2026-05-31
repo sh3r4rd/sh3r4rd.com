@@ -1,9 +1,6 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
-import Breadcrumbs from "../components/layout/Breadcrumbs";
-import Header from "../components/layout/Header";
+import PageLayout from "../components/layout/PageLayout";
 import SkillsSection from "../components/sections/SkillsSection";
 
 export default function HomePage() {
@@ -39,21 +36,13 @@ export default function HomePage() {
   }, []);
 
   return (
-      <section className="max-w-4xl mx-auto space-y-12">
-        <Breadcrumbs />
-        <Header /> 
+    <PageLayout>
         <section>
           <h2 className="text-2xl font-semibold mb-4">About Me</h2>
           <p className="text-gray-700 dark:text-gray-300">
-            I'm a senior software engineer with extensive experience in event-driven microservices, software architecture, cloud services and distributed systems. I've worked on large-scale backend systems, optimized complex queries, and built distributed applications that scale.
+            I'm a software engineer with extensive experience in event-driven microservices, software architecture, cloud services and distributed systems. I've worked on large-scale backend systems, optimized complex queries, and built distributed applications that scale.
             I'm seeking opportunities to solve challenging problems and build high-impact systems.
           </p>
-        </section>
-
-        <section className="text-center mt-12">
-          <Link to="/resume">
-            <Button size="lg">Request Résumé</Button>
-          </Link>
         </section>
 
         <section className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 rounded-2xl shadow-lg text-center mt-8">
@@ -101,6 +90,6 @@ export default function HomePage() {
         </section>
 
         <SkillsSection />
-      </section>
+    </PageLayout>
   );
 }

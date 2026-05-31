@@ -1,20 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
 import { http, HttpResponse } from 'msw'
 import DashboardPage from '../DashboardPage'
 import { server } from '../../mocks/server'
 import { API_BASE } from '../../mocks/handlers'
 import { createRecruiter, RECRUITERS } from '../../mocks/fixtures'
 
-// DashboardPage renders Breadcrumbs (useLocation), so a router is required.
 function renderDashboard() {
-  return render(
-    <MemoryRouter initialEntries={['/dashboard']}>
-      <DashboardPage />
-    </MemoryRouter>,
-  )
+  return render(<DashboardPage />)
 }
 
 // Body rows of the desktop <table> (excludes the header row).

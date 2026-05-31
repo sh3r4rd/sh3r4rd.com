@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Button } from "../components/ui/button";
-import Breadcrumbs from "../components/layout/Breadcrumbs";
-import Header from "../components/layout/Header";
+import PageLayout from "../components/layout/PageLayout";
 
 export default function ResumeRequestPage() {
   const [submitted, setSubmitted] = useState(false);
@@ -97,14 +96,11 @@ export default function ResumeRequestPage() {
   };
 
   return (
-    <section className="max-w-4xl mx-auto space-y-12">
-      <Breadcrumbs />
-      <Header />
-
+    <PageLayout>
       {!submitted ? (
         <>
           <p className="text-lg text-gray-700 dark:text-gray-300 mb-8">
-            Thank you for your interest! Please fill out the form below to request a copy of my résumé.
+            Thank you for your interest! Please fill out the form below to request a copy of my resume.
           </p>
           <form className="grid gap-4" onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -134,6 +130,6 @@ export default function ResumeRequestPage() {
           </div>
         </div>
       )}
-    </section>
+    </PageLayout>
   );
 }

@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertCircle, Loader2, RefreshCw } from "lucide-react";
 import { Button } from "../components/ui/button";
-import Breadcrumbs from "../components/layout/Breadcrumbs";
-import Header from "../components/layout/Header";
+import PageLayout from "../components/layout/PageLayout";
 import StatsCards from "../components/sections/StatsCards";
 import FilterBar from "../components/sections/FilterBar";
 import RecruiterTable from "../components/sections/RecruiterTable";
@@ -89,10 +88,7 @@ export default function DashboardPage() {
   );
 
   return (
-    <section className="max-w-4xl mx-auto space-y-12">
-      <Breadcrumbs />
-      <Header />
-
+    <PageLayout>
       <section className="space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <h2 className="text-2xl font-semibold">Recruiter Dashboard</h2>
@@ -147,6 +143,6 @@ export default function DashboardPage() {
           </>
         )}
       </section>
-    </section>
+    </PageLayout>
   );
 }

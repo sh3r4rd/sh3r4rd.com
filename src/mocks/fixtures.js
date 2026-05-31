@@ -26,7 +26,7 @@ export function createRecruiter(overrides = {}) {
 // (PAGE_SIZE = 10), sorting, and company/job-title/month filtering.
 export const RECRUITERS = [
   createRecruiter({ id: 'rec-1', company: 'Acme Corp', jobTitle: 'Software Engineer', month: '2026-05' }),
-  createRecruiter({ id: 'rec-2', company: 'Acme Corp', jobTitle: 'Senior Software Engineer', month: '2026-04' }),
+  createRecruiter({ id: 'rec-2', company: 'Acme Corp', jobTitle: 'Lead Software Engineer', month: '2026-04' }),
   createRecruiter({ id: 'rec-3', company: 'Globex', jobTitle: 'Software Engineer', month: '2026-05' }),
   createRecruiter({ id: 'rec-4', company: 'Globex', jobTitle: 'Engineering Manager', month: '2026-03' }),
   createRecruiter({ id: 'rec-5', company: 'Initech', jobTitle: 'Backend Engineer', month: '2026-02' }),
