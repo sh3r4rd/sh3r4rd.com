@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "../components/ui/card";
-import Header from "../components/layout/Header";
+import PageLayout from "../components/layout/PageLayout";
 import SkillsSection from "../components/sections/SkillsSection";
 
 export default function HomePage() {
@@ -36,8 +36,7 @@ export default function HomePage() {
   }, []);
 
   return (
-      <section className="max-w-4xl mx-auto space-y-12">
-        <Header />
+    <PageLayout>
         <section>
           <h2 className="text-2xl font-semibold mb-4">About Me</h2>
           <p className="text-gray-700 dark:text-gray-300">
@@ -91,6 +90,6 @@ export default function HomePage() {
         </section>
 
         <SkillsSection />
-      </section>
+    </PageLayout>
   );
 }

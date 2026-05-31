@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "../components/ui/button";
-import Header from "../components/layout/Header";
+import PageLayout from "../components/layout/PageLayout";
 
 export default function ResumeRequestPage() {
   const [submitted, setSubmitted] = useState(false);
@@ -96,9 +96,7 @@ export default function ResumeRequestPage() {
   };
 
   return (
-    <section className="max-w-4xl mx-auto space-y-12">
-      <Header />
-
+    <PageLayout>
       {!submitted ? (
         <>
           <p className="text-lg text-gray-700 dark:text-gray-300 mb-8">
@@ -132,6 +130,6 @@ export default function ResumeRequestPage() {
           </div>
         </div>
       )}
-    </section>
+    </PageLayout>
   );
 }
