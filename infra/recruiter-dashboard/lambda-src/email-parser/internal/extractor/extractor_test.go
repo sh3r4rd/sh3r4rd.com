@@ -27,7 +27,7 @@ func TestExtract_Success(t *testing.T) {
 				Choices: []openai.ChatCompletionChoice{
 					{
 						Message: openai.ChatCompletionMessage{
-							Content: `{"recruiter_first_name":"Jane","recruiter_last_name":"Smith","recruiter_email":"jane@google.com","company":"Google","job_title":"Senior Software Engineer","phone":"+16502530000","confidence":0.95}`,
+							Content: `{"recruiter_first_name":"Jane","recruiter_last_name":"Smith","recruiter_email":"jane@google.com","company":"Google","job_title":"Lead Software Engineer","phone":"+16502530000","confidence":0.95}`,
 						},
 						FinishReason: "stop",
 					},
@@ -51,8 +51,8 @@ func TestExtract_Success(t *testing.T) {
 	if result.Company != "Google" {
 		t.Errorf("expected Company=Google, got %s", result.Company)
 	}
-	if result.JobTitle != "Senior Software Engineer" {
-		t.Errorf("expected JobTitle=Senior Software Engineer, got %s", result.JobTitle)
+	if result.JobTitle != "Lead Software Engineer" {
+		t.Errorf("expected JobTitle=Lead Software Engineer, got %s", result.JobTitle)
 	}
 	if result.Confidence != 0.95 {
 		t.Errorf("expected Confidence=0.95, got %f", result.Confidence)
