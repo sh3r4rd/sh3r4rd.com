@@ -18,10 +18,10 @@ export default function Header() {
           Microservices | System Design | Event-driven Architecture | Agentic AI
         </p>
         <div className="flex justify-center md:justify-start gap-4 mt-4">
-          <a href="https://www.linkedin.com/in/sherardbailey" target="_blank" aria-label="LinkedIn">
+          <a href="https://www.linkedin.com/in/sherardbailey" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
             <Linkedin />
           </a>
-          <a href="https://github.com/sh3r4rd" target="_blank" aria-label="GitHub">
+          <a href="https://github.com/sh3r4rd" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
             <Github />
           </a>
         </div>

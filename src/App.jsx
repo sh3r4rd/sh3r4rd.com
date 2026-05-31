@@ -7,6 +7,7 @@ import DashboardPage from "./pages/DashboardPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
 export default function App() {
+  // pt-20 clears the fixed NavMenu (h-14); keep it >= the nav height if that changes.
   return (
     <main className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-8 pb-8 pt-20">
       <Router>
