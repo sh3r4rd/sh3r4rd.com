@@ -9,7 +9,16 @@ import NotFoundPage from "./pages/NotFoundPage";
 export default function App() {
   // pt-20 clears the fixed NavMenu (h-14); keep it >= the nav height if that changes.
   return (
-    <main className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-8 pb-8 pt-20">
+    <main className="relative min-h-screen text-gray-900 dark:text-white px-8 pb-8 pt-20">
+      {/* Ambient aurora background behind everything */}
+      <div
+        aria-hidden
+        className="fixed inset-0 -z-10 overflow-hidden bg-white dark:bg-gray-950"
+      >
+        <div className="absolute -top-40 -left-32 w-[34rem] h-[34rem] rounded-full bg-brand-gradient opacity-[0.07] dark:opacity-20 blur-[130px] animate-aurora" />
+        <div className="absolute bottom-0 right-0 w-[30rem] h-[30rem] rounded-full bg-brand-gradient opacity-[0.07] dark:opacity-20 blur-[130px] animate-aurora [animation-delay:-9s]" />
+      </div>
+
       <Router>
         <NavMenu />
         <PageTracker />
