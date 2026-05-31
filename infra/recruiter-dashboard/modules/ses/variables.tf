@@ -23,6 +23,11 @@ variable "email_parser_function_arn" {
   type        = string
 }
 
+variable "email_parser_function_name" {
+  description = "Name of the email parser Lambda function (used for the invoke permission)."
+  type        = string
+}
+
 variable "hosted_zone_id" {
   description = "Route53 hosted zone ID for DNS record creation."
   type        = string

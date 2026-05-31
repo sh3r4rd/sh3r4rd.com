@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 1.5.0"
+  required_version = ">= 1.10.0"
 
   required_providers {
     aws = {
@@ -12,16 +12,13 @@ terraform {
     }
   }
 
-  # Local state for single-developer project.
-  # To migrate to S3 backend in the future, uncomment the block below:
-  #
-  # backend "s3" {
-  #   bucket         = "sh3r4rd-terraform-state"
-  #   key            = "recruiter-dashboard/terraform.tfstate"
-  #   region         = "us-east-1"
-  #   dynamodb_table = "terraform-locks"
-  #   encrypt        = true
-  # }
+  backend "s3" {
+    bucket       = "sh3r4rd-terraform-state"
+    key          = "recruiter-dashboard/terraform.tfstate"
+    region       = "us-east-1"
+    encrypt      = true
+    use_lockfile = true # S3-native state locking (replaces deprecated dynamodb_table)
+  }
 }
 
 provider "aws" {
@@ -127,13 +124,14 @@ module "api_gateway" {
 module "ses" {
   source = "./modules/ses"
 
-  ses_domain                = var.ses_domain
-  ses_recipient             = var.ses_recipient
-  aws_region                = var.aws_region
-  hosted_zone_id            = var.hosted_zone_id
-  s3_bucket_name            = module.s3.bucket_name
-  s3_key_prefix             = "${local.s3_key_prefix}/"
-  email_parser_function_arn = module.lambda_email_parser.function_arn
+  ses_domain                 = var.ses_domain
+  ses_recipient              = var.ses_recipient
+  aws_region                 = var.aws_region
+  hosted_zone_id             = var.hosted_zone_id
+  s3_bucket_name             = module.s3.bucket_name
+  s3_key_prefix              = "${local.s3_key_prefix}/"
+  email_parser_function_arn  = module.lambda_email_parser.function_arn
+  email_parser_function_name = module.lambda_email_parser.function_name
 }
 
 # ---------------------------------------------------------------------------
