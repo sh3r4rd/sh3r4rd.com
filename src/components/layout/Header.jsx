@@ -80,7 +80,7 @@ function HeroHeader() {
             Sherard Bailey
           </h1>
           <p className="mt-3 text-lg text-gray-600 dark:text-gray-300 max-w-2xl">
-            I build event-driven microservices and distributed systems that scale — on AWS, with a growing focus on agentic AI.
+            I build event-driven, distributed systems composed of microservices that scale — with a growing focus on agentic AI in the software development lifecycle.
           </p>
 
           {/* Specialty chips */}
