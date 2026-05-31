@@ -13,6 +13,7 @@ export default function App() {
       {/* Ambient aurora background behind everything */}
       <div
         aria-hidden
+        data-testid="app-bg"
         className="fixed inset-0 -z-10 overflow-hidden bg-white dark:bg-gray-950"
       >
         <div className="absolute -top-40 -left-32 w-[34rem] h-[34rem] rounded-full bg-brand-gradient opacity-[0.07] dark:opacity-20 blur-[130px] animate-aurora" />

@@ -281,10 +281,10 @@ test.describe("Dark mode", () => {
       page.getByRole("heading", { name: "Recruiter Dashboard" }),
     ).toBeVisible();
 
-    // <main> root: bg-white / dark:bg-gray-900 (rgb(17, 24, 39)).
-    await expect(page.locator("main")).toHaveCSS(
+    // Ambient background layer: bg-white / dark:bg-gray-950 (rgb(3, 7, 18)).
+    await expect(page.getByTestId("app-bg")).toHaveCSS(
       "background-color",
-      "rgb(17, 24, 39)",
+      "rgb(3, 7, 18)",
     );
   });
 });
