@@ -13,6 +13,9 @@ ses_recipient = "recruiters@inbox.example.com"
 # CORS allowed origin for API Gateway
 cors_allowed_origin = "https://example.com"
 
+# Custom subdomain that fronts the recruiter dashboard API prod stage
+dashboard_api_domain = "dashboard-api.example.com"
+
 # Email address for alarm notifications
 alert_email = "alerts@example.com"
 

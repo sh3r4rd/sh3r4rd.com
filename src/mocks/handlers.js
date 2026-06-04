@@ -3,7 +3,9 @@ import { RECRUITERS, STATS } from './fixtures'
 
 // Base URL of the production API the dashboard talks to. The dashboard
 // hardcodes this origin (no env var), so the mocks target it directly.
-export const API_BASE = 'https://api.sh3r4rd.com'
+// Note: the dashboard API lives on its own subdomain; the resume form's
+// /requests endpoint is a separate API on api.sh3r4rd.com and is not mocked here.
+export const API_BASE = 'https://dashboard-api.sh3r4rd.com'
 
 // Default happy-path handlers. Tests override these per-case with
 // `server.use(...)` to simulate errors, empty results, or custom datasets.

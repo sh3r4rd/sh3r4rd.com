@@ -116,6 +116,8 @@ module "api_gateway" {
   api_handler_invoke_arn    = module.lambda_api_handler.invoke_arn
   api_handler_function_name = module.lambda_api_handler.function_name
   cors_allowed_origin       = var.cors_allowed_origin
+  custom_domain_name        = var.dashboard_api_domain
+  hosted_zone_id            = var.hosted_zone_id
 }
 
 # ---------------------------------------------------------------------------
