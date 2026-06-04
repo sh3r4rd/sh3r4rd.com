@@ -7,8 +7,8 @@ import FilterBar from "../components/sections/FilterBar";
 import RecruiterTable from "../components/sections/RecruiterTable";
 import { EMPTY_FILTERS } from "../lib/filters";
 
-const RECRUITERS_URL = "https://api.sh3r4rd.com/recruiters";
-const STATS_URL = "https://api.sh3r4rd.com/stats";
+const RECRUITERS_URL = "https://dashboard-api.sh3r4rd.com/recruiters";
+const STATS_URL = "https://dashboard-api.sh3r4rd.com/stats";
 const PAGE_SIZE = 10;
 
 function matchesFilters(item, filters) {

@@ -45,6 +45,17 @@ variable "cors_allowed_origin" {
   }
 }
 
+variable "dashboard_api_domain" {
+  description = "Custom subdomain that fronts the recruiter dashboard API prod stage."
+  type        = string
+  default     = "dashboard-api.sh3r4rd.com"
+
+  validation {
+    condition     = can(regex("^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$", var.dashboard_api_domain))
+    error_message = "Must be a valid domain name."
+  }
+}
+
 variable "alert_email" {
   description = "Email address for budget and alarm notifications."
   type        = string

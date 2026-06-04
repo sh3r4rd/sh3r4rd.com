@@ -43,6 +43,11 @@ output "api_endpoint" {
   value       = module.api_gateway.api_endpoint
 }
 
+output "dashboard_api_url" {
+  description = "HTTPS URL of the custom subdomain fronting the dashboard API."
+  value       = module.api_gateway.custom_domain_url
+}
+
 output "ses_domain_verification_id" {
   description = "The verified SES domain name (resource exists only after verification succeeds)."
   value       = module.ses.domain_verification_id

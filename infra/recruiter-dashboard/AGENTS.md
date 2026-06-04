@@ -43,7 +43,7 @@ SES receives email → stores raw email in S3 → triggers email-parser Lambda �
 | `modules/lambda` | Lambda function deployment (arm64) |
 | `modules/iam` | Roles, policies, log group ARN construction |
 | `modules/ses` | Email receiving on `inbox.sh3r4rd.com` |
-| `modules/api-gateway` | REST API at `api.sh3r4rd.com` |
+| `modules/api-gateway` | REST API at `dashboard-api.sh3r4rd.com` |
 | `modules/monitoring` | CloudWatch alarms, budget alerts via SNS |
 
 ## Terraform Conventions

@@ -24,7 +24,7 @@ See [`terraform.tfvars.example`](infra/recruiter-dashboard/terraform.tfvars.exam
 The recruiter dashboard is built and deployed. It includes:
 
 - **Email parsing pipeline** — SES receives recruiter emails, stores raw emails in S3, triggers a Go Lambda that parses the email, extracts recruiter data via OpenAI, and writes structured records to DynamoDB
-- **API handler** — Go Lambda behind API Gateway at `api.sh3r4rd.com` serving anonymized recruiter data. Endpoints: `GET /recruiters` (list with `?company=` and `?month=` filters), `GET /recruiters/{id}`, `GET /stats` (aggregate statistics)
+- **API handler** — Go Lambda behind API Gateway at `dashboard-api.sh3r4rd.com` serving anonymized recruiter data. Endpoints: `GET /recruiters` (list with `?company=` and `?month=` filters), `GET /recruiters/{id}`, `GET /stats` (aggregate statistics)
 
 ## Backend Development
 

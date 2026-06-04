@@ -21,7 +21,7 @@ Each module in `infra/recruiter-dashboard/modules/<name>/`:
 | `lambda` | Lambda function deployment (arm64) |
 | `iam` | Roles, policies, log group ARN construction |
 | `ses` | Email receiving on `inbox.sh3r4rd.com` |
-| `api-gateway` | REST API at `api.sh3r4rd.com` |
+| `api-gateway` | REST API at `dashboard-api.sh3r4rd.com` |
 | `monitoring` | CloudWatch alarms, budget alerts via SNS |
 
 ## DynamoDB Schema

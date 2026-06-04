@@ -23,6 +23,26 @@ variable "cors_allowed_origin" {
   }
 }
 
+variable "custom_domain_name" {
+  description = "Custom domain name for the REST API (e.g. dashboard-api.sh3r4rd.com)."
+  type        = string
+
+  validation {
+    condition     = can(regex("^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$", var.custom_domain_name))
+    error_message = "Must be a valid domain name."
+  }
+}
+
+variable "hosted_zone_id" {
+  description = "Route53 hosted zone ID for ACM DNS validation and the custom domain alias record."
+  type        = string
+
+  validation {
+    condition     = can(regex("^Z[A-Z0-9]+$", var.hosted_zone_id))
+    error_message = "Must be a valid Route53 hosted zone ID (starts with Z, alphanumeric)."
+  }
+}
+
 variable "throttling_rate_limit" {
   description = "Steady-state requests per second for stage throttling."
   type        = number
