@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/sh3r4rd/sh3r4rd.com/compare/v1.4.0...v1.5.0) (2026-06-04)
+
+
+### Features
+
+* **infra:** serve dashboard API via dedicated subdomain (fix /recruiters 403) ([#99](https://github.com/sh3r4rd/sh3r4rd.com/issues/99)) ([b32a783](https://github.com/sh3r4rd/sh3r4rd.com/commit/b32a783d71c90471a0e1f845748066e8a33da5eb)), closes [#97](https://github.com/sh3r4rd/sh3r4rd.com/issues/97)
+
 # [1.4.0](https://github.com/sh3r4rd/sh3r4rd.com/compare/v1.3.0...v1.4.0) (2026-05-31)
 
 
