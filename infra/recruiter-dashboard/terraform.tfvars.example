@@ -13,8 +13,10 @@ ses_recipient = "recruiters@inbox.example.com"
 # CORS allowed origin for API Gateway
 cors_allowed_origin = "https://example.com"
 
-# Custom subdomain that fronts the recruiter dashboard API prod stage
-dashboard_api_domain = "dashboard-api.example.com"
+# Custom subdomain that fronts the recruiter dashboard API prod stage.
+# Optional — defaults to "dashboard-api.sh3r4rd.com" (see variables.tf). Uncomment
+# only to override; leaving it commented preserves the working default.
+# dashboard_api_domain = "dashboard-api.example.com"
 
 # Email address for alarm notifications
 alert_email = "alerts@example.com"
