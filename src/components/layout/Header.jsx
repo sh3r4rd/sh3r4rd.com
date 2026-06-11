@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Github, Linkedin, ArrowRight } from "lucide-react";
 
-const PROFILE_IMG = "https://d241eitbp7g6mq.cloudfront.net/images/sherard-profile.jpg";
+const PROFILE_IMG = "https://d241eitbp7g6mq.cloudfront.net/images/headshot.jpg";
 
 const specialties = ["Microservices", "System Design", "Event-Driven Architecture", "Agentic AI"];
 
