@@ -36,8 +36,8 @@ flowchart TB
     %% ============ WRITE PATH: INGESTION ============
     subgraph WRITE["WRITE PATH — Email Ingestion (event-driven)"]
         direction TB
-        ses["Amazon SES<br/>domain identity + DKIM/SPF<br/>MX → inbound-smtp.us-east-1"]:::aws
-        rule["SES Receipt Rule 'store_and_parse'<br/>recipient: dashboard@inbox"]:::aws
+        ses["Amazon SES<br/>domain identity + DKIM<br/>MX → inbound-smtp.us-east-1"]:::aws
+        rule["SES Receipt Rule 'store-and-parse-recruiter-email'<br/>recipient: recruiters@inbox.sh3r4rd.com (configurable)"]:::aws
 
         subgraph s3email["S3 — email_storage bucket"]
             raw["incoming/{messageId}<br/>raw RFC-2822 email<br/>AES-256 · 30-day lifecycle"]:::store
@@ -49,7 +49,7 @@ flowchart TB
     end
 
     %% ============ SHARED DATA STORE ============
-    subgraph DB["DynamoDB — recruiter_emails (PROVISIONED 15/15)"]
+    subgraph DB["DynamoDB — recruiter-emails (PROVISIONED 15/15)"]
         direction TB
         table["PK id · SK received_at<br/>fields: company, job_title, recruiter_email,<br/>phone, confidence, date_year, date_day, dedup_key…"]:::store
         gsi1["GSI date-index<br/>date_year HASH · date_day RANGE"]:::store
@@ -63,7 +63,7 @@ flowchart TB
         r53["Route 53<br/>dashboard-api.sh3r4rd.com (A-alias)"]:::aws
         apigw["API Gateway REST · Regional · prod<br/>ACM TLS 1.2 · throttle 5 rps/10 burst<br/>GET /recruiters · /recruiters/{id} · /stats<br/>OPTIONS → MOCK for CORS"]:::aws
         apih["Lambda: api-handler Go/arm64<br/>10s · concurrency 5<br/>routes → DynamoDB → anonymizer"]:::lambda
-        anon["anonymizer.go<br/>strips recruiter_email, first/last_name,<br/>phone, s3_key, s3_bucket, dedup_key;<br/>coarsens received_at → month"]:::logic
+        anon["anonymizer.go<br/>strips recruiter_email, first/last_name,<br/>phone, s3_key, s3_bucket, dedup_key;<br/>derives month from date_day; drops received_at"]:::logic
     end
 
     %% ============ RESUME REQUEST (separate API) ============
@@ -93,12 +93,12 @@ flowchart TB
 
     %% ---------- READ FLOW EDGES ----------
     visitor --> spa
-    dash -- "GET /recruiters?company=&month=<br/>GET /stats" --> r53
+    dash -- "GET /recruiters (no params)<br/>GET /stats — filtering is client-side" --> r53
     r53 --> apigw
     apigw -- "AWS_PROXY" --> apih
-    apih -- "Query date-index (by month)" --> gsi1
-    apih -- "Scan + contains(company) /<br/>Query id (detail)" --> table
-    apih -- "GetItem / PutItem stats" --> cache
+    apih -- "?month= → date-index (unused by UI)" --> gsi1
+    apih -- "full Scan (list) /<br/>?company= Scan / Query id (detail)" --> table
+    apih -- "GetItem cache /<br/>PutItem (best-effort, denied by read-only IAM)" --> cache
     apih --> anon
     anon -- "anonymized JSON + CORS headers" --> dash
 
@@ -128,7 +128,7 @@ Trigger: **SES `SimpleEmailEvent`** (asynchronous `Event` invocation from the re
 
 | # | Operation | Component / Service | Notes |
 |---|-----------|---------------------|-------|
-| 0 | Email arrives | SES receipt rule `store_and_parse` | Two ordered actions: S3 store, then Lambda invoke |
+| 0 | Email arrives | SES receipt rule `store-and-parse-recruiter-email` | Two ordered actions: S3 store, then Lambda invoke |
 | 1 | Validate verdicts | `handler.validateVerdicts` | Rejects on SPF/DKIM/Spam/Virus = FAIL |
 | 2 | Fetch raw email | S3 `GetObject` (`incoming/{messageId}`) | 10 MB cap |
 | 3 | Fetch OpenAI key | SSM `GetParameter` (SecureString) | Lazy, in-memory cached across warm invocations |
@@ -148,13 +148,14 @@ Trigger: **API Gateway `AWS_PROXY`** (synchronous).
 
 | Route | DynamoDB access | Notes |
 |-------|-----------------|-------|
-| `GET /recruiters` | `?month=` → Query **date-index** GSI; `?company=` → Scan + `contains(company)`; neither → full Scan | All exclude `STATS#cache`; sorted by `received_at` desc |
+| `GET /recruiters` | `?month=` → Query **date-index** GSI; `?company=` → Scan + `contains(company)`; neither → full Scan | All exclude `STATS#cache`; sorted by `received_at` desc. **The dashboard UI calls this with no params and filters client-side**, so only the full-Scan branch is exercised in practice |
 | `GET /recruiters/{id}` | Query main table by `id` PK, `Limit 1`, desc | 404 on `STATS#cache` |
-| `GET /stats` | `GetItem` cache → on miss/expiry, projected Scan + aggregate | Writes 5-min TTL cache item (non-fatal) |
+| `GET /stats` | `GetItem` cache → on miss/expiry, projected Scan + aggregate | Attempts a 5-min TTL cache `PutItem`, but the api-handler role is read-only, so the write is denied (`AccessDenied`) and stats serve uncached. The error is non-fatal |
 
 Every response passes through **`anonymizer.go`**, which strips PII (`recruiter_email`,
-`first_name`, `last_name`, `phone`, `s3_key`, `s3_bucket`, `dedup_key`) and coarsens
-`received_at` to `month` (`YYYY-MM`). All responses carry CORS headers
+`first_name`, `last_name`, `phone`, `s3_key`, `s3_bucket`, `dedup_key`), derives a public
+`month` (`YYYY-MM`) from the `date_day` attribute, and drops `received_at` entirely. All
+responses carry CORS headers
 (`Access-Control-Allow-Origin` = `CORS_ALLOW_ORIGIN`).
 
 ## Key boundaries & guarantees
@@ -163,10 +164,12 @@ Every response passes through **`anonymizer.go`**, which strips PII (`recruiter_
   form posts to `api.sh3r4rd.com/requests` (separate backend).
 - **PII never leaves the backend:** raw recruiter identity is stored in DynamoDB but the
   anonymization layer guarantees the dashboard only ever sees company/title/month/confidence.
-- **Idempotency:** SES redelivery is safe because of the conditional DynamoDB write + SHA-256
-  `dedup_key`.
+- **Idempotency:** SES redelivery is safe because of the conditional DynamoDB write
+  (`attribute_not_exists(id) AND attribute_not_exists(received_at)`). A SHA-256 `dedup_key` is
+  also stored for future cross-message dedup, but is not yet part of the idempotency guarantee.
 - **Least privilege:** email-parser role can read/tag S3 + write DynamoDB + read one SSM param;
-  api-handler role is DynamoDB read-only (table + both GSIs).
+  api-handler role is DynamoDB read-only (`GetItem`/`Query`/`Scan` on table + both GSIs). One
+  consequence: the `/stats` cache `PutItem` is denied at runtime, so stats serve uncached.
 
 ---
 *Generated from source review of `infra/recruiter-dashboard/` (Terraform + Go Lambdas) and `src/` (React).*
