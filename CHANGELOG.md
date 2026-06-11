@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/sh3r4rd/sh3r4rd.com/compare/v1.5.0...v1.6.0) (2026-06-11)
+
+
+### Features
+
+* **ui:** update header profile image to headshot ([#104](https://github.com/sh3r4rd/sh3r4rd.com/issues/104)) ([4a63f86](https://github.com/sh3r4rd/sh3r4rd.com/commit/4a63f86ce315974a5fb2602b306c929a17735f9f))
+
 # [1.5.0](https://github.com/sh3r4rd/sh3r4rd.com/compare/v1.4.0...v1.5.0) (2026-06-04)
 
 
