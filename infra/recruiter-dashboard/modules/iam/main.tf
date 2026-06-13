@@ -87,7 +87,8 @@ resource "aws_iam_role_policy" "email_parser" {
 
 # ---------------------------------------------------------------------------
 # API Handler Lambda Role
-# Permissions: DynamoDB read-only (table + GSIs), CloudWatch logs
+# Permissions: DynamoDB read (table + GSIs) + stats-cache write (table only),
+# CloudWatch logs
 # ---------------------------------------------------------------------------
 
 resource "aws_iam_role" "api_handler" {
@@ -96,7 +97,7 @@ resource "aws_iam_role" "api_handler" {
 }
 
 data "aws_iam_policy_document" "api_handler" {
-  # DynamoDB: Read-only access to table and GSIs
+  # DynamoDB: Read access to table and GSIs
   statement {
     sid = "DynamoDBReadOnly"
     actions = [
@@ -108,6 +109,15 @@ data "aws_iam_policy_document" "api_handler" {
       [var.dynamodb_table_arn],
       var.dynamodb_gsi_arns
     )
+  }
+
+  # DynamoDB: Write the STATS#cache sentinel item (table only, no GSIs).
+  # Scoped narrowly to preserve least privilege; the api-handler otherwise
+  # only reads.
+  statement {
+    sid       = "DynamoDBStatsCacheWrite"
+    actions   = ["dynamodb:PutItem"]
+    resources = [var.dynamodb_table_arn]
   }
 
   # CloudWatch Logs
