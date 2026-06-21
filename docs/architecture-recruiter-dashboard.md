@@ -169,8 +169,11 @@ responses carry CORS headers
   also stored for future cross-message dedup, but is not yet part of the idempotency guarantee.
 - **Least privilege:** email-parser role can read/tag S3 + write DynamoDB + read one SSM param;
   api-handler role is DynamoDB read (`GetItem`/`Query`/`Scan` on table + both GSIs) plus a
-  single narrowly-scoped `PutItem` on the base table only — used solely to write the `/stats`
-  cache item (`STATS#cache`). It cannot write to either GSI.
+  single narrowly-scoped `PutItem` — constrained by a `dynamodb:LeadingKeys` condition to the
+  partition key `STATS#cache`, so it can only write the `/stats` cache item and no other
+  DynamoDB write actions are granted. (The cache item does not appear in either GSI because it
+  lacks the GSI key attributes, not because of resource scoping — `PutItem` is always evaluated
+  against the table and indexes update automatically.)
 
 ---
 *Generated from source review of `infra/recruiter-dashboard/` (Terraform + Go Lambdas) and `src/` (React).*

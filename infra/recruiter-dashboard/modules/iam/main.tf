@@ -111,13 +111,21 @@ data "aws_iam_policy_document" "api_handler" {
     )
   }
 
-  # DynamoDB: Write the STATS#cache sentinel item (table only, no GSIs).
-  # Scoped narrowly to preserve least privilege; the api-handler otherwise
-  # only reads.
+  # DynamoDB: Write the STATS#cache sentinel item only.
+  # Scoped narrowly to preserve least privilege; the LeadingKeys condition
+  # restricts PutItem to the single item whose partition key (id) is
+  # "STATS#cache", so the api-handler cannot overwrite or inject recruiter
+  # rows. It otherwise only reads.
   statement {
     sid       = "DynamoDBStatsCacheWrite"
     actions   = ["dynamodb:PutItem"]
     resources = [var.dynamodb_table_arn]
+
+    condition {
+      test     = "ForAllValues:StringEquals"
+      variable = "dynamodb:LeadingKeys"
+      values   = ["STATS#cache"]
+    }
   }
 
   # CloudWatch Logs
