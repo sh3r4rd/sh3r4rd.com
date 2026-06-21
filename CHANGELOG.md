@@ -1,3 +1,10 @@
+## [1.6.1](https://github.com/sh3r4rd/sh3r4rd.com/compare/v1.6.0...v1.6.1) (2026-06-21)
+
+
+### Bug Fixes
+
+* **infra:** grant api-handler dynamodb:PutItem for stats cache ([#105](https://github.com/sh3r4rd/sh3r4rd.com/issues/105)) ([39b1cc7](https://github.com/sh3r4rd/sh3r4rd.com/commit/39b1cc7e215c48698023327f0e382807b2dfb182)), closes [STATS#cache](https://github.com/STATS/issues/cache) [#102](https://github.com/sh3r4rd/sh3r4rd.com/issues/102) [STATS#cache](https://github.com/STATS/issues/cache) [STATS#cache](https://github.com/STATS/issues/cache)
+
 # [1.6.0](https://github.com/sh3r4rd/sh3r4rd.com/compare/v1.5.0...v1.6.0) (2026-06-11)
 
 
