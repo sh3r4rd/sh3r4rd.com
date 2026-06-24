@@ -5,6 +5,8 @@
 
 # Variables with secrets
 terraform.tfvars
+# Local backup written by scripts/tfvars.sh pull
+terraform.tfvars.bak
 
 # Crash logs
 crash.log

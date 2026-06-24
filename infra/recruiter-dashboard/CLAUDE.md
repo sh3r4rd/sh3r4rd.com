@@ -18,7 +18,16 @@ make -C ../.. build-lambdas
 terraform init
 terraform validate
 terraform fmt -check -recursive
+
+# terraform.tfvars sync (SSM is the source of truth; the file is git-ignored)
+make -C ../.. tf-vars-pull   # before plan/apply
+make -C ../.. tf-vars-push   # after editing terraform.tfvars
+make -C ../.. tf-vars-diff   # check drift vs SSM
 ```
+
+## terraform.tfvars (sourced from SSM)
+
+`terraform.tfvars` is git-ignored; its durable, versioned source of truth is the SSM SecureString parameter `/recruiter-dashboard/tfvars` (us-east-1). `scripts/tfvars.sh` mirrors the file verbatim to/from SSM (`pull`/`push`/`diff`) — Terraform code is unaware of it. Run `make tf-vars-pull` before `plan`/`apply` and `make tf-vars-push` after editing the file.
 
 ## Lambda Functions
 

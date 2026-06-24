@@ -1,3 +1,7 @@
+# NOTE: The real terraform.tfvars is git-ignored and its source of truth is the
+# AWS SSM parameter /recruiter-dashboard/tfvars (us-east-1). Run `make tf-vars-pull`
+# to populate the real file from SSM. This example is only a fallback template.
+
 # AWS Region — must be SES-receiving-capable (us-east-1, us-west-2, eu-west-1)
 aws_region = "us-east-1"
 

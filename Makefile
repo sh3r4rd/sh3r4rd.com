@@ -60,6 +60,16 @@ tf-fmt-check:
 tf-plan:
 	@terraform -chdir=$(INFRA_DIR) plan
 
+# terraform.tfvars <-> SSM sync (SSM is the durable source of truth; the file is git-ignored)
+tf-vars-pull:
+	@$(INFRA_DIR)/scripts/tfvars.sh pull
+
+tf-vars-push:
+	@$(INFRA_DIR)/scripts/tfvars.sh push
+
+tf-vars-diff:
+	@$(INFRA_DIR)/scripts/tfvars.sh diff
+
 # Clean build artifacts
 clean:
 	@rm -rf dist $(BUILD_DIR)
