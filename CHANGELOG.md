@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/sh3r4rd/sh3r4rd.com/compare/v1.6.1...v1.7.0) (2026-06-26)
+
+
+### Features
+
+* **infra:** back up terraform.tfvars to SSM via sync script ([#106](https://github.com/sh3r4rd/sh3r4rd.com/issues/106)) ([03471a6](https://github.com/sh3r4rd/sh3r4rd.com/commit/03471a6ad2fec250a2d28ded449ce62cf95493e6)), closes [#96](https://github.com/sh3r4rd/sh3r4rd.com/issues/96)
+
 ## [1.6.1](https://github.com/sh3r4rd/sh3r4rd.com/compare/v1.6.0...v1.6.1) (2026-06-21)
 
 
