@@ -112,6 +112,17 @@ cmd_push() {
     exit 1
   fi
 
+  # Canonicalize the local file to the same one-trailing-newline form that
+  # emit_remote produces, so the comparison below and the uploaded value match
+  # the remote round-trip exactly. Without this, a local file saved without a
+  # trailing newline would create a permanent phantom diff that "Already up to
+  # date" could never satisfy. Command substitution strips trailing newlines;
+  # emit_remote re-adds exactly one.
+  local local_canon
+  local_canon="$(cat "$TFVARS")"
+  TMPFILE="$(mktemp)"
+  emit_remote "$local_canon" >"$TMPFILE"
+
   local remote rc
   set +e
   remote="$(read_remote)"
@@ -119,12 +130,12 @@ cmd_push() {
   set -e
 
   if [[ $rc -eq 0 ]]; then
-    if emit_remote "$remote" | diff -u - "$TFVARS" >/dev/null 2>&1; then
+    if emit_remote "$remote" | diff -u - "$TMPFILE" >/dev/null 2>&1; then
       echo "Already up to date — local matches SSM."
       return 0
     fi
     echo "Local terraform.tfvars differs from SSM (remote <-> local):"
-    emit_remote "$remote" | diff -u --label "ssm:$PARAM_NAME" --label "local:terraform.tfvars" - "$TFVARS" || true
+    emit_remote "$remote" | diff -u --label "ssm:$PARAM_NAME" --label "local:terraform.tfvars" - "$TMPFILE" || true
     echo
   elif [[ $rc -eq 10 ]]; then
     echo "Parameter $PARAM_NAME does not exist yet — this push will create it (version 1)."
@@ -140,7 +151,7 @@ cmd_push() {
   aws ssm put-parameter \
     --name "$PARAM_NAME" \
     --type SecureString \
-    --value file://"$TFVARS" \
+    --value file://"$TMPFILE" \
     --tier Intelligent-Tiering \
     --overwrite \
     --region "$REGION" >/dev/null
