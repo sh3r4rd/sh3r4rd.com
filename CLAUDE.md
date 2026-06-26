@@ -37,6 +37,14 @@ All commands run from `infra/recruiter-dashboard/`:
 - **Format:** `terraform -chdir=infra/recruiter-dashboard fmt -recursive`
 - **Plan:** `terraform -chdir=infra/recruiter-dashboard plan`
 
+#### terraform.tfvars (sourced from SSM)
+
+`infra/recruiter-dashboard/terraform.tfvars` is git-ignored; its durable, versioned source of truth is the SSM SecureString parameter `/recruiter-dashboard/tfvars` (us-east-1). Terraform code is unaware of this — `scripts/tfvars.sh` mirrors the file verbatim to/from SSM.
+
+- **Before `plan`/`apply`:** `make tf-vars-pull` (fetch latest from SSM)
+- **After editing the file:** `make tf-vars-push` (back up to SSM as a new version)
+- **Check for drift:** `make tf-vars-diff`
+
 ## Architecture
 
 ### Frontend
