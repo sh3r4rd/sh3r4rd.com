@@ -43,7 +43,9 @@ All commands run from `infra/recruiter-dashboard/`:
 
 - **Before `plan`/`apply`:** `make tf-vars-pull` (fetch latest from SSM)
 - **After editing the file:** `make tf-vars-push` (back up to SSM as a new version)
-- **Check for drift:** `make tf-vars-diff`
+- **Check for drift:** `make tf-vars-diff` (exit `1` means drift, so it can gate a script or CI check — a `make ... Error 1` here is the drift signal, not a failure; `3` means there was nothing to compare and `4` that the AWS call or `diff` failed)
+
+All three targets prompt before overwriting anything. For non-interactive use, skip the prompt with `make tf-vars-push TFVARS_ARGS=--force`. `pull` writes a timestamped `terraform.tfvars.<UTC>.bak` next to the file before overwriting it; these are git-ignored and are never cleaned up automatically.
 
 ## Architecture
 

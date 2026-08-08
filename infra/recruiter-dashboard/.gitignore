@@ -5,7 +5,9 @@
 
 # Variables with secrets
 terraform.tfvars
-# Local backup written by scripts/tfvars.sh pull
+# Local backups written by scripts/tfvars.sh pull (timestamped; plain .bak is
+# the legacy name written before backups were made per-pull)
+terraform.tfvars.*.bak
 terraform.tfvars.bak
 
 # Crash logs

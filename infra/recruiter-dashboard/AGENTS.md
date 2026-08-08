@@ -25,12 +25,18 @@ terraform plan
 # terraform.tfvars sync (SSM is the source of truth; the file is git-ignored)
 make -C ../.. tf-vars-pull   # before plan/apply
 make -C ../.. tf-vars-push   # after editing terraform.tfvars
-make -C ../.. tf-vars-diff   # check drift vs SSM
+make -C ../.. tf-vars-diff   # check drift vs SSM (exit 1 == drift)
 ```
 
 ## terraform.tfvars (sourced from SSM)
 
-`terraform.tfvars` is git-ignored; its durable, versioned source of truth is the SSM SecureString parameter `/recruiter-dashboard/tfvars` (us-east-1). `scripts/tfvars.sh` mirrors the file verbatim to/from SSM (`pull`/`push`/`diff`) — Terraform code is unaware of it. Run `make tf-vars-pull` before `plan`/`apply` and `make tf-vars-push` after editing the file.
+`terraform.tfvars` is git-ignored; its durable, versioned source of truth is the SSM SecureString parameter `/recruiter-dashboard/tfvars` (us-east-1). `scripts/tfvars.sh` mirrors the file to/from SSM (`pull`/`push`/`diff`) — Terraform code is unaware of it. Run `make tf-vars-pull` before `plan`/`apply` and `make tf-vars-push` after editing the file.
+
+- `diff` exit codes — so it can gate a script or CI check: `0` no drift, `1` drift, `2` usage error, `3` nothing to compare (parameter not seeded, or no local file), `4` AWS call or `diff` itself failed. Only `1` means drift; `3` and `4` need different remedies.
+- Push normalizes the file: CRs are stripped and trailing blank lines collapse to one newline (SSM stores LF only, and this keeps round-trips byte-stable).
+- All three subcommands compare the *canonical* form, so a CRLF file is not perpetual drift. `pull` leaves a CRLF file's bytes on disk when it matches canonically rather than rewriting it.
+- `pull` writes a timestamped `terraform.tfvars.<UTC>.bak` before overwriting; git-ignored, never auto-pruned.
+- `TFVARS_ARGS=--force` skips confirmation prompts, e.g. `make tf-vars-push TFVARS_ARGS=--force`.
 
 ## Email Parsing Pipeline
 

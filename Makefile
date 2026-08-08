@@ -61,14 +61,24 @@ tf-plan:
 	@terraform -chdir=$(INFRA_DIR) plan
 
 # terraform.tfvars <-> SSM sync (SSM is the durable source of truth; the file is git-ignored)
+#
+# TFVARS_ARGS passes flags through to the script — chiefly --force, which skips
+# the confirmation prompt for non-interactive use:
+#   make tf-vars-push TFVARS_ARGS=--force
+# tf-vars-diff exits non-zero when drift exists so it can gate a script or CI
+# check; the resulting `Error 1` is the drift signal, not a malfunction. Only 1
+# means drift — 3 means there was nothing to compare (parameter not seeded, or
+# no local terraform.tfvars) and 4 means the AWS call or diff itself failed.
+TFVARS_ARGS ?=
+
 tf-vars-pull:
-	@$(INFRA_DIR)/scripts/tfvars.sh pull
+	@$(INFRA_DIR)/scripts/tfvars.sh pull $(TFVARS_ARGS)
 
 tf-vars-push:
-	@$(INFRA_DIR)/scripts/tfvars.sh push
+	@$(INFRA_DIR)/scripts/tfvars.sh push $(TFVARS_ARGS)
 
 tf-vars-diff:
-	@$(INFRA_DIR)/scripts/tfvars.sh diff
+	@$(INFRA_DIR)/scripts/tfvars.sh diff $(TFVARS_ARGS)
 
 # Clean build artifacts
 clean:
