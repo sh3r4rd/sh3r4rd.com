@@ -1,3 +1,10 @@
+## [1.7.1](https://github.com/sh3r4rd/sh3r4rd.com/compare/v1.7.0...v1.7.1) (2026-08-08)
+
+
+### Bug Fixes
+
+* **infra:** tfvars.sh CRLF phantom diff, drift exit code, and non-destructive backups ([#108](https://github.com/sh3r4rd/sh3r4rd.com/issues/108)) ([6562aaf](https://github.com/sh3r4rd/sh3r4rd.com/commit/6562aaf9c02f28a0dbddf2a2d05fa3a47e839853)), closes [#106](https://github.com/sh3r4rd/sh3r4rd.com/issues/106) [#107](https://github.com/sh3r4rd/sh3r4rd.com/issues/107) [#107](https://github.com/sh3r4rd/sh3r4rd.com/issues/107) [#107](https://github.com/sh3r4rd/sh3r4rd.com/issues/107) [#107](https://github.com/sh3r4rd/sh3r4rd.com/issues/107)
+
 # [1.7.0](https://github.com/sh3r4rd/sh3r4rd.com/compare/v1.6.1...v1.7.0) (2026-06-26)
 
 
