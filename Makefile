@@ -66,7 +66,9 @@ tf-plan:
 # the confirmation prompt for non-interactive use:
 #   make tf-vars-push TFVARS_ARGS=--force
 # tf-vars-diff exits non-zero when drift exists so it can gate a script or CI
-# check; the resulting `Error 1` is the drift signal, not a malfunction.
+# check; the resulting `Error 1` is the drift signal, not a malfunction. Only 1
+# means drift — 3 means there was nothing to compare (parameter not seeded, or
+# no local terraform.tfvars) and 4 means the AWS call or diff itself failed.
 TFVARS_ARGS ?=
 
 tf-vars-pull:

@@ -14,7 +14,13 @@
 #   0  success — for `diff`, specifically means "no drift"
 #   1  drift detected (`diff`), user aborted, or a refused/guarded operation
 #   2  usage error
-#   *  other non-zero: AWS CLI or plumbing failure
+#   3  cannot compare — SSM parameter not seeded, or no local terraform.tfvars
+#   4  operational failure — AWS CLI, or `diff` itself failed
+#
+# 1 means *only* "the two sides differ" (or the user said no). A gate such as
+# `make tf-vars-diff || remediate` must be able to tell real drift apart from a
+# fresh checkout that has not pulled yet (3) and from expired credentials (4),
+# since those three need opposite remedies.
 #
 # Region is hardcoded so the script never depends on AWS_DEFAULT_REGION, but it
 # still respects AWS_PROFILE for credential selection.
@@ -44,7 +50,9 @@ usage() {
 # re-add exactly one trailing newline via `emit_remote` when writing/comparing,
 # so round-trips match the canonical terraform.tfvars form (one trailing \n).
 #
-# Returns 10 if the parameter does not exist yet; any other non-zero on error.
+# Returns 10 if the parameter does not exist yet (an internal sentinel callers
+# translate into their own message); 4 for any other AWS CLI failure, so a
+# credential or network error never reaches a caller as the drift code 1.
 read_remote() {
   local out
   if ! out="$(aws ssm get-parameter \
@@ -57,7 +65,7 @@ read_remote() {
       return 10
     fi
     echo "$out" >&2
-    return 1
+    return 4
   fi
   printf '%s' "$out"
 }
@@ -80,11 +88,13 @@ emit_remote() { printf '%s\n' "$1"; }
 #      phantom diff too.
 canon_local() { emit_remote "$(tr -d '\r' <"$TFVARS")"; }
 
-# Warn when canon_local will silently alter the file's line endings, so the
-# normalization is visible rather than surprising.
+# Warn when canon_local's normalization is in play, so it is visible rather than
+# surprising. Worded to hold for all three subcommands: push strips the CRs on
+# upload, diff and pull only ignore them when comparing (pull leaves the bytes
+# on disk untouched — see cmd_pull).
 warn_if_crlf() {
   if LC_ALL=C grep -q $'\r' "$TFVARS" 2>/dev/null; then
-    echo "Note: terraform.tfvars contains CR characters; they are stripped (SSM stores LF only)." >&2
+    echo "Note: terraform.tfvars contains CR characters; SSM stores LF only, so they are ignored when comparing and stripped on push." >&2
   fi
 }
 
@@ -128,7 +138,7 @@ cmd_pull() {
   set -e
   if [[ $rc -eq 10 ]]; then
     echo "Parameter $PARAM_NAME not seeded yet — run 'make tf-vars-push' first." >&2
-    exit 1
+    exit 3
   elif [[ $rc -ne 0 ]]; then
     exit $rc
   fi
@@ -137,12 +147,20 @@ cmd_pull() {
   emit_remote "$remote" >"$TMPFILE"
 
   if [[ -f "$TFVARS" ]]; then
-    if diff -u "$TFVARS" "$TMPFILE" >/dev/null 2>&1; then
+    # Compare the canonical local form (see canon_local), not the raw file. A
+    # CRLF or trailing-blank-line difference is normalized away by push, so it
+    # is not a real difference — and comparing raw would make a Windows-edited
+    # file prompt and write a fresh timestamped backup on *every* pull, forever,
+    # accumulating silently under TFVARS_ARGS=--force. The cost is that such a
+    # file keeps its CR bytes on disk instead of being rewritten; Terraform
+    # reads it identically either way, and push still uploads LF only.
+    warn_if_crlf
+    if canon_local | diff -u - "$TMPFILE" >/dev/null 2>&1; then
       echo "Local terraform.tfvars already matches SSM. Nothing to do."
       return 0
     fi
     echo "Local terraform.tfvars differs from SSM:"
-    diff -u "$TFVARS" "$TMPFILE" || true
+    canon_local | diff -u --label "local:terraform.tfvars" --label "ssm:$PARAM_NAME" - "$TMPFILE" || true
     echo
     if ! confirm "Overwrite local file? (a timestamped backup will be written alongside it)"; then
       echo "Aborted." >&2
@@ -219,16 +237,19 @@ cmd_diff() {
   rc=$?
   set -e
 
+  # Both "not seeded" and "no local file" mean there is nothing to compare, not
+  # that the two sides differ — exit 3, so a gate does not mistake a fresh
+  # checkout for drift and try to remediate it as one.
   if [[ $rc -eq 10 ]]; then
     echo "Parameter $PARAM_NAME not seeded yet — run 'make tf-vars-push' first." >&2
-    exit 1
+    exit 3
   elif [[ $rc -ne 0 ]]; then
     exit $rc
   fi
 
   if [[ ! -f "$TFVARS" ]]; then
     echo "No local terraform.tfvars — run 'make tf-vars-pull' to fetch it." >&2
-    exit 1
+    exit 3
   fi
 
   # Compare the canonical local form, not the raw file: push uploads the
@@ -238,14 +259,29 @@ cmd_diff() {
   TMPFILE="$(mktemp)"
   canon_local >"$TMPFILE"
 
-  if emit_remote "$remote" | diff -u - "$TMPFILE" >/dev/null 2>&1; then
+  # Run diff once and branch on its exact status. `if diff ...` would collapse
+  # status 2 (diff itself failed — unreadable input, etc.) into the drift path,
+  # reporting a plumbing failure as drift to whatever is gating on this.
+  local out status
+  set +e
+  out="$(emit_remote "$remote" | diff -u --label "ssm:$PARAM_NAME" --label "local:terraform.tfvars" - "$TMPFILE" 2>&1)"
+  status=$?
+  set -e
+
+  if [[ $status -eq 0 ]]; then
     echo "No drift — local terraform.tfvars matches SSM."
     return 0
+  elif [[ $status -ne 1 ]]; then
+    echo "Comparison failed (diff exited $status):" >&2
+    printf '%s\n' "$out" >&2
+    exit 4
   fi
+
   echo "Drift detected (remote <-> local):"
-  emit_remote "$remote" | diff -u --label "ssm:$PARAM_NAME" --label "local:terraform.tfvars" - "$TMPFILE" || true
-  # Exit non-zero so `make tf-vars-diff` is usable as a check in scripts, CI, or
-  # a pre-apply guard. A `make ... Error 1` here is the intended drift signal.
+  printf '%s\n' "$out"
+  # Exit 1 so `make tf-vars-diff` is usable as a check in scripts, CI, or a
+  # pre-apply guard. A `make ... Error 1` here is the intended drift signal;
+  # 3 and 4 mean the comparison never happened (see the header).
   exit 1
 }
 

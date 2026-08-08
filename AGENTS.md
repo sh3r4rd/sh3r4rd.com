@@ -41,7 +41,7 @@ terraform -chdir=infra/recruiter-dashboard fmt -check -recursive
 terraform -chdir=infra/recruiter-dashboard plan
 ```
 
-`infra/recruiter-dashboard/terraform.tfvars` is git-ignored; its source of truth is the SSM SecureString `/recruiter-dashboard/tfvars` (us-east-1), synced via `scripts/tfvars.sh`. Run `make tf-vars-pull` before `plan`/`apply`, `make tf-vars-push` after editing the file, `make tf-vars-diff` to check drift (exits non-zero when drift exists, so it can gate a script or CI check). Add `TFVARS_ARGS=--force` to skip the confirmation prompt non-interactively.
+`infra/recruiter-dashboard/terraform.tfvars` is git-ignored; its source of truth is the SSM SecureString `/recruiter-dashboard/tfvars` (us-east-1), synced via `scripts/tfvars.sh`. Run `make tf-vars-pull` before `plan`/`apply`, `make tf-vars-push` after editing the file, `make tf-vars-diff` to check drift (exit `1` means drift, so it can gate a script or CI check; `3` means nothing to compare — parameter not seeded or no local file — and `4` an AWS/`diff` failure). Add `TFVARS_ARGS=--force` to skip the confirmation prompt non-interactively.
 
 ### All-in-one CI check
 
