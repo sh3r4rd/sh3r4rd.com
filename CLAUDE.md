@@ -43,7 +43,7 @@ All commands run from `infra/recruiter-dashboard/`:
 
 - **Before `plan`/`apply`:** `make tf-vars-pull` (fetch latest from SSM)
 - **After editing the file:** `make tf-vars-push` (back up to SSM as a new version)
-- **Check for drift:** `make tf-vars-diff`
+- **Check for drift:** `make tf-vars-diff` (exits non-zero when drift exists, so it can gate a script or CI check — a `make ... Error 1` here is the drift signal, not a failure)
 
 ## Architecture
 

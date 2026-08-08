@@ -22,7 +22,7 @@ terraform fmt -check -recursive
 # terraform.tfvars sync (SSM is the source of truth; the file is git-ignored)
 make -C ../.. tf-vars-pull   # before plan/apply
 make -C ../.. tf-vars-push   # after editing terraform.tfvars
-make -C ../.. tf-vars-diff   # check drift vs SSM
+make -C ../.. tf-vars-diff   # check drift vs SSM (non-zero exit == drift)
 ```
 
 ## terraform.tfvars (sourced from SSM)

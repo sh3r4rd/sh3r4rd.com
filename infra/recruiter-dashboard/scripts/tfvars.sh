@@ -10,6 +10,12 @@
 #   push   local file -> SSM (refuses empty/missing local; confirms before overwrite)
 #   diff   show local-vs-remote differences; never writes
 #
+# Exit codes:
+#   0  success — for `diff`, specifically means "no drift"
+#   1  drift detected (`diff`), user aborted, or a refused/guarded operation
+#   2  usage error
+#   *  other non-zero: AWS CLI or plumbing failure
+#
 # Region is hardcoded so the script never depends on AWS_DEFAULT_REGION, but it
 # still respects AWS_PROFILE for credential selection.
 set -euo pipefail
@@ -59,6 +65,29 @@ read_remote() {
 
 # Print a captured remote value normalized to exactly one trailing newline.
 emit_remote() { printf '%s\n' "$1"; }
+
+# Print the local file in canonical form: LF-only line endings, exactly one
+# trailing newline. This is the form `push` uploads and the form every
+# comparison must use.
+#
+# Two normalizations, both required for a stable round-trip:
+#   1. CR stripping — the AWS CLI's file:// reader converts CRLF to LF on
+#      upload, so a CR can never survive to the remote. Comparing the raw local
+#      file against the remote would therefore report drift forever, and push
+#      could never reach "Already up to date".
+#   2. Trailing newlines — command substitution strips *all* of them and
+#      emit_remote re-adds exactly one, so trailing blank lines are collapsed.
+#      A file saved without a trailing newline would otherwise be a permanent
+#      phantom diff too.
+canon_local() { emit_remote "$(tr -d '\r' <"$TFVARS")"; }
+
+# Warn when canon_local will silently alter the file's line endings, so the
+# normalization is visible rather than surprising.
+warn_if_crlf() {
+  if LC_ALL=C grep -q $'\r' "$TFVARS" 2>/dev/null; then
+    echo "Note: terraform.tfvars contains CR characters; they are stripped (SSM stores LF only)." >&2
+  fi
+}
 
 confirm() {
   # $1 = prompt. Honors a global FORCE flag for non-interactive use.
@@ -112,16 +141,11 @@ cmd_push() {
     exit 1
   fi
 
-  # Canonicalize the local file to the same one-trailing-newline form that
-  # emit_remote produces, so the comparison below and the uploaded value match
-  # the remote round-trip exactly. Without this, a local file saved without a
-  # trailing newline would create a permanent phantom diff that "Already up to
-  # date" could never satisfy. Command substitution strips trailing newlines;
-  # emit_remote re-adds exactly one.
-  local local_canon
-  local_canon="$(cat "$TFVARS")"
+  # Upload the canonical form (see canon_local), so what is compared below is
+  # byte-for-byte what SSM will store and what a later pull will write back.
+  warn_if_crlf
   TMPFILE="$(mktemp)"
-  emit_remote "$local_canon" >"$TMPFILE"
+  canon_local >"$TMPFILE"
 
   local remote rc
   set +e
@@ -177,12 +201,22 @@ cmd_diff() {
     exit 1
   fi
 
-  if emit_remote "$remote" | diff -u - "$TFVARS" >/dev/null 2>&1; then
+  # Compare the canonical local form, not the raw file: push uploads the
+  # canonical form, so raw-file differences that push would normalize away are
+  # not drift and must not be reported as such.
+  warn_if_crlf
+  TMPFILE="$(mktemp)"
+  canon_local >"$TMPFILE"
+
+  if emit_remote "$remote" | diff -u - "$TMPFILE" >/dev/null 2>&1; then
     echo "No drift — local terraform.tfvars matches SSM."
     return 0
   fi
   echo "Drift detected (remote <-> local):"
-  emit_remote "$remote" | diff -u --label "ssm:$PARAM_NAME" --label "local:terraform.tfvars" - "$TFVARS" || true
+  emit_remote "$remote" | diff -u --label "ssm:$PARAM_NAME" --label "local:terraform.tfvars" - "$TMPFILE" || true
+  # Exit non-zero so `make tf-vars-diff` is usable as a check in scripts, CI, or
+  # a pre-apply guard. A `make ... Error 1` here is the intended drift signal.
+  exit 1
 }
 
 main() {
