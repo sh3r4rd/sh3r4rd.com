@@ -28,7 +28,6 @@ REGION="us-east-1"
 # works regardless of the caller's working directory.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TFVARS="$(cd "$SCRIPT_DIR/.." && pwd)/terraform.tfvars"
-BACKUP="$TFVARS.bak"
 
 # Temp file cleaned up on exit (set by pull). Initialized empty for `set -u`.
 TMPFILE=""
@@ -89,6 +88,28 @@ warn_if_crlf() {
   fi
 }
 
+# Echo a unique, timestamped backup path for the local file.
+#
+# Backups are per-pull rather than a single fixed terraform.tfvars.bak slot: two
+# pulls in a row would otherwise overwrite the first backup and silently destroy
+# local edits that were never pushed. SSM version history is the primary
+# recovery path; these cover local-only state it never saw. They are git-ignored
+# and never pruned automatically — delete them by hand when you're done.
+backup_path() {
+  local stamp base candidate n
+  stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+  base="$TFVARS.$stamp"
+  candidate="$base.bak"
+  # Two pulls within the same second would collide; disambiguate rather than
+  # clobber, since not clobbering is the entire point of this function.
+  n=1
+  while [[ -e "$candidate" ]]; do
+    candidate="$base-$n.bak"
+    n=$((n + 1))
+  done
+  printf '%s' "$candidate"
+}
+
 confirm() {
   # $1 = prompt. Honors a global FORCE flag for non-interactive use.
   if [[ "${FORCE:-0}" == "1" ]]; then
@@ -123,12 +144,14 @@ cmd_pull() {
     echo "Local terraform.tfvars differs from SSM:"
     diff -u "$TFVARS" "$TMPFILE" || true
     echo
-    if ! confirm "Overwrite local file? (a backup will be written to terraform.tfvars.bak)"; then
+    if ! confirm "Overwrite local file? (a timestamped backup will be written alongside it)"; then
       echo "Aborted." >&2
       exit 1
     fi
-    cp "$TFVARS" "$BACKUP"
-    echo "Backed up current local file to terraform.tfvars.bak"
+    local backup
+    backup="$(backup_path)"
+    cp "$TFVARS" "$backup"
+    echo "Backed up current local file to $(basename "$backup")"
   fi
 
   cp "$TMPFILE" "$TFVARS"
@@ -143,6 +166,9 @@ cmd_push() {
 
   # Upload the canonical form (see canon_local), so what is compared below is
   # byte-for-byte what SSM will store and what a later pull will write back.
+  # Note this normalizes the file: CRs are stripped and any trailing blank lines
+  # collapse to a single trailing newline. Both are required for a stable
+  # round-trip, so the uploaded value may differ from the raw file on disk.
   warn_if_crlf
   TMPFILE="$(mktemp)"
   canon_local >"$TMPFILE"
@@ -172,6 +198,10 @@ cmd_push() {
     exit 1
   fi
 
+  # --value file:// (not an inline value) keeps the secret out of argv.
+  # Intelligent-Tiering auto-promotes to Advanced past 4096 bytes, which costs
+  # $0.05/parameter/month; under that it stays on the free Standard tier. The
+  # file is ~1.3 KB today, so this is only a concern if tfvars grows a lot.
   aws ssm put-parameter \
     --name "$PARAM_NAME" \
     --type SecureString \

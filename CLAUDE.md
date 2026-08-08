@@ -45,6 +45,8 @@ All commands run from `infra/recruiter-dashboard/`:
 - **After editing the file:** `make tf-vars-push` (back up to SSM as a new version)
 - **Check for drift:** `make tf-vars-diff` (exits non-zero when drift exists, so it can gate a script or CI check — a `make ... Error 1` here is the drift signal, not a failure)
 
+All three targets prompt before overwriting anything. For non-interactive use, skip the prompt with `make tf-vars-push TFVARS_ARGS=--force`. `pull` writes a timestamped `terraform.tfvars.<UTC>.bak` next to the file before overwriting it; these are git-ignored and are never cleaned up automatically.
+
 ## Architecture
 
 ### Frontend
