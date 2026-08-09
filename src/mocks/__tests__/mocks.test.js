@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { createRecruiter, RECRUITERS, STATS, buildStats } from '../fixtures'
 import { API_BASE } from '../handlers'
+import { REQUESTS_API_BASE } from '../../lib/api'
 
 // Validates the test infrastructure itself (issue #38): deterministic fixtures
 // and a live MSW server (started by setup.js) that serves the mock endpoints.
@@ -55,5 +56,19 @@ describe('MSW server', () => {
     const res = await fetch(`${API_BASE}/stats`)
     expect(res.ok).toBe(true)
     await expect(res.json()).resolves.toEqual(STATS)
+  })
+})
+
+// The mocks derive their base from src/lib/api.js so they can never drift from
+// the URLs the app actually calls. That removes the guard the old duplicated
+// literal gave us: every handler would follow a wrong base in lockstep and the
+// suite would stay green while production was broken. These assertions restore
+// it by pinning the values themselves rather than re-stating them in the mocks.
+describe('API base URLs', () => {
+  it('resolve to the production origins under test/production mode', () => {
+    // A dev-only proxy prefix reaching here means .env.development leaked out of
+    // mode=development — the exact failure that would ship a relative URL to S3.
+    expect(API_BASE).toBe('https://dashboard-api.sh3r4rd.com')
+    expect(REQUESTS_API_BASE).toBe('https://api.sh3r4rd.com')
   })
 })

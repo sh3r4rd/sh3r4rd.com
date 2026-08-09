@@ -27,7 +27,9 @@ Personal portfolio website (sh3r4rd.com) built with React, Tailwind CSS, and Vit
 | `API_BASE` | `VITE_API_BASE_URL` | `https://dashboard-api.sh3r4rd.com` | `/dashboard-api` |
 | `REQUESTS_API_BASE` | `VITE_REQUESTS_API_BASE_URL` | `https://api.sh3r4rd.com` | `/requests-api` |
 
-`npm run dev` loads `.env.development`, which points both at the relative prefixes; the `server.proxy` entries in `vite.config.js` forward them to the real APIs server-side, so the browser sees same-origin requests and CORS never applies. Production builds and Vitest (mode `test`) don't load `.env.development`, so both use the absolute origins. Override either with a git-ignored `.env.local`.
+`npm run dev` loads `.env.development`, which points both at the relative prefixes; the `server.proxy` entries in `vite.config.js` forward them to the real APIs server-side, so the browser sees same-origin requests and CORS never applies. Production builds and Vitest (mode `test`) don't load `.env.development`, so both use the absolute origins.
+
+To override either locally, use a git-ignored **`.env.development.local`** — **not** `.env.local`. Vite ranks a mode-specific file above a generic one, so `.env.development` beats `.env.local` and any value set there is silently ignored in dev. Both `.local` names are already covered by the `*.local` entry in `.gitignore`.
 
 Only the dashboard API actually *requires* this: it sends `Access-Control-Allow-Origin: https://sh3r4rd.com` (from `cors_allowed_origin`), so direct calls from `localhost:5173` are blocked. The requests API sends `Access-Control-Allow-Origin: *` and is proxied only for consistency.
 
