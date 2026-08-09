@@ -1,11 +1,14 @@
 import { http, HttpResponse } from 'msw'
 import { RECRUITERS, STATS } from './fixtures'
+import { API_BASE } from '../lib/api'
 
-// Base URL of the production API the dashboard talks to. The dashboard
-// hardcodes this origin (no env var), so the mocks target it directly.
+// Re-exported so tests keep importing the base from here. It comes from the app
+// itself, so mocks can never drift from the URLs the dashboard actually calls.
+// Under Vitest (mode=test) VITE_API_BASE_URL is unset, so this is the real API
+// origin — the dev-only proxy prefix never reaches tests.
 // Note: the dashboard API lives on its own subdomain; the resume form's
 // /requests endpoint is a separate API on api.sh3r4rd.com and is not mocked here.
-export const API_BASE = 'https://dashboard-api.sh3r4rd.com'
+export { API_BASE }
 
 // Default happy-path handlers. Tests override these per-case with
 // `server.use(...)` to simulate errors, empty results, or custom datasets.
