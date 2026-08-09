@@ -16,10 +16,33 @@ function tableBodyRows() {
   return within(screen.getByRole('table')).getAllByRole('row').slice(1)
 }
 
+const ROBOTS_META = 'meta[name="robots"]'
+
 describe('DashboardPage (integration)', () => {
   it('shows a loading state before data arrives', () => {
     renderDashboard()
     expect(screen.getByText('Loading recruiter data...')).toBeInTheDocument()
+  })
+
+  // The app is a client-rendered SPA: index.html has one <head> shared by every
+  // route and there is no head-management library. The unmount cleanup is what
+  // scopes the directive to /dashboard — if it regresses, `noindex` survives a
+  // client-side navigation and de-indexes the public routes too.
+  it('adds a noindex robots tag on mount and removes it on unmount', async () => {
+    expect(document.head.querySelector(ROBOTS_META)).toBeNull()
+
+    const { unmount } = renderDashboard()
+    expect(document.head.querySelector(ROBOTS_META)).toHaveAttribute(
+      'content',
+      'noindex, nofollow',
+    )
+
+    // Let the mount fetches settle before unmounting so the assertion below is
+    // about the cleanup and not a race with a pending render.
+    await screen.findByRole('table')
+
+    unmount()
+    expect(document.head.querySelector(ROBOTS_META)).toBeNull()
   })
 
   it('renders recruiter data once the fetch resolves', async () => {
