@@ -56,13 +56,13 @@ export default function FilterBar({
 
   // Use `searchInput` (not `filters.search`) so the Clear button reflects the
   // user's intent immediately instead of lagging the 200ms debounce.
+  // Date range filter is not ready to ship. To re-enable it alongside the month
+  // inputs in the JSX below, append `|| filters.monthFrom || filters.monthTo` to
+  // the expression here — as prose rather than commented-out code, because a
+  // commented fragment sitting outside the expression can't be uncommented
+  // verbatim without a parse error.
   const hasActiveFilters = Boolean(
-    searchInput ||
-      filters.company ||
-      filters.jobTitle,
-    // Date range filter is not ready to ship — re-enable with the month inputs
-    // below.
-    // || filters.monthFrom || filters.monthTo,
+    searchInput || filters.company || filters.jobTitle,
   );
 
   const handleClear = () => {
@@ -136,9 +136,10 @@ export default function FilterBar({
 
       {/* Date range filter — hidden until the feature is ready. The filter
           shape (EMPTY_FILTERS.monthFrom/monthTo) and the matching predicate in
-          DashboardPage are intentionally left in place, so re-enabling is just
-          uncommenting this block, the `hasActiveFilters` clause above, and the
-          two predicate lines in DashboardPage.matchesFilters. */}
+          DashboardPage are intentionally left in place, so re-enabling means:
+          uncomment this block, restore the `hasActiveFilters` clause above (see
+          the note there), and uncomment the two predicate lines in
+          DashboardPage.matchesFilters. */}
       {/*
       <div className="flex flex-wrap gap-3 items-end">
         <label className="flex flex-col text-sm text-gray-700 dark:text-gray-300">
