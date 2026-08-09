@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+// `fireEvent` is unused while the month range filter is commented out.
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import FilterBar from '../FilterBar'
 import { EMPTY_FILTERS } from '../../../lib/filters'
@@ -71,19 +72,27 @@ describe('FilterBar', () => {
     )
   })
 
-  it('emits month range changes', () => {
-    const { onFilterChange } = renderBar()
-    // A native <input type="month"> is a segmented control; character-by-
-    // character typing via userEvent is unreliable in jsdom (it can fire
-    // onChange with partial/empty values). Set the value directly to mirror a
-    // real month pick.
-    fireEvent.change(screen.getByLabelText('From month'), {
-      target: { value: '2026-01' },
-    })
-    expect(onFilterChange).toHaveBeenCalledWith(
-      expect.objectContaining({ monthFrom: '2026-01' }),
-    )
+  it('does not render the month range inputs while the feature is disabled', () => {
+    renderBar()
+    expect(screen.queryByLabelText('From month')).toBeNull()
+    expect(screen.queryByLabelText('To month')).toBeNull()
   })
+
+  // Re-enable with the month inputs in FilterBar (also restore the `fireEvent`
+  // import above).
+  // it('emits month range changes', () => {
+  //   const { onFilterChange } = renderBar()
+  //   // A native <input type="month"> is a segmented control; character-by-
+  //   // character typing via userEvent is unreliable in jsdom (it can fire
+  //   // onChange with partial/empty values). Set the value directly to mirror a
+  //   // real month pick.
+  //   fireEvent.change(screen.getByLabelText('From month'), {
+  //     target: { value: '2026-01' },
+  //   })
+  //   expect(onFilterChange).toHaveBeenCalledWith(
+  //     expect.objectContaining({ monthFrom: '2026-01' }),
+  //   )
+  // })
 
   it('hides the Clear Filters button when no filters are active', () => {
     renderBar()

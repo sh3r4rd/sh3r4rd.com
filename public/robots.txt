@@ -1,0 +1,10 @@
+# https://sh3r4rd.com/robots.txt
+# Vite copies public/ into dist/ verbatim and deploy.yml syncs all of dist/,
+# so this file ships automatically on push to main.
+
+User-agent: *
+Disallow: /dashboard
+
+# The recruiter dashboard is a personal, internal-facing view. DashboardPage
+# also injects <meta name="robots" content="noindex, nofollow"> at runtime for
+# crawlers that ignore this file.
