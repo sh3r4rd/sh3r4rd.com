@@ -18,6 +18,23 @@ Personal portfolio website (sh3r4rd.com) built with React, Tailwind CSS, and Vit
 - **Deploy (manual):** `make deploy bucket=<bucket-name>` (builds then syncs to S3)
 - **Preview production build:** `npm run preview`
 
+#### API base URLs (and the dev proxy)
+
+`src/lib/api.js` is the single source of truth for both backend origins — never hardcode them in a component:
+
+| Export | Env var | Default (prod) | Dev proxy prefix |
+| --- | --- | --- | --- |
+| `API_BASE` | `VITE_API_BASE_URL` | `https://dashboard-api.sh3r4rd.com` | `/dashboard-api` |
+| `REQUESTS_API_BASE` | `VITE_REQUESTS_API_BASE_URL` | `https://api.sh3r4rd.com` | `/requests-api` |
+
+`npm run dev` loads `.env.development`, which points both at the relative prefixes; the `server.proxy` entries in `vite.config.js` forward them to the real APIs server-side, so the browser sees same-origin requests and CORS never applies. Production builds and Vitest (mode `test`) don't load `.env.development`, so both use the absolute origins.
+
+To override either locally, use a git-ignored **`.env.development.local`** — **not** `.env.local`. Vite ranks a mode-specific file above a generic one, so `.env.development` beats `.env.local` and any value set there is silently ignored in dev. Both `.local` names are already covered by the `*.local` entry in `.gitignore`.
+
+Only the dashboard API actually *requires* this: it sends `Access-Control-Allow-Origin: https://sh3r4rd.com` (from `cors_allowed_origin`), so direct calls from `localhost:5173` are blocked. The requests API sends `Access-Control-Allow-Origin: *` and is proxied only for consistency.
+
+**Submitting the resume form locally POSTs to the real production `/requests` endpoint and creates a real request.** Point `VITE_REQUESTS_API_BASE_URL` at a stub to avoid that.
+
 ### Backend (Go Lambda)
 
 - **Build all Lambdas:** `make build-lambdas`
@@ -127,7 +144,7 @@ SES receives email → stores raw email in S3 → triggers email-parser Lambda �
 
 ### Backend API
 
-- Resume request form POSTs to `https://api.sh3r4rd.com/requests`
+- Resume request form POSTs to `${REQUESTS_API_BASE}/requests` (`https://api.sh3r4rd.com/requests` in production — see "API base URLs" above)
 - Payload fields: `firstName`, `lastName`, `email`, `phone`, `company`, `jobTitle`, `description`
 - Backend infrastructure is defined in `infra/recruiter-dashboard/`
 

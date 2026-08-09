@@ -4,6 +4,7 @@ import { CheckCircle2 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
 import PageLayout from "../components/layout/PageLayout";
+import { REQUESTS_API_BASE } from "../lib/api";
 
 // Single source of truth for validation rules shared by the form, the live
 // word counter, and the error messages.
@@ -120,7 +121,7 @@ export default function ResumeRequestPage() {
       description: form.description.value,
     };
 
-    fetch("https://api.sh3r4rd.com/requests", {
+    fetch(`${REQUESTS_API_BASE}/requests`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
