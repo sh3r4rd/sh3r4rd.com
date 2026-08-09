@@ -45,9 +45,14 @@ export default function NavMenu() {
             {label}
             {/* Superscripted via `relative -top-*` rather than `align-super`:
                 it lifts the pill visually without growing the line box, which
-                would otherwise throw off the h-14 bar's vertical centering. */}
+                would otherwise throw off the h-14 bar's vertical centering.
+                `aria-hidden` keeps the link's accessible name "Dashboard" —
+                without it a screen reader announces "Dashboard New, link". */}
             {badge && (
-              <span className="relative -top-1.5 ml-1 inline-flex items-center rounded-full bg-brand-gradient px-1.5 py-px text-[9px] font-semibold uppercase tracking-wider leading-none text-white">
+              <span
+                aria-hidden
+                className="relative -top-1.5 ml-1 inline-flex items-center rounded-full bg-brand-gradient px-1.5 py-px text-[9px] font-semibold uppercase tracking-wider leading-none text-white"
+              >
                 {badge}
               </span>
             )}
