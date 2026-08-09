@@ -59,9 +59,10 @@ export default function FilterBar({
   const hasActiveFilters = Boolean(
     searchInput ||
       filters.company ||
-      filters.jobTitle ||
-      filters.monthFrom ||
-      filters.monthTo,
+      filters.jobTitle,
+    // Date range filter is not ready to ship — re-enable with the month inputs
+    // below.
+    // || filters.monthFrom || filters.monthTo,
   );
 
   const handleClear = () => {
@@ -133,6 +134,12 @@ export default function FilterBar({
         )}
       </div>
 
+      {/* Date range filter — hidden until the feature is ready. The filter
+          shape (EMPTY_FILTERS.monthFrom/monthTo) and the matching predicate in
+          DashboardPage are intentionally left in place, so re-enabling is just
+          uncommenting this block, the `hasActiveFilters` clause above, and the
+          two predicate lines in DashboardPage.matchesFilters. */}
+      {/*
       <div className="flex flex-wrap gap-3 items-end">
         <label className="flex flex-col text-sm text-gray-700 dark:text-gray-300">
           <span className="mb-1">From</span>
@@ -159,6 +166,7 @@ export default function FilterBar({
           />
         </label>
       </div>
+      */}
     </section>
   );
 }

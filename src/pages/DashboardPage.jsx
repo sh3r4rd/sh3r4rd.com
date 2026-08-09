@@ -13,7 +13,7 @@ const STATS_URL = `${API_BASE}/stats`;
 const PAGE_SIZE = 10;
 
 function matchesFilters(item, filters) {
-  const { search, company, jobTitle, monthFrom, monthTo } = filters;
+  const { search, company, jobTitle } = filters;
 
   if (company && item.company !== company) return false;
   if (jobTitle && item.jobTitle !== jobTitle) return false;
@@ -24,13 +24,33 @@ function matchesFilters(item, filters) {
     if (!haystack.includes(needle)) return false;
   }
 
-  if (monthFrom && (item.month ?? "") < monthFrom) return false;
-  if (monthTo && (item.month ?? "") > monthTo) return false;
+  // Date range filter — hidden in FilterBar until the feature is ready.
+  // Re-enable alongside the month inputs there (also restore `monthFrom,
+  // monthTo` in the destructure above).
+  // if (monthFrom && (item.month ?? "") < monthFrom) return false;
+  // if (monthTo && (item.month ?? "") > monthTo) return false;
 
   return true;
 }
 
+// The site is a client-rendered SPA, so index.html's <head> is shared by every
+// route and there is no head-management library. Append the robots directive on
+// mount and remove it on unmount, otherwise it would leak onto pages that must
+// stay indexable. Pairs with the `Disallow: /dashboard` in public/robots.txt —
+// this covers crawlers that render JS but ignore robots.txt.
+function useNoIndex() {
+  useEffect(() => {
+    const meta = document.createElement("meta");
+    meta.name = "robots";
+    meta.content = "noindex, nofollow";
+    document.head.appendChild(meta);
+    return () => meta.remove();
+  }, []);
+}
+
 export default function DashboardPage() {
+  useNoIndex();
+
   const [data, setData] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -104,6 +124,22 @@ export default function DashboardPage() {
             />
             Refresh
           </button>
+        </div>
+
+        {/* Glass panel + gradient rail, matching the Card treatment in
+            components/ui/card.jsx, so the note reads as an aside rather than
+            as body copy competing with the heading. */}
+        <div className="relative overflow-hidden rounded-2xl border border-white/40 dark:border-white/10 bg-white/70 dark:bg-gray-900/50 backdrop-blur-xl shadow-sm">
+          <span
+            aria-hidden
+            className="absolute inset-y-0 left-0 w-1 bg-brand-gradient"
+          />
+          <p className="py-4 pl-5 pr-4 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+            I use this dashboard to keep track of recruiter engagement. I aim to
+            respond to every recruiter who reaches out — I&rsquo;m thankful for
+            the interest, and I remain curious and interested in hearing what
+            you&rsquo;re building.
+          </p>
         </div>
 
         {loading && !refreshing ? (
