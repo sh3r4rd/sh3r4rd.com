@@ -1,3 +1,10 @@
+## [1.7.2](https://github.com/sh3r4rd/sh3r4rd.com/compare/v1.7.1...v1.7.2) (2026-08-09)
+
+
+### Bug Fixes
+
+* **frontend:** proxy API calls in dev so /dashboard works on localhost ([#110](https://github.com/sh3r4rd/sh3r4rd.com/issues/110)) ([db26e34](https://github.com/sh3r4rd/sh3r4rd.com/commit/db26e3415d9acc433986f237ce463c78963ada24)), closes [#109](https://github.com/sh3r4rd/sh3r4rd.com/issues/109)
+
 ## [1.7.1](https://github.com/sh3r4rd/sh3r4rd.com/compare/v1.7.0...v1.7.1) (2026-08-08)
 
 
