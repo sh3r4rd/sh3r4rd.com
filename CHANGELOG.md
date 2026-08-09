@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/sh3r4rd/sh3r4rd.com/compare/v1.7.2...v1.8.0) (2026-08-09)
+
+
+### Features
+
+* **frontend:** hide /dashboard from crawlers and add Dashboard nav entry ([#112](https://github.com/sh3r4rd/sh3r4rd.com/issues/112)) ([c4ceada](https://github.com/sh3r4rd/sh3r4rd.com/commit/c4ceada976541e08d23b0d535ecc1240d53a983d)), closes [#111](https://github.com/sh3r4rd/sh3r4rd.com/issues/111)
+
 ## [1.7.2](https://github.com/sh3r4rd/sh3r4rd.com/compare/v1.7.1...v1.7.2) (2026-08-09)
 
 
