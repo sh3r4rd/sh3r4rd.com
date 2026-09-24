@@ -6,7 +6,7 @@ const PROFILE_IMG = "https://d241eitbp7g6mq.cloudfront.net/images/headshot.jpg";
 const specialties = ["Microservices", "System Design", "Event-Driven Architecture", "Agentic AI"];
 
 const proofStats = [
-  ["8+", "Years shipping backends"],
+  ["12+", "Years shipping software"],
   ["AWS", "SA-Associate certified"],
   ["Lead", "Engineer & mentor"],
 ];
