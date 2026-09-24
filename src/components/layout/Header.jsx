@@ -49,7 +49,7 @@ function SlimHeader() {
       <div className="flex-1">
         <h1 className="text-2xl font-extrabold tracking-tight">Sherard Bailey</h1>
         <p className="text-sm font-semibold text-teal-600 dark:text-teal-400">
-          Lead Software Engineer
+          Staff Software Engineer
         </p>
       </div>
       <SocialLinks />
@@ -76,7 +76,7 @@ function HeroHeader() {
 
         <div className="flex-1">
           <p className="text-xs font-semibold uppercase tracking-widest text-teal-600 dark:text-teal-400">
-            Lead Software Engineer
+            Staff Software Engineer
           </p>
           <h1 className="mt-2 text-5xl md:text-6xl font-extrabold tracking-tight text-gray-900 dark:text-white">
             Sherard Bailey
