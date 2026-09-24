@@ -752,6 +752,51 @@ func TestGetStats_Success(t *testing.T) {
 	}
 }
 
+func TestGetStats_ExcludesUnknownPlaceholders(t *testing.T) {
+	item := func(company, title string) map[string]types.AttributeValue {
+		return map[string]types.AttributeValue{
+			"company":   &types.AttributeValueMemberS{Value: company},
+			"job_title": &types.AttributeValueMemberS{Value: title},
+			"date_day":  &types.AttributeValueMemberS{Value: "2026-03-15"},
+		}
+	}
+	mock := &mockDynamoDB{
+		scanFn: func(ctx context.Context, params *dynamodb.ScanInput, optFns ...func(*dynamodb.Options)) (*dynamodb.ScanOutput, error) {
+			return &dynamodb.ScanOutput{
+				Items: []map[string]types.AttributeValue{
+					item("Unknown", "Unknown"),
+					item("unknown", "Unknown"),
+					item("Google", "unknown"),
+					item("Meta", "Senior Engineer"),
+				},
+			}, nil
+		},
+	}
+	h := newTestHandler(mock)
+
+	resp, _ := h.Handle(context.Background(), events.APIGatewayProxyRequest{
+		HTTPMethod: "GET",
+		Resource:   "/stats",
+	})
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200, got %d", resp.StatusCode)
+	}
+
+	var stats StatsResponse
+	if err := json.Unmarshal([]byte(resp.Body), &stats); err != nil {
+		t.Fatalf("JSON unmarshal error: %v", err)
+	}
+	if stats.TotalEmails != 4 {
+		t.Errorf("expected totalEmails 4, got %d", stats.TotalEmails)
+	}
+	if stats.UniqueCompanies != 2 {
+		t.Errorf("expected uniqueCompanies 2 (Google, Meta), got %d", stats.UniqueCompanies)
+	}
+	if len(stats.TopJobTitles) != 1 || stats.TopJobTitles["Senior Engineer"] != 1 {
+		t.Errorf("expected only {Senior Engineer: 1}, got %v", stats.TopJobTitles)
+	}
+}
+
 func TestGetStats_EmptyTable(t *testing.T) {
 	mock := &mockDynamoDB{
 		scanFn: func(ctx context.Context, params *dynamodb.ScanInput, optFns ...func(*dynamodb.Options)) (*dynamodb.ScanOutput, error) {
