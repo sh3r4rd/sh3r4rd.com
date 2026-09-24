@@ -41,6 +41,25 @@ describe('StatsCards', () => {
     expect(screen.getByText('Engineering Manager')).toBeInTheDocument()
   })
 
+  it('skips the "Unknown" placeholder and shows the next most frequent title', () => {
+    const stats = {
+      topJobTitles: {
+        Unknown: 20,
+        'Software Engineer': 5,
+        'Engineering Manager': 9,
+      },
+    }
+    render(<StatsCards stats={stats} />)
+    expect(screen.queryByText('Unknown')).toBeNull()
+    expect(screen.getByText('Engineering Manager')).toBeInTheDocument()
+  })
+
+  it('falls back to N/A when "Unknown" is the only job title', () => {
+    render(<StatsCards stats={{ topJobTitles: { Unknown: 3 } }} />)
+    expect(screen.queryByText('Unknown')).toBeNull()
+    expect(screen.getByText('N/A')).toBeInTheDocument()
+  })
+
   describe('This Month (time-dependent)', () => {
     let originalTz
     beforeEach(() => {

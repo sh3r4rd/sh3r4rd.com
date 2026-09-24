@@ -5,6 +5,9 @@ function pickTopJobTitle(topJobTitles) {
   let top = null;
   let topCount = 0;
   for (const [title, count] of Object.entries(topJobTitles)) {
+    // "Unknown" is the email-parser's placeholder for a failed extraction,
+    // not a real title — skip it so the next most frequent title wins.
+    if (title.trim().toLowerCase() === "unknown") continue;
     if (count > topCount) {
       top = title;
       topCount = count;

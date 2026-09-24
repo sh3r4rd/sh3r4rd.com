@@ -169,7 +169,7 @@ func (h *Handler) getStats(ctx context.Context) (events.APIGatewayProxyResponse,
 
 	for _, item := range items {
 		company := attributeValueString(item, "company", "")
-		if company != "" {
+		if company != "" && !isUnknown(company) {
 			companies[company] = struct{}{}
 		}
 
@@ -180,7 +180,7 @@ func (h *Handler) getStats(ctx context.Context) (events.APIGatewayProxyResponse,
 		}
 
 		jobTitle := attributeValueString(item, "job_title", "")
-		if jobTitle != "" {
+		if jobTitle != "" && !isUnknown(jobTitle) {
 			jobTitles[jobTitle]++
 		}
 	}
@@ -239,6 +239,12 @@ func parseCachedStats(item map[string]types.AttributeValue) (StatsResponse, bool
 		return StatsResponse{}, false
 	}
 	return stats, true
+}
+
+// isUnknown reports whether v is the email-parser's "Unknown" placeholder for a
+// field it couldn't extract. It isn't a real value, so stats must not count it.
+func isUnknown(v string) bool {
+	return strings.EqualFold(strings.TrimSpace(v), "Unknown")
 }
 
 // topN returns the n highest-count entries from a frequency map.
