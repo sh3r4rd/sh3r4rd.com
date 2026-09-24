@@ -1,3 +1,10 @@
+## [1.9.1](https://github.com/sh3r4rd/sh3r4rd.com/compare/v1.9.0...v1.9.1) (2026-09-24)
+
+
+### Bug Fixes
+
+* **dashboard:** exclude "Unknown" placeholder from dashboard stats ([#114](https://github.com/sh3r4rd/sh3r4rd.com/issues/114)) ([9b717ba](https://github.com/sh3r4rd/sh3r4rd.com/commit/9b717bab81ca95dfcd8c6c6322d707401db7c262))
+
 # [1.9.0](https://github.com/sh3r4rd/sh3r4rd.com/compare/v1.8.0...v1.9.0) (2026-09-24)
 
 
