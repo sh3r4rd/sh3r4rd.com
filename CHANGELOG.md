@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/sh3r4rd/sh3r4rd.com/compare/v1.8.0...v1.9.0) (2026-09-24)
+
+
+### Features
+
+* **frontend:** update title from Lead to Staff Software Engineer ([#113](https://github.com/sh3r4rd/sh3r4rd.com/issues/113)) ([ab45980](https://github.com/sh3r4rd/sh3r4rd.com/commit/ab4598095827713666551c0026f41dc4dadf8c94))
+
 # [1.8.0](https://github.com/sh3r4rd/sh3r4rd.com/compare/v1.7.2...v1.8.0) (2026-08-09)
 
 
