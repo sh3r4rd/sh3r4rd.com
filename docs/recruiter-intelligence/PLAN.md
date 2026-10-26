@@ -39,6 +39,8 @@ maps all 98 of them.
 
 ## Week 0: stop losing data (do this today, about 45 minutes)
 
+**Tracking:** epic #118 · task #131 (status lives in the issues; the bullets below are the specification).
+
 `modules/s3/main.tf:15-30` expires everything under `incoming/` after
 `s3_lifecycle_expiration_days` (default 30). Versioning is off, so expiry is permanent. The raw
 `.eml` is the **only** durable copy of each email body, so every day this waits, the oldest day
@@ -85,21 +87,23 @@ during the project either way.
 
 ## Week 1: data you keep, spend you see
 
+**Tracking:** epic #119 · tasks #132–#137, plus #98 (blocks #132) (status lives in the issues; the bullets below are the specification).
+
 **Exam focus:** D1 1.1.1, 1.1.3, 1.3.1 · D3 3.2.2 · D4 4.3.2 (cost anomaly)
 
 **Build (must)**
-- [ ] **Durable archive in the email-parser.** After a successful parse, write
+- **Durable archive in the email-parser.** After a successful parse, write
       `archive/clean/{messageId}.json`. It holds the cleaned body, parsed headers, `IsForwarded`
       (computed today and never persisted), the extraction result and the parser version.
       Encrypt with a new customer-managed **KMS key**. Use the same key for the `s3://…/evals/`
       prefix (D-06).
-- [ ] Add a lifecycle rule on `archive/` that transitions to **S3 Intelligent-Tiering** with no
+- Add a lifecycle rule on `archive/` that transitions to **S3 Intelligent-Tiering** with no
       expiry. Then set `s3_lifecycle_expiration_days` back to 30. `incoming/` is a landing zone
       again, and `archive/raw/` holds the originals.
-- [ ] **Backfill command** (`cmd/backfill` in email-parser). Re-run the existing `parser` package
+- **Backfill command** (`cmd/backfill` in email-parser). Re-run the existing `parser` package
       over every `archive/raw/*` and write `archive/clean/*`. No LLM calls; it is
       deterministic and re-runnable.
-- [ ] **Data-quality report** (`infra/recruiter-dashboard/evals/reports/data-quality.md`,
+- **Data-quality report** (`infra/recruiter-dashboard/evals/reports/data-quality.md`,
       aggregates only). It covers:
   - body count and token-length distribution
   - empty or near-empty bodies
@@ -108,16 +112,16 @@ during the project either way.
   - duplicates by `dedup_key`
   - the "Unknown" rate per field in DynamoDB
   - how often `confidence < 0.5`
-- [ ] **AWS Budgets** (alerts at 50/80/100%) and **Cost Anomaly Detection** for Bedrock, in a
+- **AWS Budgets** (alerts at 50/80/100%) and **Cost Anomaly Detection** for Bedrock, in a
       new `modules/budget`. Pick the monthly figure now (D-09).
-- [ ] Confirm the week-3 candidate models can be invoked in us-east-1. AWS retired the Model
+- Confirm the week-3 candidate models can be invoked in us-east-1. AWS retired the Model
       Access page in October 2025, and serverless models are now enabled automatically. Only
       Anthropic models still need a one-time use-case form.
 
 **Build (stretch)**
-- [ ] A one-time **Amazon Macie** sensitive-data discovery job over `archive/`, to see what
+- A one-time **Amazon Macie** sensitive-data discovery job over `archive/`, to see what
       it flags compared with Comprehend in week 4.
-- [ ] A **Well-Architected Tool** review using the Generative AI Lens. Keep the findings in
+- A **Well-Architected Tool** review using the Generative AI Lens. Keep the findings in
       `DECISIONS.md`.
 
 **Definition of done:** a new test email lands in `archive/clean/` within a minute. The backfill
@@ -148,12 +152,14 @@ parser role), an email-parser behaviour change.
 
 ## Week 2: evals first
 
+**Tracking:** epic #120 · tasks #138–#141 (status lives in the issues; the bullets below are the specification).
+
 **Exam focus:** D5 5.1.3, 5.1.4 · D1 1.3.3, 1.6.4 · D4 4.3.6
 
 Build the ruler before changing anything it will measure.
 
 **Build (must)**
-- [ ] **Extraction schema v2.** Keep the 7 existing fields and add the candidates that make the
+- **Extraction schema v2.** Keep the 7 existing fields and add the candidates that make the
       market insights interesting:
   - `seniority` (enum)
   - `work_model` (remote/hybrid/onsite/unknown)
@@ -165,11 +171,11 @@ Build the ruler before changing anything it will measure.
 
   Write the schema once as JSON Schema in `infra/recruiter-dashboard/evals/schemas/`. Week 3
   imports it.
-- [ ] **Real golden set:** hand-label 60–100 archived emails against schema v2. Keep them as CSV
+- **Real golden set:** hand-label 60–100 archived emails against schema v2. Keep them as CSV
       or JSONL in the **private bucket** (`s3://…/evals/golden/extraction/`), never in git
       (D-06).
       Stratify the sample: direct, forwarded, HTML-only, agency, non-English, not-a-recruiter.
-- [ ] **Synthetic set (committed):** about 150 fictional emails generated with a Bedrock model
+- **Synthetic set (committed):** about 150 fictional emails generated with a Bedrock model
       from templates covering the edge cases the real set is thin on:
   - several roles in one email
   - no job title
@@ -180,17 +186,17 @@ Build the ruler before changing anything it will measure.
 
   Use fictional names, `example.com` addresses and 555 numbers. Review every one before
   committing.
-- [ ] **Eval harness** (`infra/recruiter-dashboard/evals/`, Python):
+- **Eval harness** (`infra/recruiter-dashboard/evals/`, Python):
   - **Scorers:** normalized exact match for enums, fuzzy match for titles, set-F1 for
     `tech_stack`, tolerance for compensation, and schema-valid rate.
   - **Calibration:** does self-reported `confidence` predict correctness? Report a reliability
     table and the expected calibration error.
   - **Output:** a JSON report plus a markdown summary, with per-field and per-stratum
     breakdowns.
-- [ ] **A real-code entry point:** `cmd/extract` in email-parser. It reads an `.eml` and runs the
+- **A real-code entry point:** `cmd/extract` in email-parser. It reads an `.eml` and runs the
       **actual** `parser` and `extractor` packages, so the harness measures production code, not
       a copy of the prompt.
-- [ ] **Baseline:** run current `gpt-5-nano` over both sets. Commit only the aggregate numbers.
+- **Baseline:** run current `gpt-5-nano` over both sets. Commit only the aggregate numbers.
 
 **Definition of done:** `make eval-extraction` (a new target) prints the per-field table for
 either dataset. The baseline is recorded in `JOURNAL.md`.
