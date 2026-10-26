@@ -377,8 +377,9 @@ set_item_fields() { # project-id: fill Estimate, Exam skills, Kind and Status (T
     sk="$(jq -r '.skills // empty' <<<"$meta")"
     kind="$(jq -r '.kind // empty' <<<"$meta")"
     if [[ -n "$est" ]]; then
-      gql -f query='mutation($p:ID!,$i:ID!,$f:ID!,$v:Float!){updateProjectV2ItemFieldValue(input:{projectId:$p,itemId:$i,fieldId:$f,value:{number:$v}}){projectV2Item{id}}}' \
-      -f p="$proj_id" -f i="$item" -f f="$fid_est" -F v="$est" >/dev/null
+      # gh -F would send 1.5 as a string; build the request so the estimate is a JSON number.
+      gql --input <(jq -n --arg p "$proj_id" --arg i "$item" --arg f "$fid_est" --argjson v "$est" \
+        '{query: "mutation($p:ID!,$i:ID!,$f:ID!,$v:Float!){updateProjectV2ItemFieldValue(input:{projectId:$p,itemId:$i,fieldId:$f,value:{number:$v}}){projectV2Item{id}}}", variables: {p: $p, i: $i, f: $f, v: $v}}') >/dev/null
     fi
     if [[ -n "$sk" ]]; then
       gql -f query='mutation($p:ID!,$i:ID!,$f:ID!,$v:String!){updateProjectV2ItemFieldValue(input:{projectId:$p,itemId:$i,fieldId:$f,value:{text:$v}}){projectV2Item{id}}}' \

@@ -1,8 +1,9 @@
 # Tracking: GitHub Project and issues
 
-How the 12-week plan in [`PLAN.md`](PLAN.md) is tracked on GitHub. **Status: approved
-25 Oct 2026. The manifest, issue bodies and script exist and have been dry-run; nothing has been
-created on GitHub yet.** See § Next steps.
+How the 12-week plan in [`PLAN.md`](PLAN.md) is tracked on GitHub. **Status: applied 25 Oct 2026.**
+Initiative #117, weekly epics #118–#130, wave-1 tasks #131–#141, #59 and #98 absorbed, and the
+[Project](https://github.com/users/sh3r4rd/projects/2). The web-UI steps in § Next steps item 5
+remain.
 
 ## Decisions (approved 25 Oct 2026)
 
@@ -171,8 +172,9 @@ issue after.
   manual steps for the web UI.
 
 **Keeping one source of truth:** `PLAN.md` stays the specification, and issues become the source
-of truth for **status**. When a week's task issues exist, replace each `- [ ]` in that week of
-`PLAN.md` with a link to its issue.
+of truth for **status**. When a week's task issues exist, add a `**Tracking:**` line under that
+week's heading in `PLAN.md` naming its epic and tasks, and turn its `- [ ]` checkboxes into plain
+bullets. They are the specification, and issues don't map one-to-one onto them.
 
 ## 8. Existing issues
 
