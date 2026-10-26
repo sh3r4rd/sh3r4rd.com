@@ -1,0 +1,665 @@
+{
+  "repo": "sh3r4rd/sh3r4rd.com",
+  "labels": [
+    {
+      "name": "recruiter-intelligence",
+      "color": "5319E7",
+      "description": "Recruiter Intelligence GenAI project (docs/recruiter-intelligence)"
+    },
+    {
+      "name": "epic",
+      "color": "3E4B9E",
+      "description": "Epic: initiative or weekly epic with sub-issues"
+    },
+    {
+      "name": "aip:d1",
+      "color": "C5DEF5",
+      "description": "AIP-C01 D1: FM integration, data, compliance"
+    },
+    {
+      "name": "aip:d2",
+      "color": "C5DEF5",
+      "description": "AIP-C01 D2: implementation and integration"
+    },
+    {
+      "name": "aip:d3",
+      "color": "C5DEF5",
+      "description": "AIP-C01 D3: safety, security, governance"
+    },
+    {
+      "name": "aip:d4",
+      "color": "C5DEF5",
+      "description": "AIP-C01 D4: operational efficiency"
+    },
+    {
+      "name": "aip:d5",
+      "color": "C5DEF5",
+      "description": "AIP-C01 D5: testing, validation, troubleshooting"
+    },
+    {
+      "name": "eval",
+      "color": "BFD4F2",
+      "description": "Eval harness, datasets, scorecards"
+    },
+    {
+      "name": "security",
+      "color": "B60205",
+      "description": "Guardrails, IAM, PII and other security work"
+    },
+    {
+      "name": "stretch",
+      "color": "EDEDED",
+      "description": "Optional; can be cut"
+    },
+    {
+      "name": "needs-approval",
+      "color": "FBCA04",
+      "description": "Touches an AGENTS.md ask-first item; remove once approved"
+    }
+  ],
+  "milestones": [
+    {
+      "title": "RI-W00",
+      "due_on": "2026-11-01T12:00:00Z",
+      "description": "Recruiter Intelligence week 0: Stop losing data. Spec: docs/recruiter-intelligence/PLAN.md"
+    },
+    {
+      "title": "RI-W01",
+      "due_on": "2026-11-08T12:00:00Z",
+      "description": "Recruiter Intelligence week 1: Data you keep, spend you see. Spec: docs/recruiter-intelligence/PLAN.md"
+    },
+    {
+      "title": "RI-W02",
+      "due_on": "2026-11-15T12:00:00Z",
+      "description": "Recruiter Intelligence week 2: Evals first. Spec: docs/recruiter-intelligence/PLAN.md"
+    },
+    {
+      "title": "RI-W03",
+      "due_on": "2026-11-22T12:00:00Z",
+      "description": "Recruiter Intelligence week 3: Extraction v2 on Bedrock. Spec: docs/recruiter-intelligence/PLAN.md"
+    },
+    {
+      "title": "RI-W04",
+      "due_on": "2026-11-29T12:00:00Z",
+      "description": "Recruiter Intelligence week 4: RAG ingestion. Spec: docs/recruiter-intelligence/PLAN.md"
+    },
+    {
+      "title": "RI-W05",
+      "due_on": "2026-12-06T12:00:00Z",
+      "description": "Recruiter Intelligence week 5: Retrieval quality. Spec: docs/recruiter-intelligence/PLAN.md"
+    },
+    {
+      "title": "RI-W06",
+      "due_on": "2026-12-13T12:00:00Z",
+      "description": "Recruiter Intelligence week 6: Agent v1. Spec: docs/recruiter-intelligence/PLAN.md"
+    },
+    {
+      "title": "RI-W07",
+      "due_on": "2026-12-20T12:00:00Z",
+      "description": "Recruiter Intelligence week 7: Private assistant live. Spec: docs/recruiter-intelligence/PLAN.md"
+    },
+    {
+      "title": "RI-W08",
+      "due_on": "2026-12-27T12:00:00Z",
+      "description": "Recruiter Intelligence week 8: Guardrails and security. Spec: docs/recruiter-intelligence/PLAN.md"
+    },
+    {
+      "title": "RI-W09",
+      "due_on": "2027-01-03T12:00:00Z",
+      "description": "Recruiter Intelligence week 9: Public Job-Fit Analyzer. Spec: docs/recruiter-intelligence/PLAN.md"
+    },
+    {
+      "title": "RI-W10",
+      "due_on": "2027-01-10T12:00:00Z",
+      "description": "Recruiter Intelligence week 10: Operate it. Spec: docs/recruiter-intelligence/PLAN.md"
+    },
+    {
+      "title": "RI-W11",
+      "due_on": "2027-01-17T12:00:00Z",
+      "description": "Recruiter Intelligence week 11: Continuous evaluation. Spec: docs/recruiter-intelligence/PLAN.md"
+    },
+    {
+      "title": "RI-W12",
+      "due_on": "2027-01-24T12:00:00Z",
+      "description": "Recruiter Intelligence week 12: Ship and sit. Spec: docs/recruiter-intelligence/PLAN.md"
+    }
+  ],
+  "issues": [
+    {
+      "key": "RI",
+      "title": "Recruiter Intelligence: 12-week GenAI project (AIP-C01)",
+      "milestone": null,
+      "labels": [
+        "recruiter-intelligence",
+        "epic",
+        "recruiter-dashboard"
+      ],
+      "parent": null,
+      "blocked_by": [],
+      "body_file": "issues/initiative.md",
+      "estimate": null,
+      "skills": "",
+      "kind": "Docs",
+      "number": null
+    },
+    {
+      "key": "EPIC-W00",
+      "title": "RI Week 0: Stop losing data",
+      "milestone": "RI-W00",
+      "labels": [
+        "recruiter-intelligence",
+        "epic",
+        "aip:d3"
+      ],
+      "parent": "RI",
+      "blocked_by": [],
+      "body_file": "issues/epic-w00.md",
+      "estimate": null,
+      "skills": "",
+      "kind": null,
+      "number": null
+    },
+    {
+      "key": "EPIC-W01",
+      "title": "RI Week 1: Data you keep, spend you see",
+      "milestone": "RI-W01",
+      "labels": [
+        "recruiter-intelligence",
+        "epic",
+        "aip:d1",
+        "aip:d3",
+        "aip:d4"
+      ],
+      "parent": "RI",
+      "blocked_by": [],
+      "body_file": "issues/epic-w01.md",
+      "estimate": null,
+      "skills": "",
+      "kind": null,
+      "number": null
+    },
+    {
+      "key": "EPIC-W02",
+      "title": "RI Week 2: Evals first",
+      "milestone": "RI-W02",
+      "labels": [
+        "recruiter-intelligence",
+        "epic",
+        "aip:d1",
+        "aip:d4",
+        "aip:d5"
+      ],
+      "parent": "RI",
+      "blocked_by": [],
+      "body_file": "issues/epic-w02.md",
+      "estimate": null,
+      "skills": "",
+      "kind": null,
+      "number": null
+    },
+    {
+      "key": "EPIC-W03",
+      "title": "RI Week 3: Extraction v2 on Bedrock",
+      "milestone": "RI-W03",
+      "labels": [
+        "recruiter-intelligence",
+        "epic",
+        "aip:d1",
+        "aip:d2",
+        "aip:d3",
+        "aip:d4",
+        "aip:d5"
+      ],
+      "parent": "RI",
+      "blocked_by": [],
+      "body_file": "issues/epic-w03.md",
+      "estimate": null,
+      "skills": "",
+      "kind": null,
+      "number": null
+    },
+    {
+      "key": "EPIC-W04",
+      "title": "RI Week 4: RAG ingestion",
+      "milestone": "RI-W04",
+      "labels": [
+        "recruiter-intelligence",
+        "epic",
+        "aip:d1",
+        "aip:d3"
+      ],
+      "parent": "RI",
+      "blocked_by": [],
+      "body_file": "issues/epic-w04.md",
+      "estimate": null,
+      "skills": "",
+      "kind": null,
+      "number": null
+    },
+    {
+      "key": "EPIC-W05",
+      "title": "RI Week 5: Retrieval quality",
+      "milestone": "RI-W05",
+      "labels": [
+        "recruiter-intelligence",
+        "epic",
+        "aip:d1",
+        "aip:d4",
+        "aip:d5"
+      ],
+      "parent": "RI",
+      "blocked_by": [],
+      "body_file": "issues/epic-w05.md",
+      "estimate": null,
+      "skills": "",
+      "kind": null,
+      "number": null
+    },
+    {
+      "key": "EPIC-W06",
+      "title": "RI Week 6: Agent v1",
+      "milestone": "RI-W06",
+      "labels": [
+        "recruiter-intelligence",
+        "epic",
+        "aip:d2",
+        "aip:d3",
+        "aip:d5"
+      ],
+      "parent": "RI",
+      "blocked_by": [],
+      "body_file": "issues/epic-w06.md",
+      "estimate": null,
+      "skills": "",
+      "kind": null,
+      "number": null
+    },
+    {
+      "key": "EPIC-W07",
+      "title": "RI Week 7: Private assistant live",
+      "milestone": "RI-W07",
+      "labels": [
+        "recruiter-intelligence",
+        "epic",
+        "aip:d1",
+        "aip:d2"
+      ],
+      "parent": "RI",
+      "blocked_by": [],
+      "body_file": "issues/epic-w07.md",
+      "estimate": null,
+      "skills": "",
+      "kind": null,
+      "number": null
+    },
+    {
+      "key": "EPIC-W08",
+      "title": "RI Week 8: Guardrails and security",
+      "milestone": "RI-W08",
+      "labels": [
+        "recruiter-intelligence",
+        "epic",
+        "aip:d3"
+      ],
+      "parent": "RI",
+      "blocked_by": [],
+      "body_file": "issues/epic-w08.md",
+      "estimate": null,
+      "skills": "",
+      "kind": null,
+      "number": null
+    },
+    {
+      "key": "EPIC-W09",
+      "title": "RI Week 9: Public Job-Fit Analyzer",
+      "milestone": "RI-W09",
+      "labels": [
+        "recruiter-intelligence",
+        "epic",
+        "aip:d1",
+        "aip:d2",
+        "aip:d3",
+        "aip:d4",
+        "aip:d5"
+      ],
+      "parent": "RI",
+      "blocked_by": [],
+      "body_file": "issues/epic-w09.md",
+      "estimate": null,
+      "skills": "",
+      "kind": null,
+      "number": null
+    },
+    {
+      "key": "EPIC-W10",
+      "title": "RI Week 10: Operate it",
+      "milestone": "RI-W10",
+      "labels": [
+        "recruiter-intelligence",
+        "epic",
+        "aip:d2",
+        "aip:d4",
+        "aip:d5"
+      ],
+      "parent": "RI",
+      "blocked_by": [],
+      "body_file": "issues/epic-w10.md",
+      "estimate": null,
+      "skills": "",
+      "kind": null,
+      "number": null
+    },
+    {
+      "key": "EPIC-W11",
+      "title": "RI Week 11: Continuous evaluation",
+      "milestone": "RI-W11",
+      "labels": [
+        "recruiter-intelligence",
+        "epic",
+        "aip:d1",
+        "aip:d2",
+        "aip:d3",
+        "aip:d5"
+      ],
+      "parent": "RI",
+      "blocked_by": [],
+      "body_file": "issues/epic-w11.md",
+      "estimate": null,
+      "skills": "",
+      "kind": null,
+      "number": null
+    },
+    {
+      "key": "EPIC-W12",
+      "title": "RI Week 12: Ship and sit",
+      "milestone": "RI-W12",
+      "labels": [
+        "recruiter-intelligence",
+        "epic"
+      ],
+      "parent": "RI",
+      "blocked_by": [],
+      "body_file": "issues/epic-w12.md",
+      "estimate": null,
+      "skills": "",
+      "kind": null,
+      "number": null
+    },
+    {
+      "key": "W00-1",
+      "title": "ops: preserve raw emails before the 30-day expiry and record the inventory",
+      "milestone": "RI-W00",
+      "labels": [
+        "recruiter-intelligence",
+        "infrastructure",
+        "terraform",
+        "security",
+        "aip:d3",
+        "needs-approval"
+      ],
+      "parent": "EPIC-W00",
+      "blocked_by": [],
+      "body_file": "issues/W00-1.md",
+      "estimate": 1,
+      "skills": "3.2.2",
+      "kind": "Ops",
+      "number": null
+    },
+    {
+      "key": "W01-1",
+      "title": "feat(email-parser): durable archive/clean with KMS, Intelligent-Tiering, and incoming/ back to 30 days",
+      "milestone": "RI-W01",
+      "labels": [
+        "recruiter-intelligence",
+        "backend",
+        "lambda",
+        "infrastructure",
+        "terraform",
+        "security",
+        "aip:d1",
+        "aip:d3",
+        "needs-approval"
+      ],
+      "parent": "EPIC-W01",
+      "blocked_by": [
+        "#98"
+      ],
+      "body_file": "issues/W01-1.md",
+      "estimate": 3,
+      "skills": "1.3.1, 3.2.2",
+      "kind": "Build",
+      "number": null
+    },
+    {
+      "key": "W01-2",
+      "title": "feat(email-parser): backfill command that re-parses archive/raw into archive/clean",
+      "milestone": "RI-W01",
+      "labels": [
+        "recruiter-intelligence",
+        "backend",
+        "aip:d1"
+      ],
+      "parent": "EPIC-W01",
+      "blocked_by": [
+        "W01-1"
+      ],
+      "body_file": "issues/W01-2.md",
+      "estimate": 1.5,
+      "skills": "1.3.1",
+      "kind": "Build",
+      "number": null
+    },
+    {
+      "key": "W01-3",
+      "title": "feat(evals): data-quality report over the archive (aggregates only)",
+      "milestone": "RI-W01",
+      "labels": [
+        "recruiter-intelligence",
+        "eval",
+        "aip:d1",
+        "needs-approval"
+      ],
+      "parent": "EPIC-W01",
+      "blocked_by": [
+        "W01-2"
+      ],
+      "body_file": "issues/W01-3.md",
+      "estimate": 1.5,
+      "skills": "1.3.1",
+      "kind": "Eval",
+      "number": null
+    },
+    {
+      "key": "W01-4",
+      "title": "feat(infra): AWS Budgets and Cost Anomaly Detection; confirm week-3 models are invocable",
+      "milestone": "RI-W01",
+      "labels": [
+        "recruiter-intelligence",
+        "infrastructure",
+        "terraform",
+        "aip:d4",
+        "needs-approval"
+      ],
+      "parent": "EPIC-W01",
+      "blocked_by": [],
+      "body_file": "issues/W01-4.md",
+      "estimate": 1,
+      "skills": "4.3.2",
+      "kind": "Ops",
+      "number": null
+    },
+    {
+      "key": "W01-5",
+      "title": "chore: one-time Macie sensitive-data discovery over the archive",
+      "milestone": "RI-W01",
+      "labels": [
+        "recruiter-intelligence",
+        "security",
+        "aip:d3",
+        "stretch"
+      ],
+      "parent": "EPIC-W01",
+      "blocked_by": [],
+      "body_file": "issues/W01-5.md",
+      "estimate": 1,
+      "skills": "3.2.2",
+      "kind": "Ops",
+      "number": null
+    },
+    {
+      "key": "W01-6",
+      "title": "docs: Well-Architected Generative AI Lens review",
+      "milestone": "RI-W01",
+      "labels": [
+        "recruiter-intelligence",
+        "documentation",
+        "aip:d1",
+        "stretch"
+      ],
+      "parent": "EPIC-W01",
+      "blocked_by": [],
+      "body_file": "issues/W01-6.md",
+      "estimate": 1,
+      "skills": "1.1.3",
+      "kind": "Docs",
+      "number": null
+    },
+    {
+      "key": "W02-1",
+      "title": "feat(evals): extraction schema v2 and the committed synthetic dataset",
+      "milestone": "RI-W02",
+      "labels": [
+        "recruiter-intelligence",
+        "eval",
+        "aip:d1",
+        "aip:d5"
+      ],
+      "parent": "EPIC-W02",
+      "blocked_by": [],
+      "body_file": "issues/W02-1.md",
+      "estimate": 2,
+      "skills": "1.3.3, 5.1.4",
+      "kind": "Eval",
+      "number": null
+    },
+    {
+      "key": "W02-2",
+      "title": "feat(evals): eval harness (scorers, calibration, reports) and make eval-extraction",
+      "milestone": "RI-W02",
+      "labels": [
+        "recruiter-intelligence",
+        "eval",
+        "testing",
+        "aip:d5",
+        "needs-approval"
+      ],
+      "parent": "EPIC-W02",
+      "blocked_by": [
+        "W02-1"
+      ],
+      "body_file": "issues/W02-2.md",
+      "estimate": 2.5,
+      "skills": "5.1.4, 4.3.6",
+      "kind": "Eval",
+      "number": null
+    },
+    {
+      "key": "W02-3",
+      "title": "feat(email-parser): cmd/extract, which runs the real parser and extractor over an .eml",
+      "milestone": "RI-W02",
+      "labels": [
+        "recruiter-intelligence",
+        "backend",
+        "aip:d5"
+      ],
+      "parent": "EPIC-W02",
+      "blocked_by": [],
+      "body_file": "issues/W02-3.md",
+      "estimate": 1,
+      "skills": "5.1.4",
+      "kind": "Build",
+      "number": null
+    },
+    {
+      "key": "W02-4",
+      "title": "chore(evals): private real golden set and the recorded OpenAI baseline",
+      "milestone": "RI-W02",
+      "labels": [
+        "recruiter-intelligence",
+        "eval",
+        "aip:d5"
+      ],
+      "parent": "EPIC-W02",
+      "blocked_by": [
+        "W02-2",
+        "W02-3"
+      ],
+      "body_file": "issues/W02-4.md",
+      "estimate": 1.5,
+      "skills": "5.1.3, 1.6.4",
+      "kind": "Eval",
+      "number": null
+    }
+  ],
+  "existing": [
+    {
+      "number": 59,
+      "parent": "EPIC-W10",
+      "milestone": "RI-W10",
+      "add_labels": [
+        "recruiter-intelligence",
+        "aip:d4",
+        "needs-approval",
+        "backend",
+        "lambda"
+      ],
+      "replace_first_line": "**Parent**: {{ref:EPIC-W10}} (RI Week 10: Operate it)",
+      "append_file": "issues/existing-59-append.md",
+      "estimate": 1.5,
+      "skills": "4.3.1, 4.3.2",
+      "kind": "Build"
+    },
+    {
+      "number": 98,
+      "parent": "EPIC-W01",
+      "milestone": "RI-W01",
+      "add_labels": [
+        "recruiter-intelligence",
+        "infrastructure",
+        "terraform",
+        "security",
+        "aip:d3"
+      ],
+      "replace_first_line": null,
+      "append_file": null,
+      "estimate": 1,
+      "skills": "3.2.2",
+      "kind": "Ops"
+    }
+  ],
+  "project": {
+    "title": "Recruiter Intelligence",
+    "number": null,
+    "public": true,
+    "fields": [
+      {
+        "name": "Estimate (h)",
+        "type": "NUMBER"
+      },
+      {
+        "name": "Exam skills",
+        "type": "TEXT"
+      },
+      {
+        "name": "Kind",
+        "type": "SINGLE_SELECT",
+        "options": [
+          "Build",
+          "Eval",
+          "Ops",
+          "Docs"
+        ]
+      }
+    ]
+  }
+}

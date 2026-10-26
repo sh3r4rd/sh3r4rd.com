@@ -1,7 +1,8 @@
 # Tracking: GitHub Project and issues
 
 How the 12-week plan in [`PLAN.md`](PLAN.md) is tracked on GitHub. **Status: approved
-25 Oct 2026. Nothing has been created on GitHub yet.** See § Next steps.
+25 Oct 2026. The manifest, issue bodies and script exist and have been dry-run; nothing has been
+created on GitHub yet.** See § Next steps.
 
 ## Decisions (approved 25 Oct 2026)
 
@@ -137,9 +138,18 @@ This follows #59's Problem / Solution / Acceptance Criteria shape. The form appl
 
 **Manifest:** `docs/recruiter-intelligence/issues.json` is version-controlled, with one entry
 per issue: key, title, milestone, labels, parent key, blocked-by, estimate, exam skills, kind and
-body. JSON keeps the script free of dependencies.
+`body_file`. It also lists the labels, the milestones, the edits to existing issues (`existing`)
+and the Project's fields. JSON keeps the script free of dependencies.
 
-**Script:** `scripts/ri-issues.sh` (bash + `gh` + `jq`).
+**Bodies:** one markdown file per issue in `docs/recruiter-intelligence/issues/`.
+`{{ref:KEY}}` placeholders become issue numbers at creation. The 13 epic bodies were generated
+once from `PLAN.md` (exam focus, definition of done, approval gates, study checklist, exam lens),
+so **edit an epic's body file if `PLAN.md` changes before that epic exists**, and edit the live
+issue after.
+
+**Script:** `scripts/ri-issues.sh` (bash 3.2-compatible, because that is what macOS ships;
+`gh` + `jq`). Its phases are `labels`, `milestones`, `issues`, `links`, `existing` and
+`project`. Use `--phase <name>` to run one.
 - `--dry-run` is the **default** and prints every action.
 - `--apply` performs them.
 - It is **idempotent**: labels and milestones are matched by name and issues by exact title, so
@@ -148,8 +158,17 @@ body. JSON keeps the script free of dependencies.
   references resolve.
 - Sub-issues go through `POST /repos/{owner}/{repo}/issues/{number}/sub_issues` with the child's
   numeric issue **id**, not its number.
-- Blocked-by uses GitHub's issue-dependency relationship if the API offers it at build time;
-  otherwise a `Blocked by #N` line in the body. Check which, then record it here.
+- Moving an issue that already has a parent (#59 is a native sub-issue of the closed #17)
+  uses that endpoint's `replace_parent=true`.
+- Blocked-by uses GitHub's issue-dependency API
+  (`POST /repos/{owner}/{repo}/issues/{number}/dependencies/blocked_by` with the blocker's
+  numeric `issue_id`). Verified available on 25 Oct 2026. Bodies also carry a
+  `**Blocked by:**` line for readers.
+- **The Project is created through GraphQL** (`createProjectV2` with `repositoryId`,
+  `createProjectV2Field`, `addProjectV2ItemById`, `updateProjectV2ItemFieldValue`). The
+  `gh project` subcommands also demand `read:org`, which the token doesn't have.
+- **Views, extra Status options and built-in workflows have no API.** The script prints them as
+  manual steps for the web UI.
 
 **Keeping one source of truth:** `PLAN.md` stays the specification, and issues become the source
 of truth for **status**. When a week's task issues exist, replace each `- [ ]` in that week of
@@ -202,20 +221,14 @@ the study checklist and exam lens, and a summary of its approval gates.
 2. **Write the issue template, `issues.json` and `scripts/ri-issues.sh`** in the same PR or a
    follow-up.
 3. **Show the dry run** and wait for approval. Nothing is created on GitHub until then.
-4. **Run `--apply`:** labels → milestones → the initiative issue → epics → wave-1 tasks →
-   sub-issue links → dependencies → attach #59 and #98.
-5. **Create the Project** (needs the `project` token scope; see the blocker below), its fields,
-   views and workflows. Then add the existing issues, since auto-add only catches new and updated
-   ones.
+4. **Run `scripts/ri-issues.sh --apply`:** labels → milestones → the initiative issue →
+   epics → wave-1 tasks → sub-issue links → dependencies → #59 and #98 → the Project, its
+   fields and items. Then commit the issue numbers it wrote into `issues.json`.
+5. **Finish the Project in the web UI:** the views, the two extra Status options and the
+   built-in workflows the script lists.
 6. **Replace week 0–2 checkboxes in `PLAN.md`** with links to their issues.
 
-### Blocker: the token has no `project` scope
+### Token
 
-`gh` authenticates through the `GITHUB_TOKEN` environment variable. Its scopes are `repo,
-workflow, read:org, read:discussion, write:packages`, which is enough for issues, labels and
-milestones but **not Projects**. `gh auth refresh` can't change an environment-supplied token. So
-either:
-- create a classic PAT with `repo` + `project` and export it for this work, or
-- `unset GITHUB_TOKEN`, then run `gh auth login -s project`.
-
-Steps 1–4 don't need it. Step 5 does.
+Resolved 25 Oct 2026: `GITHUB_TOKEN` now carries `repo` and `project`, which the script needs.
+It lacks `read:org`, so the `gh project` CLI subcommands fail; the script doesn't use them.
