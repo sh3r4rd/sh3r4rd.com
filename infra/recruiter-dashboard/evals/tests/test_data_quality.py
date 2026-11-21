@@ -148,7 +148,8 @@ def test_extractions(dataset):
     assert "| `company` | 33.3% | 0.0% | 33.3% |" in report
     assert "| `phone` | 33.3% | 16.7% | 50.0% |" in report
     assert "Rows where every field is `Unknown` or empty: 2 (33.3%)." in report
-    assert "**Confidence < 0.5: 3 of 6 rows (50.0%).**" in report
+    assert "**Confidence < 0.5: 3 of 6 rows with a confidence (50.0%).**" in report
+    assert "Rows with no numeric confidence: 0." in report
     assert "| 0 | 2 | 33.3% |" in report
     assert "| (0, 0.5) | 1 | 16.7% |" in report
 
@@ -174,6 +175,41 @@ def test_percentile_nearest_rank():
     assert dq.percentile(values, 95) == 10
     assert dq.percentile(values, 10) == 1
     assert dq.percentile([], 50) == 0
+    # 0.1 * 30 is 3.0000000000000004 in floating point; the 3rd value is right.
+    thirty = list(range(1, 31))
+    assert dq.percentile(thirty, 10) == 3
+    assert dq.percentile(thirty, 90) == 27
+
+
+def test_whitespace_body_is_empty_even_if_the_tokenizer_counts_it(dataset):
+    records, rows = dataset
+    counts_whitespace = lambda text: max(1, len(text.split()))  # like tiktoken: never 0
+    report = dq.build_report(records, rows, counts_whitespace, fake_language)
+    assert "| 0 | 1 | 20.0% |" in report
+    assert "| Empty bodies (whitespace only) | 1 | 20.0% |" in report
+
+
+def test_missing_confidence_is_not_counted_as_low(dataset):
+    records, rows = dataset
+    rows = rows + [dq.Row(id="msg-0099", fields=rows[0].fields, confidence=None, dedup_key="k99")]
+    report = render(records, rows)
+    assert "**Confidence < 0.5: 3 of 6 rows with a confidence (50.0%).**" in report
+    assert "Rows with no numeric confidence: 1." in report
+
+
+def test_unexpected_record_values_are_not_printed(dataset):
+    records, rows = dataset
+    odd = dict(records[0], extraction_source="Jane Doe <jane.doe@example.com>", schema_version="x; drop")
+    report = render([odd] + records[1:], rows)
+    assert "Jane" not in report and "drop" not in report
+    assert "`other` 1" in report
+    assert "schema other / parser 1: 1" in report
+
+
+def test_load_clean_records_from_dir_rejects_non_records(tmp_path):
+    (tmp_path / "manifest.json").write_text('{"files": 3}', encoding="utf-8")
+    with pytest.raises(ValueError, match="manifest.json"):
+        dq.load_clean_records_from_dir(tmp_path)
 
 
 def test_load_clean_records_from_dir(tmp_path, dataset):

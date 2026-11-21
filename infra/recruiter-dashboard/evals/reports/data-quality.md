@@ -72,7 +72,8 @@ Characters per token across all bodies: **4.28**. Week 3's `Truncate` cuts by ru
 
 Rows where every field is `Unknown` or empty: 0 (0.0%).
 
-**Confidence < 0.5: 0 of 92 rows (0.0%).**
+**Confidence < 0.5: 0 of 92 rows with a confidence (0.0%).**
+Rows with no numeric confidence: 0.
 
 | Confidence | Rows | Share |
 |---|---|---|

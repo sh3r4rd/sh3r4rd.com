@@ -19,7 +19,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import math
 import sys
 from collections import Counter
 from collections.abc import Callable, Iterable
@@ -60,7 +59,7 @@ class Row:
 
     id: str
     fields: dict[str, str]
-    confidence: float
+    confidence: float | None  # None when the attribute is missing or not a number
     dedup_key: str
 
 
@@ -71,7 +70,13 @@ class Row:
 
 def load_clean_records_from_dir(path: Path) -> list[dict]:
     """Loads every {id}.json record in a directory (cmd/backfill --out-dir output)."""
-    return [json.loads(p.read_text(encoding="utf-8")) for p in sorted(path.glob("*.json"))]
+    records = []
+    for p in sorted(path.glob("*.json")):
+        rec = json.loads(p.read_text(encoding="utf-8"))
+        if not isinstance(rec, dict) or not rec.get("message_id"):
+            raise ValueError(f"{p.name} is not a clean record (no message_id)")
+        records.append(rec)
+    return records
 
 
 def load_clean_records_from_s3(bucket: str, region: str, prefix: str = "archive/clean/") -> list[dict]:
@@ -111,11 +116,18 @@ def load_dynamodb_rows(table: str, region: str) -> list[Row]:
                 Row(
                     id=row_id,
                     fields={f: item.get(f, {}).get("S", "") for f in EXTRACTION_FIELDS},
-                    confidence=float(item.get("confidence", {}).get("N", "0")),
+                    confidence=_number(item.get("confidence", {}).get("N")),
                     dedup_key=item.get("dedup_key", {}).get("S", ""),
                 )
             )
     return rows
+
+
+def _number(value: str | None) -> float | None:
+    try:
+        return float(value) if value is not None else None
+    except ValueError:
+        return None
 
 
 # ---------------------------------------------------------------------------
@@ -150,11 +162,12 @@ def make_language_detector() -> Callable[[str], str]:
     return detect_language
 
 
-def percentile(sorted_values: list[int], p: float) -> int:
-    """Nearest-rank percentile (always an observed value, deterministic)."""
+def percentile(sorted_values: list[int], p: int) -> int:
+    """Nearest-rank percentile (always an observed value, deterministic). Integer
+    arithmetic: ceil(p * n / 100) without float rounding (0.1 * 30 is 3.0000000000000004)."""
     if not sorted_values:
         return 0
-    rank = max(1, math.ceil(p / 100 * len(sorted_values)))
+    rank = max(1, -(-p * len(sorted_values) // 100))
     return sorted_values[rank - 1]
 
 
@@ -170,6 +183,20 @@ def fingerprint(items: Iterable[str]) -> str:
         h.update(item.encode("utf-8"))
         h.update(b"\n")
     return h.hexdigest()[:12]
+
+
+# Values printed verbatim from records are allow-listed, so a malformed record can't put
+# arbitrary text into the report.
+KNOWN_EXTRACTION_SOURCES = ("live", "dynamodb", "none")
+
+
+def safe_label(value, allowed: Iterable[str]) -> str:
+    return str(value) if str(value) in allowed else "other"
+
+
+def safe_version(value) -> str:
+    text = str(value)
+    return text if text.isdigit() and len(text) <= 4 else "other"
 
 
 def canonical(obj) -> str:
@@ -205,8 +232,11 @@ def build_report(
     # --- Inputs ---------------------------------------------------------------
     record_ids = {r.get("message_id", "") for r in records}
     row_ids = {r.id for r in rows}
-    schema = Counter(f"schema {r.get('schema_version')} / parser {r.get('parser_version')}" for r in records)
-    sources = Counter(r.get("extraction_source", "missing") for r in records)
+    schema = Counter(
+        f"schema {safe_version(r.get('schema_version'))} / parser {safe_version(r.get('parser_version'))}"
+        for r in records
+    )
+    sources = Counter(safe_label(r.get("extraction_source"), KNOWN_EXTRACTION_SOURCES) for r in records)
     out("## Inputs")
     out("")
     out("| | Count |")
@@ -229,7 +259,9 @@ def build_report(
 
     # --- Bodies -----------------------------------------------------------------
     bodies = [r.get("body", "") or "" for r in records]
-    tokens = [count_tokens(b) for b in bodies]
+    # A whitespace-only body is empty: 0 tokens, so it lands in the "0" bucket and in the
+    # empty count rather than in 1-24 (tiktoken gives whitespace at least one token).
+    tokens = [count_tokens(b) if b.strip() else 0 for b in bodies]
     sorted_tokens = sorted(tokens)
     total_runes = sum(len(b) for b in bodies)
     total_tokens = sum(tokens)
@@ -294,14 +326,16 @@ def build_report(
     out("")
     out(f"Rows where every field is `Unknown` or empty: {all_unknown} ({pct(all_unknown, n_rows)}).")
     out("")
-    low = sum(1 for r in rows if r.confidence < 0.5)
-    out(f"**Confidence < 0.5: {low} of {n_rows} rows ({pct(low, n_rows)}).**")
+    scored = [r.confidence for r in rows if r.confidence is not None]
+    low = sum(1 for c in scored if c < 0.5)
+    out(f"**Confidence < 0.5: {low} of {len(scored)} rows with a confidence ({pct(low, len(scored))}).**")
+    out(f"Rows with no numeric confidence: {n_rows - len(scored)}.")
     out("")
     out("| Confidence | Rows | Share |")
     out("|---|---|---|")
     for label, test in CONFIDENCE_BUCKETS:
-        count = sum(1 for r in rows if test(r.confidence))
-        out(f"| {label} | {count} | {pct(count, n_rows)} |")
+        count = sum(1 for c in scored if test(c))
+        out(f"| {label} | {count} | {pct(count, len(scored))} |")
     out("")
 
     # --- Duplicates -----------------------------------------------------------------
