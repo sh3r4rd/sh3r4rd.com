@@ -41,8 +41,8 @@ make -C ../.. tf-vars-diff   # check drift vs SSM (exit 1 == drift)
 
 SES email -> S3 `incoming/` -> this Lambda -> verdict check -> copy raw to `archive/raw/` (SSE-KMS; skipped for virus) -> parse -> extract via OpenAI -> sanitize -> write `archive/clean/` (SSE-KMS) -> write to DynamoDB -> tag S3 object.
 
-- Entry: `cmd/handler/main.go`
-- 10 internal packages: `handler`, `archive`, `ssm`, `sanitizer`, `extractor`, `models`, `parser`, `db`, `errors`, `tagger`
+- Entry: `cmd/handler/main.go` (Lambda); `cmd/backfill/main.go` is a local CLI that regenerates `archive/clean/` from `archive/raw/` (`--reconcile`, `--force`, `--dry-run`, `--out-dir`), never deployed
+- 11 internal packages: `handler`, `archive`, `backfill`, `ssm`, `sanitizer`, `extractor`, `models`, `parser`, `db`, `errors`, `tagger`
 - Env vars: `RECRUITER_TABLE`, `EMAIL_BUCKET`, `S3_KEY_PREFIX`, `SSM_OPENAI_KEY_NAME`, `ARCHIVE_KMS_KEY_ARN` (full ARN of the archive KMS key)
 
 ### api-handler (`lambda-src/api-handler/`)

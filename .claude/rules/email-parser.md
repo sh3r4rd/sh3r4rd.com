@@ -17,6 +17,7 @@ SES receives email -> stores raw email in S3 (`incoming/`) -> triggers this Lamb
 |---------|---------|
 | `handler` | Lambda handler orchestration |
 | `archive` | `archive/raw/` copies and `archive/clean/` records, SSE-KMS (`CleanRecord` format) |
+| `backfill` | `cmd/backfill` logic: regenerate `archive/clean/` from `archive/raw/`, `--reconcile` from `incoming/` |
 | `parser` | Raw email parsing (MIME) |
 | `extractor` | OpenAI-based data extraction |
 | `sanitizer` | Field cleaning and validation |
@@ -29,6 +30,8 @@ SES receives email -> stores raw email in S3 (`incoming/`) -> triggers this Lamb
 ## Entry Point
 
 `cmd/handler/main.go` — Initializes AWS clients on cold start, wires dependencies.
+
+`cmd/backfill/main.go` — Local CLI (never deployed; `make build-lambdas` builds only `cmd/handler`). Prints counts and failing keys, never email content.
 
 ## Environment Variables
 

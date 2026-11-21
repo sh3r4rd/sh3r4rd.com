@@ -65,8 +65,10 @@ infra/recruiter-dashboard/
 └── lambda-src/
     ├── email-parser/        # Go 1.25 — production
     │   ├── cmd/handler/     # Lambda entry point (main.go)
-    │   ├── internal/        # 10 packages: handler, archive, ssm, sanitizer,
-    │   │                    #   extractor, models, parser, db, errors, tagger
+    │   ├── cmd/backfill/    # Local CLI: regenerate archive/clean/ (not deployed)
+    │   ├── internal/        # 11 packages: handler, archive, backfill, ssm,
+    │   │                    #   sanitizer, extractor, models, parser, db,
+    │   │                    #   errors, tagger
     │   └── testdata/        # Test fixtures
     └── api-handler/         # Go 1.25 — recruiter dashboard REST API
         ├── main.go          # Entry point, AWS config init

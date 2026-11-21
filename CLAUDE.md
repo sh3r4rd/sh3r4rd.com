@@ -44,6 +44,7 @@ Only the dashboard API actually *requires* this: it sends `Access-Control-Allow-
 - **Run email-parser tests (verbose + race):** `cd infra/recruiter-dashboard/lambda-src/email-parser && go test -v -race ./...`
 - **Run api-handler tests:** `cd infra/recruiter-dashboard/lambda-src/api-handler && RECRUITER_TABLE=test CORS_ALLOW_ORIGIN=http://localhost DATE_INDEX_NAME=date-index AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_REGION=us-east-1 go test -v -race ./...`
 - **Run all CI checks locally:** `make ci`
+- **Backfill `archive/clean/` (run by hand):** from `infra/recruiter-dashboard/lambda-src/email-parser`, `go run ./cmd/backfill --bucket <bucket> --table <table> --kms-key-arn "$(terraform -chdir=../.. output -raw archive_kms_key_arn)" [--reconcile] [--force]`. Use `--dry-run` to preview (writes nothing) and `--out-dir <dir>` to write records locally instead of the bucket. Run `--reconcile` after any `email-parser-errors` alarm and before each weekly `JOURNAL.md` entry: it copies `incoming/` emails missing from `archive/raw/` before `incoming/` expires. Prints counts and failing keys only
 
 ### Infrastructure (Terraform)
 
@@ -86,8 +87,8 @@ All three targets prompt before overwriting anything. For non-interactive use, s
 ### Backend Lambda Functions
 
 - **email-parser** (`infra/recruiter-dashboard/lambda-src/email-parser/`) — Go 1.25, production-ready
-  - Entry point: `cmd/handler/main.go`
-  - 10 internal packages: `handler`, `archive`, `ssm`, `sanitizer`, `extractor`, `models`, `parser`, `db`, `errors`, `tagger`
+  - Entry points: `cmd/handler/main.go` (Lambda), `cmd/backfill/main.go` (local CLI, not deployed)
+  - 11 internal packages: `handler`, `archive`, `backfill`, `ssm`, `sanitizer`, `extractor`, `models`, `parser`, `db`, `errors`, `tagger`
   - Env vars: `RECRUITER_TABLE`, `EMAIL_BUCKET`, `S3_KEY_PREFIX`, `SSM_OPENAI_KEY_NAME`, `ARCHIVE_KMS_KEY_ARN` (full ARN of the archive KMS key)
   - Test fixtures in `testdata/`
 - **api-handler** (`infra/recruiter-dashboard/lambda-src/api-handler/`) — Go 1.25, serves recruiter dashboard REST API
