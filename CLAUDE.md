@@ -75,7 +75,7 @@ All three targets prompt before overwriting anything. For non-interactive use, s
 
 ### Infrastructure (`infra/recruiter-dashboard/`)
 
-- **Terraform >= 1.5.0** with **AWS provider >= 5.31.0**
+- **Terraform >= 1.10.0** with **AWS provider >= 6.22.0** (lock file pins 6.34.0)
 - Directory structure: root module + 7 modules: `modules/s3`, `modules/dynamodb`, `modules/lambda`, `modules/iam`, `modules/ses`, `modules/api-gateway`, `modules/monitoring`
 - Local state (single-developer project)
 - AWS region: us-east-1 (required for SES email receiving)

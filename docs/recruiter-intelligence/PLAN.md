@@ -344,8 +344,8 @@ extraction call logs model, prompt version, tokens and latency.
 - [ ] **A customer-managed Knowledge Base on S3 Vectors** (D-02) with Titan Text Embeddings
       V2, using `aws_s3vectors_*` and `aws_bedrockagent_knowledge_base`'s
       `storage_configuration.s3_vectors_configuration`. That block arrived in AWS provider
-      6.27.0. The lock file already pins 6.34.0, but `main.tf:7` still says `>= 5.31.0`, so
-      tighten it to `>= 6.27`. Keep each metadata sidecar under S3 Vectors' limit of 1 KB and 35
+      6.27.0. The lock file already pins 6.34.0, but `main.tf:7` says `>= 6.22.0` (raised in
+      week 1 for #98's `blocked_encryption_types`), so tighten it to `>= 6.27`. Keep each metadata sidecar under S3 Vectors' limit of 1 KB and 35
       keys per vector.
 - [ ] **Keep it current (1.4.5).** The doc-builder pushes each new document with the
       `IngestKnowledgeBaseDocuments` direct-ingestion API, which makes it searchable in minutes
