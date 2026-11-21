@@ -44,7 +44,7 @@ SES receives email → stores raw email in S3 → triggers email-parser Lambda �
 
 ## DynamoDB Schema
 
-- **Table:** `recruiter_emails` (PROVISIONED billing, 15/15 RCU/WCU)
+- **Table:** `recruiter-emails` (PROVISIONED billing, 15/15 RCU/WCU)
 - **Primary key:** `id` (S, partition) + `received_at` (S, sort)
 - **GSI `recruiter-index`:** `recruiter_email` (HASH) + `received_at` (RANGE)
 - **GSI `date-index`:** `date_year` (HASH) + `date_day` (RANGE)

@@ -102,7 +102,7 @@ SES receives email → stores raw email in S3 → triggers email-parser Lambda �
 
 ### DynamoDB Schema
 
-- **Table:** `recruiter_emails`
+- **Table:** `recruiter-emails` (Terraform default for `dynamodb_table_name`; read the live name with `terraform -chdir=infra/recruiter-dashboard output -raw dynamodb_table_name`)
 - **Primary key:** `id` (S, partition) + `received_at` (S, sort)
 - **GSI `recruiter-index`:** `recruiter_email` (HASH) + `received_at` (RANGE)
 - **GSI `date-index`:** `date_year` (HASH) + `date_day` (RANGE)

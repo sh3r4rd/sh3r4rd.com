@@ -61,7 +61,7 @@ Module pattern: `main.tf`, `variables.tf`, `outputs.tf`. Use `snake_case`. Add `
 
 ## DynamoDB Schema
 
-- **Table:** `recruiter_emails` (PROVISIONED, 15/15 RCU/WCU)
+- **Table:** `recruiter-emails` (PROVISIONED, 15/15 RCU/WCU)
 - **PK:** `id` (S) + `received_at` (S)
 - **GSI `recruiter-index`:** `recruiter_email` + `received_at`
 - **GSI `date-index`:** `date_year` + `date_day`
