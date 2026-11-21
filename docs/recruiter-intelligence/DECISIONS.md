@@ -91,6 +91,10 @@ its numbers, and **destroys the rest the same week**:
 
 **Approval gates:** a new language toolchain in CI (week 11), and `pyproject.toml` / lockfiles.
 
+**Toolchain (week 1, #134):** the eval harness arrived a week early with the data-quality
+report. It uses **uv** (`pyproject.toml` + `uv.lock`, Python 3.13) in
+`infra/recruiter-dashboard/evals/`. CI doesn't run it until week 11.
+
 ---
 
 ## D-04 — Public surfaces never read recruiter email text
