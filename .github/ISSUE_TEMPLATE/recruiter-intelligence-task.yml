@@ -1,0 +1,72 @@
+name: Recruiter Intelligence task
+description: One PR-sized task from docs/recruiter-intelligence/PLAN.md
+labels: ["recruiter-intelligence"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        One issue = one PR. This repository is **public**: no real email content, recruiter
+        names or addresses, and corpus or eval numbers as aggregates only
+        (docs/recruiter-intelligence/TRACKING.md § 9).
+  - type: input
+    id: parent
+    attributes:
+      label: Parent epic
+      description: The weekly epic, e.g. "#120". Also add this issue as a sub-issue of it.
+      placeholder: "#"
+    validations:
+      required: true
+  - type: dropdown
+    id: week
+    attributes:
+      label: Week
+      options: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
+    validations:
+      required: true
+  - type: input
+    id: skills
+    attributes:
+      label: Exam skills
+      description: AIP-C01 skill IDs from docs/recruiter-intelligence/EXAM-COVERAGE.md
+      placeholder: "1.5.4, 4.2.2"
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Why this exists. Link the PLAN.md section and any DECISIONS.md entries.
+    validations:
+      required: true
+  - type: textarea
+    id: tasks
+    attributes:
+      label: Tasks
+      value: |
+        - [ ]
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: The slice of the week's definition of done this issue delivers.
+      value: |
+        - [ ]
+    validations:
+      required: true
+  - type: checkboxes
+    id: gates
+    attributes:
+      label: Approval gates (AGENTS.md ask-first items this touches)
+      description: If any apply, add the needs-approval label and get sign-off before merging.
+      options:
+        - label: New route in App.jsx
+        - label: New npm or Go dependency (or a new language toolchain)
+        - label: Terraform, DynamoDB schema or API Gateway configuration change
+        - label: API payload change
+        - label: Lambda function signature change
+        - label: GitHub Actions workflow change
+  - type: textarea
+    id: eval
+    attributes:
+      label: Eval evidence
+      description: The number that must appear in the PR description (metric, dataset, n). "n/a" if none.
