@@ -8,6 +8,11 @@ variable "s3_bucket_arn" {
   type        = string
 }
 
+variable "archive_kms_key_arn" {
+  description = "ARN of the KMS key that encrypts archive/ (the email parser encrypts its archive writes with it)."
+  type        = string
+}
+
 variable "dynamodb_table_arn" {
   description = "ARN of the DynamoDB table."
   type        = string

@@ -13,7 +13,8 @@ locals {
 
 # ---------------------------------------------------------------------------
 # Email Parser Lambda Role
-# Permissions: S3 read (raw emails), DynamoDB write (parsed data), CloudWatch logs
+# Permissions: S3 read (raw emails), S3 write (archive/, SSE-KMS), DynamoDB write
+# (parsed data), CloudWatch logs
 # ---------------------------------------------------------------------------
 
 data "aws_iam_policy_document" "lambda_assume_role" {
@@ -46,6 +47,36 @@ data "aws_iam_policy_document" "email_parser" {
     sid       = "S3TagRawEmails"
     actions   = ["s3:PutObjectTagging"]
     resources = ["${var.s3_bucket_arn}/incoming/*"]
+  }
+
+  # S3: Write the durable archive (archive/raw/ copies and archive/clean/ records).
+  # CopyObject needs s3:GetObject on the source (above) and s3:PutObject here. The
+  # copies carry no tags, so no tagging permission is needed on archive/.
+  statement {
+    sid       = "S3WriteArchive"
+    actions   = ["s3:PutObject"]
+    resources = ["${var.s3_bucket_arn}/archive/*"]
+  }
+
+  # KMS: Encrypt archive/ writes with the archive key, only through S3 and only
+  # for objects under archive/. Single-part SSE-KMS writes need only
+  # GenerateDataKey; the copy source (incoming/) is SSE-S3, so no Decrypt.
+  statement {
+    sid       = "KMSEncryptArchive"
+    actions   = ["kms:GenerateDataKey"]
+    resources = [var.archive_kms_key_arn]
+
+    condition {
+      test     = "StringEquals"
+      variable = "kms:ViaService"
+      values   = ["s3.${data.aws_region.current.id}.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringLike"
+      variable = "kms:EncryptionContext:aws:s3:arn"
+      values   = ["${var.s3_bucket_arn}/archive/*"]
+    }
   }
 
   # DynamoDB: Write parsed data only

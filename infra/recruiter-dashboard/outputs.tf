@@ -8,6 +8,11 @@ output "s3_bucket_arn" {
   value       = module.s3.bucket_arn
 }
 
+output "archive_kms_key_arn" {
+  description = "ARN of the KMS key for archive/ and evals/. Pass it to --sse-kms-key-id and to the backfill command."
+  value       = module.s3.archive_kms_key_arn
+}
+
 output "dynamodb_table_name" {
   description = "Name of the DynamoDB table for parsed recruiter data."
   value       = module.dynamodb.table_name

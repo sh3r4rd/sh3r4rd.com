@@ -45,6 +45,7 @@ module "s3" {
   lifecycle_expiration_days = var.s3_lifecycle_expiration_days
   aws_account_id            = data.aws_caller_identity.current.account_id
   aws_region                = var.aws_region
+  archive_kms_alias         = "alias/${var.project_name}-archive"
 }
 
 # ---------------------------------------------------------------------------
@@ -78,6 +79,7 @@ module "lambda_email_parser" {
     EMAIL_BUCKET        = module.s3.bucket_name
     S3_KEY_PREFIX       = local.s3_key_prefix
     SSM_OPENAI_KEY_NAME = var.ssm_openai_key_name
+    ARCHIVE_KMS_KEY_ARN = module.s3.archive_kms_key_arn
   }
 }
 
@@ -142,9 +144,10 @@ module "ses" {
 module "iam" {
   source = "./modules/iam"
 
-  project_name       = var.project_name
-  s3_bucket_arn      = module.s3.bucket_arn
-  dynamodb_table_arn = module.dynamodb.table_arn
+  project_name        = var.project_name
+  s3_bucket_arn       = module.s3.bucket_arn
+  archive_kms_key_arn = module.s3.archive_kms_key_arn
+  dynamodb_table_arn  = module.dynamodb.table_arn
   dynamodb_gsi_arns = [
     module.dynamodb.recruiter_index_arn,
     module.dynamodb.date_index_arn,
