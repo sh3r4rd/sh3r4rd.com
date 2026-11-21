@@ -22,6 +22,14 @@ main
 - The task branch is cut from the epic branch **after** the epic's own commits, so the two PRs never edit the same lines and #131 merges into the epic without conflicts.
 - **Suggested merge order:** #116 → #131's PR into the epic → the epic PR into `main`.
 
+| Issue | Branch | PR | Base | Status |
+|---|---|---|---|---|
+| #131 | `feat/131-preserve-raw-emails-inventory` | #143 | `epic/ri-week-00-stop-losing-data` | open, not merged |
+| #118 | `epic/ri-week-00-stop-losing-data` | #144 | `docs/recruiter-intelligence-plan` (retargets to `main` after #116) | open, not merged |
+
+- **Auto-close caveat:** GitHub applies `Closes #N` only when a PR merges into the **default** branch. #143 merges into the epic branch, so it won't close #131 by itself. The epic PR #144 therefore carries both `Closes #118` and `Closes #131`.
+- PR titles use `docs(recruiter-intelligence): …` with the issue number in parentheses, per your PR-title format.
+
 ## Production operations (all done, all verified)
 
 | Time (UTC) | Step | Result |
