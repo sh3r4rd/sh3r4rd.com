@@ -11,11 +11,78 @@ Use aggregate numbers and synthetic examples only (D-06).
 
 ## Week 0: inventory
 
-- Date:
-- Raw bodies preserved (`archive/raw/` object count):
-- DynamoDB rows (all-time extractions):
-- Bodies permanently lost (rows − bodies, approximate):
-- Lifecycle change applied (date, `terraform plan` summary):
+- Date: 21 November 2026 (UTC); 20 November local
+- Raw bodies preserved (`archive/raw/` object count): 25 (239,397 bytes). This equals the
+  `incoming/` count at copy time, the key sets are identical, and none of the 25 copies carries a
+  tag.
+- DynamoDB rows (all-time extractions): 92. This excludes `STATS#` items; the `STATS#cache` item
+  was absent at count time.
+- Bodies permanently lost (rows − bodies, approximate): 67, which is exact. All 92 rows record an
+  `s3_key`, the 92 keys are distinct (no two rows share a body), and 25 of them still exist. The oldest surviving body was received on
+  22 October 2026.
+- Lifecycle change applied (date, `terraform plan` summary): 21 November 2026, 04:31 UTC.
+  `Plan: 0 to add, 1 to change, 0 to destroy.` The only change was
+  `module.s3.aws_s3_bucket_lifecycle_configuration.email_storage`, with expiration `days` going
+  from 30 to 3650 on `incoming/`. It was applied with `-target` from a saved plan, and
+  `make tf-vars-push` followed.
+
+---
+
+## Week 0: stop losing data
+
+Epic #118 · task #131. The inventory numbers are in § Week 0: inventory above.
+
+**Shipped**
+- A tag-free copy of every surviving raw email in `archive/raw/`, outside the expiring prefix.
+- The `incoming/` expiry raised from 30 to 3650 days, a stopgap until week 1's archive.
+- The inventory, recorded above.
+
+**Numbers** (eval, cost, latency; with the dataset and its size)
+
+| Metric | Before | After | Dataset (n) |
+|---|---|---|---|
+| Raw bodies held outside the expiring prefix | 0 | 25 | `incoming/` at copy time (25) |
+| `incoming/` expiry (days) | 30 | 3650 | lifecycle rule `expire-raw-emails` |
+| Archive copies carrying the `sender` tag | — | 0 | every copy checked (25) |
+| Extractions whose body is already gone | — | 67 | DynamoDB extraction rows (92) |
+
+**Decisions** (link the `DECISIONS.md` entry and any status change)
+- No `DECISIONS.md` entry; the choices were operational.
+- The apply was targeted at the lifecycle rule (`-target`, from a saved plan). The full plan also
+  wanted to redeploy both Lambdas from local build artifacts and to drop the bucket's SSE-C
+  block, which is #98's job.
+- Counted extractions by excluding `id` values that start with `STATS#`, not by subtracting
+  one. `PLAN.md` § Week 0 is corrected.
+
+**What broke or surprised me**
+- Week 0 ran about three weeks late: due 1 November, done 20 November. About 26 of the 67 lost
+  bodies expired between the plan's approval on 25 October and the copy.
+- 25 real bodies is under the plan's threshold of about 50. Weeks 2–5 therefore lean on synthetic
+  data for volume, with the real bodies as ground truth.
+- The `STATS#cache` item was absent when I counted. Its 5-minute window is the api-handler's own
+  freshness check, and DynamoDB's TTL deletes it in the background, so its presence at any moment
+  is unpredictable. "COUNT minus one" would have undercounted by one.
+
+**Exam skills exercised** (IDs, then tick them in `EXAM-COVERAGE.md`)
+- 3.2.2: S3 Lifecycle retention, and keeping PII-bearing object tags off the archive copies.
+
+**Spend this week** (Cost Explorer, filtered to the project's tags)
+- $0.00 (estimated, under $0.01). 25 COPY requests, about 100 GET/HEAD requests and 239 KB of
+  new storage. DynamoDB scans used provisioned capacity. Not checked in Cost Explorer, which lags
+  about a day.
+
+**Cut or deferred**
+- Nothing cut.
+- Deferred to week 1 (#132, blocked by #98):
+  - The SSE-C drift, which is #98's job.
+  - The Lambda code-hash drift. Before any untargeted `terraform apply`, rebuild both artifacts
+    from a clean checkout of `main` with `make build-lambdas`. Otherwise the apply redeploys
+    whatever `bootstrap` binaries are on the machine running it.
+  - Setting the `incoming/` expiry back to 30 days. `archive/raw/` was a one-time copy on
+    20 November, and `archive/clean/` holds cleaned JSON, not raw bodies. Right before lowering
+    the expiry, re-run the `incoming/` → `archive/raw/` sync (`--copy-props metadata-directive`)
+    and re-check that the new copies carry no tags, or raw bodies received after 20 November
+    expire for good.
 
 ---
 

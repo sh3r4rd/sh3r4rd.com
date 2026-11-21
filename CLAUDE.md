@@ -80,7 +80,7 @@ All three targets prompt before overwriting anything. For non-interactive use, s
 - Local state (single-developer project)
 - AWS region: us-east-1 (required for SES email receiving)
 - DynamoDB: provisioned billing mode (15/15 RCU/WCU, under 25 free tier)
-- S3: AES-256 encryption, 30-day lifecycle, full public access block
+- S3: AES-256 encryption, full public access block. The `incoming/` lifecycle expiry is normally 30 days, but production is temporarily set to 3650 (`s3_lifecycle_expiration_days`, a Recruiter Intelligence week 0 stopgap) until #132 restores 30. `archive/raw/` matches no lifecycle rule
 - Default tags applied via provider `default_tags` block
 
 ### Backend Lambda Functions
@@ -102,7 +102,7 @@ SES receives email → stores raw email in S3 → triggers email-parser Lambda �
 
 ### DynamoDB Schema
 
-- **Table:** `recruiter_emails`
+- **Table:** `recruiter-emails` (Terraform default for `dynamodb_table_name`; read the live name with `terraform -chdir=infra/recruiter-dashboard output -raw dynamodb_table_name`)
 - **Primary key:** `id` (S, partition) + `received_at` (S, sort)
 - **GSI `recruiter-index`:** `recruiter_email` (HASH) + `received_at` (RANGE)
 - **GSI `date-index`:** `date_year` (HASH) + `date_day` (RANGE)
