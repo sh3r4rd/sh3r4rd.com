@@ -90,7 +90,7 @@ variable "log_retention_days" {
 }
 
 variable "s3_lifecycle_expiration_days" {
-  description = "Number of days before raw emails are automatically deleted from S3."
+  description = "Number of days before raw emails under incoming/ are automatically deleted. Lower it only after archive/raw/ is confirmed to hold every incoming/ key (see #132)."
   type        = number
   default     = 30
 }

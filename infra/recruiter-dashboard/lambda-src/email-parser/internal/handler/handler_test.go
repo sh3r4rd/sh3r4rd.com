@@ -18,6 +18,7 @@ import (
 	"github.com/openai/openai-go/v3"
 	"github.com/openai/openai-go/v3/option"
 
+	"github.com/sh3r4rd/sh3r4rd.com/infra/recruiter-dashboard/lambda-src/email-parser/internal/archive"
 	"github.com/sh3r4rd/sh3r4rd.com/infra/recruiter-dashboard/lambda-src/email-parser/internal/db"
 	"github.com/sh3r4rd/sh3r4rd.com/infra/recruiter-dashboard/lambda-src/email-parser/internal/extractor"
 	localssm "github.com/sh3r4rd/sh3r4rd.com/infra/recruiter-dashboard/lambda-src/email-parser/internal/ssm"
@@ -64,6 +65,33 @@ type mockOpenAIClient struct {
 
 func (m *mockOpenAIClient) New(ctx context.Context, body openai.ChatCompletionNewParams, opts ...option.RequestOption) (*openai.ChatCompletion, error) {
 	return m.newFn(ctx, body, opts...)
+}
+
+// mockS3ArchiveClient implements archive.S3Client. Nil funcs succeed.
+type mockS3ArchiveClient struct {
+	copyObjectFn func(ctx context.Context, params *s3.CopyObjectInput, optFns ...func(*s3.Options)) (*s3.CopyObjectOutput, error)
+	putObjectFn  func(ctx context.Context, params *s3.PutObjectInput, optFns ...func(*s3.Options)) (*s3.PutObjectOutput, error)
+}
+
+func (m *mockS3ArchiveClient) CopyObject(ctx context.Context, params *s3.CopyObjectInput, optFns ...func(*s3.Options)) (*s3.CopyObjectOutput, error) {
+	if m.copyObjectFn == nil {
+		return &s3.CopyObjectOutput{}, nil
+	}
+	return m.copyObjectFn(ctx, params, optFns...)
+}
+
+func (m *mockS3ArchiveClient) PutObject(ctx context.Context, params *s3.PutObjectInput, optFns ...func(*s3.Options)) (*s3.PutObjectOutput, error) {
+	if m.putObjectFn == nil {
+		return &s3.PutObjectOutput{}, nil
+	}
+	return m.putObjectFn(ctx, params, optFns...)
+}
+
+const testArchiveKMSKeyARN = "arn:aws:kms:us-east-1:111122223333:key/11111111-2222-3333-4444-555555555555"
+
+// newTestArchiver returns an archiver whose S3 writes always succeed.
+func newTestArchiver() *archive.Archiver {
+	return archive.NewArchiver(&mockS3ArchiveClient{}, testArchiveKMSKeyARN)
 }
 
 // --- Test helpers ---
@@ -139,7 +167,7 @@ func newTestHandler(s3Body string, openAIResponse string) *Handler {
 	ssmFetcher := localssm.NewParameterFetcher(ssmMock)
 	ext := extractor.NewExtractor(openaiMock)
 
-	h := NewHandler(s3Read, store, t, ssmFetcher)
+	h := NewHandler(s3Read, store, t, ssmFetcher, newTestArchiver())
 	h.extractor = ext
 
 	return h
@@ -293,7 +321,7 @@ func TestHandleSESEvent_S3FetchFailure(t *testing.T) {
 	ssmFetcher := localssm.NewParameterFetcher(ssmMock)
 	ext := extractor.NewExtractor(openaiMock)
 
-	h := NewHandler(s3Read, store, tgr, ssmFetcher)
+	h := NewHandler(s3Read, store, tgr, ssmFetcher, newTestArchiver())
 	h.extractor = ext
 
 	event := newTestSESEvent("s3-fail-msg")
@@ -362,7 +390,7 @@ func TestHandleSESEvent_DynamoDBWriteFailure(t *testing.T) {
 	ssmFetcher := localssm.NewParameterFetcher(ssmMock)
 	ext := extractor.NewExtractor(openaiMock)
 
-	h := NewHandler(s3Read, store, tgr, ssmFetcher)
+	h := NewHandler(s3Read, store, tgr, ssmFetcher, newTestArchiver())
 	h.extractor = ext
 
 	event := newTestSESEvent("dynamo-fail-msg")
@@ -433,7 +461,7 @@ func TestHandleSESEvent_DuplicateDetection(t *testing.T) {
 	ssmFetcher := localssm.NewParameterFetcher(ssmMock)
 	ext := extractor.NewExtractor(openaiMock)
 
-	h := NewHandler(s3Read, store, tgr, ssmFetcher)
+	h := NewHandler(s3Read, store, tgr, ssmFetcher, newTestArchiver())
 	h.extractor = ext
 
 	event := newTestSESEvent("dup-msg")
@@ -516,4 +544,3 @@ func TestHandleSESEvent_SummaryCountsCorrect(t *testing.T) {
 			summary.Success, summary.Failed, summary.Duplicate, summary.Rejected, total, summary.Total)
 	}
 }
-

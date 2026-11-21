@@ -16,14 +16,14 @@ resource "aws_sns_topic_subscription" "email" {
 # ---------------------------------------------------------------------------
 resource "aws_cloudwatch_metric_alarm" "email_parser_errors" {
   alarm_name          = "${var.project_name}-email-parser-errors"
-  alarm_description   = "Triggers when email parser Lambda has more than 5 errors in 1 hour"
+  alarm_description   = "Triggers on any email parser Lambda error in 1 hour. A failed copy to archive/raw/ fails the invocation, and its async retries stop after two, so one error can mean an email that isn't archived yet: run the backfill with --reconcile"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 1
   metric_name         = "Errors"
   namespace           = "AWS/Lambda"
   period              = 3600
   statistic           = "Sum"
-  threshold           = 5
+  threshold           = 0
   treat_missing_data  = "notBreaching"
 
   dimensions = {

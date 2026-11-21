@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	awsssm "github.com/aws/aws-sdk-go-v2/service/ssm"
 
+	"github.com/sh3r4rd/sh3r4rd.com/infra/recruiter-dashboard/lambda-src/email-parser/internal/archive"
 	"github.com/sh3r4rd/sh3r4rd.com/infra/recruiter-dashboard/lambda-src/email-parser/internal/db"
 	"github.com/sh3r4rd/sh3r4rd.com/infra/recruiter-dashboard/lambda-src/email-parser/internal/handler"
 	"github.com/sh3r4rd/sh3r4rd.com/infra/recruiter-dashboard/lambda-src/email-parser/internal/ssm"
@@ -32,6 +33,13 @@ func init() {
 		log.Fatal("RECRUITER_TABLE environment variable is required")
 	}
 
+	// Full ARN of the archive KMS key. Every archive/ write names it, and the bucket
+	// policy denies archive/ writes that don't, so the parser can't run without it.
+	archiveKMSKeyARN := os.Getenv("ARCHIVE_KMS_KEY_ARN")
+	if archiveKMSKeyARN == "" {
+		log.Fatal("ARCHIVE_KMS_KEY_ARN environment variable is required")
+	}
+
 	s3Client := s3.NewFromConfig(cfg)
 	dynamoClient := dynamodb.NewFromConfig(cfg)
 	ssmClient := awsssm.NewFromConfig(cfg)
@@ -40,7 +48,9 @@ func init() {
 	t := tagger.NewTagger(s3Client)
 	ssmFetcher := ssm.NewParameterFetcher(ssmClient)
 
-	h = handler.NewHandler(s3Client, store, t, ssmFetcher)
+	archiver := archive.NewArchiver(s3Client, archiveKMSKeyARN)
+
+	h = handler.NewHandler(s3Client, store, t, ssmFetcher, archiver)
 }
 
 func handleEvent(ctx context.Context, event events.SimpleEmailEvent) (handler.Summary, error) {
