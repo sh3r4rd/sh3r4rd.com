@@ -17,6 +17,8 @@ func TestVerdictFromHeaders(t *testing.T) {
 		{"spam gray is not a failure", "X-SES-Spam-Verdict: GRAY\r\n", VerdictPass},
 		{"virus fail", "X-SES-Virus-Verdict: FAIL\r\n", VerdictVirus},
 		{"virus beats spam", "X-SES-Spam-Verdict: FAIL\r\nX-SES-Virus-Verdict: FAIL\r\n", VerdictVirus},
+		{"forged virus PASS above the real FAIL", "X-SES-Virus-Verdict: PASS\r\nX-SES-Virus-Verdict: FAIL\r\n", VerdictVirus},
+		{"forged spam PASS above the real FAIL", "X-SES-Spam-Verdict: PASS\r\nX-SES-Spam-Verdict: FAIL\r\n", VerdictRejected},
 		{"spf fail", "Authentication-Results: amazonses.com; spf=fail smtp.mailfrom=example.com; dkim=pass header.i=@example.com\r\n", VerdictRejected},
 		{"spf softfail is not FAIL", "Authentication-Results: amazonses.com; spf=softfail smtp.mailfrom=example.com; dkim=pass\r\n", VerdictPass},
 		{"dkim fail with no pass", "Authentication-Results: amazonses.com; spf=pass; dkim=fail header.i=@example.com\r\n", VerdictRejected},

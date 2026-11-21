@@ -168,6 +168,9 @@ func (f *fakeDynamoDB) Query(ctx context.Context, in *dynamodb.QueryInput, optFn
 	if f.err != nil {
 		return nil, f.err
 	}
+	if !aws.ToBool(in.ConsistentRead) {
+		return nil, errors.New("test: lookups must use ConsistentRead")
+	}
 	id := in.ExpressionAttributeValues[":id"].(*dbtypes.AttributeValueMemberS).Value
 	if row, ok := f.rows[id]; ok {
 		return &dynamodb.QueryOutput{Items: []map[string]dbtypes.AttributeValue{row}}, nil

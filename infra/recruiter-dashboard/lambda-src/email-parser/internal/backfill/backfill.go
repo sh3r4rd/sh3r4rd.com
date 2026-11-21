@@ -230,7 +230,10 @@ func (r *Runner) backfillOne(ctx context.Context, id, sourceKey string, res *Res
 // ones the Lambda puts in a live clean record.
 func (r *Runner) lookupExtraction(ctx context.Context, id string) (*models.ExtractionResult, string, error) {
 	out, err := r.ddb.Query(ctx, &dynamodb.QueryInput{
-		TableName:              aws.String(r.opts.Table),
+		TableName: aws.String(r.opts.Table),
+		// A row the Lambda just wrote must be seen, or the record would be written with
+		// extraction "none" and skipped by every later run without --force.
+		ConsistentRead:         aws.Bool(true),
 		KeyConditionExpression: aws.String("id = :id"),
 		ExpressionAttributeValues: map[string]dbtypes.AttributeValue{
 			":id": &dbtypes.AttributeValueMemberS{Value: id},

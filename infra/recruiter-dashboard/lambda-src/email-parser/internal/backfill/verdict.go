@@ -3,6 +3,7 @@ package backfill
 import (
 	"bytes"
 	"net/mail"
+	"net/textproto"
 	"regexp"
 	"strings"
 )
@@ -42,7 +43,9 @@ var authResultRe = regexp.MustCompile(`(?i)\b(spf|dkim)=([a-z]+)`)
 //   - X-SES-Spam-Verdict and X-SES-Virus-Verdict: PASS, FAIL, GRAY or PROCESSING_FAILED.
 //   - Authentication-Results whose authserv-id is amazonses.com: spf=… and dkim=….
 //
-// Only an explicit FAIL rejects, as in the Lambda. SPF fails on spf=fail. DKIM fails when
+// Only an explicit FAIL rejects, as in the Lambda. If a verdict header appears more than
+// once (a sender can add a forged copy), any FAIL wins, so a forged PASS can never hide a
+// real virus verdict. SPF fails on spf=fail. DKIM fails when
 // at least one signature is dkim=fail and none is dkim=pass. Authentication-Results
 // headers added by other servers (for example inside forwarded mail) are ignored.
 // A message whose headers can't be read is treated as passing; the parser reports it.
@@ -52,11 +55,11 @@ func VerdictFromHeaders(raw []byte) Verdict {
 		return VerdictPass
 	}
 
-	if strings.EqualFold(strings.TrimSpace(msg.Header.Get("X-SES-Virus-Verdict")), "FAIL") {
+	if anyFail(msg.Header, "X-SES-Virus-Verdict") {
 		return VerdictVirus
 	}
 
-	rejected := strings.EqualFold(strings.TrimSpace(msg.Header.Get("X-SES-Spam-Verdict")), "FAIL")
+	rejected := anyFail(msg.Header, "X-SES-Spam-Verdict")
 
 	for _, value := range msg.Header["Authentication-Results"] {
 		authservID, _, _ := strings.Cut(strings.TrimSpace(value), ";")
@@ -85,4 +88,14 @@ func VerdictFromHeaders(raw []byte) Verdict {
 		return VerdictRejected
 	}
 	return VerdictPass
+}
+
+// anyFail reports whether any value of the named header is FAIL (case-insensitive).
+func anyFail(h mail.Header, name string) bool {
+	for _, v := range h[textproto.CanonicalMIMEHeaderKey(name)] {
+		if strings.EqualFold(strings.TrimSpace(v), "FAIL") {
+			return true
+		}
+	}
+	return false
 }
