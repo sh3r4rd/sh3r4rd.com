@@ -16,6 +16,10 @@ cd lambda-src/api-handler && RECRUITER_TABLE=test CORS_ALLOW_ORIGIN=http://local
 # Lambda builds
 make -C ../.. build-lambdas
 
+# Backfill archive/clean/ from archive/raw/ (local CLI, never deployed; prints counts only)
+cd lambda-src/email-parser && go run ./cmd/backfill --bucket <bucket> --table <table> --dry-run --reconcile
+cd lambda-src/email-parser && go run ./cmd/backfill --bucket <bucket> --table <table> --kms-key-arn <full key ARN> --reconcile
+
 # Terraform
 terraform init
 terraform validate
