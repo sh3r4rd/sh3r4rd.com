@@ -72,8 +72,16 @@ Epic #118 · task #131. The inventory numbers are in § Week 0: inventory above.
 
 **Cut or deferred**
 - Nothing cut.
-- Deferred to week 1 (#98, #132): the SSE-C drift, the Lambda code-hash drift, and setting the
-  `incoming/` expiry back to 30 days.
+- Deferred to week 1 (#132, blocked by #98):
+  - The SSE-C drift, which is #98's job.
+  - The Lambda code-hash drift. Before any untargeted `terraform apply`, rebuild both artifacts
+    from a clean checkout of `main` with `make build-lambdas`. Otherwise the apply redeploys
+    whatever `bootstrap` binaries are on the machine running it.
+  - Setting the `incoming/` expiry back to 30 days. `archive/raw/` was a one-time copy on
+    20 November, and `archive/clean/` holds cleaned JSON, not raw bodies. Right before lowering
+    the expiry, re-run the `incoming/` → `archive/raw/` sync (`--copy-props metadata-directive`)
+    and re-check that the new copies carry no tags, or raw bodies received after 20 November
+    expire for good.
 
 ---
 
