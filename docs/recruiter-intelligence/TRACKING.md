@@ -217,18 +217,19 @@ the study checklist and exam lens, and a summary of its approval gates.
 
 ## Next steps
 
-1. **Commit the plan docs.** They are uncommitted on `main` in the working tree. Branch
-   `docs/recruiter-intelligence-plan`, commit `docs/recruiter-intelligence/` (including this file),
-   and open a PR to `main`.
-2. **Write the issue template, `issues.json` and `scripts/ri-issues.sh`** in the same PR or a
-   follow-up.
-3. **Show the dry run** and wait for approval. Nothing is created on GitHub until then.
-4. **Run `scripts/ri-issues.sh --apply`:** labels → milestones → the initiative issue →
-   epics → wave-1 tasks → sub-issue links → dependencies → #59 and #98 → the Project, its
-   fields and items. Then commit the issue numbers it wrote into `issues.json`.
+Only item 5 remains; the rest were done on 25 Oct 2026 and are kept for the record.
+
+1. ~~**Commit the plan docs**~~ Done: branch `docs/recruiter-intelligence-plan`, PR #116.
+2. ~~**Write the issue template, `issues.json` and `scripts/ri-issues.sh`**~~ Done, in the same
+   PR.
+3. ~~**Show the dry run** and wait for approval~~ Done.
+4. ~~**Run `scripts/ri-issues.sh --apply`**~~ Done: labels, milestones, the initiative issue,
+   epics, wave-1 tasks, sub-issue links, dependencies, #59 and #98, and the Project with its
+   fields and items. The issue numbers it wrote are committed in `issues.json`.
 5. **Finish the Project in the web UI:** the views, the two extra Status options and the
    built-in workflows the script lists.
-6. **Replace week 0–2 checkboxes in `PLAN.md`** with links to their issues.
+6. ~~**Replace week 0–2 checkboxes in `PLAN.md`**~~ Done: weeks 0–2 carry `**Tracking:**`
+   lines and plain bullets.
 
 ### Token
 
