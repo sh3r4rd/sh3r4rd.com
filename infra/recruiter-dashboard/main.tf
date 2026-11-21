@@ -4,7 +4,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = ">= 5.31.0"
+      version = ">= 6.22.0" # rule.blocked_encryption_types on aws_s3_bucket_server_side_encryption_configuration
     }
     archive = {
       source  = "hashicorp/archive"

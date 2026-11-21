@@ -6,6 +6,11 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "email_storage" {
   bucket = aws_s3_bucket.email_storage.id
 
   rule {
+    # Keep blocking uploads that use customer-provided keys (SSE-C). AWS set this on
+    # the live bucket; declaring it stops every plan from proposing to remove it (#98).
+    # Requires AWS provider >= 6.22.0.
+    blocked_encryption_types = ["SSE-C"]
+
     apply_server_side_encryption_by_default {
       sse_algorithm = "AES256"
     }
