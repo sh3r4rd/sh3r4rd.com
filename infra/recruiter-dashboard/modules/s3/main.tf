@@ -100,6 +100,12 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "email_storage" {
     # Requires AWS provider >= 6.22.0.
     blocked_encryption_types = ["SSE-C"]
 
+    # S3 Bucket Keys stay off. The archive KMS key policy and the parser's IAM grant
+    # match on the object-ARN encryption context, which a Bucket Key would replace
+    # with the bucket ARN, breaking every archive write. The archive writers also send
+    # BucketKeyEnabled=false on each request.
+    bucket_key_enabled = false
+
     apply_server_side_encryption_by_default {
       sse_algorithm = "AES256"
     }
@@ -192,6 +198,18 @@ resource "aws_s3_bucket_policy" "allow_ses" {
             "s3:x-amz-server-side-encryption-aws-kms-key-id" = aws_kms_key.archive.arn
           }
         }
+      },
+      {
+        # archive/raw/ holds the only copy of each email once incoming/ expires again,
+        # and the bucket isn't versioned. Deleting from it requires removing this
+        # statement first. Lifecycle actions aren't subject to bucket policies, and
+        # archive/ has no expiration anyway. archive/clean/ is regenerable, so it isn't
+        # covered.
+        Sid       = "DenyRawArchiveDeletes"
+        Effect    = "Deny"
+        Principal = "*"
+        Action    = ["s3:DeleteObject", "s3:DeleteObjectVersion"]
+        Resource  = "${aws_s3_bucket.email_storage.arn}/archive/raw/*"
       }
     ]
   })

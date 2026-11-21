@@ -3,7 +3,9 @@
 //   - archive/raw/{messageId}: the original .eml, copied from incoming/ without tags.
 //   - archive/clean/{messageId}.json: the parsed, cleaned record (CleanRecord).
 //
-// Every write names the archive KMS key explicitly (SSE-KMS). The bucket's default
+// Every write names the archive KMS key explicitly (SSE-KMS) and turns S3 Bucket Keys
+// off, because the key policy and IAM grant match on the object-ARN encryption context.
+// The bucket's default
 // encryption stays AES256 so SES delivery to incoming/ never depends on the key, and a
 // bucket policy denies archive/ writes that don't name the key (D-06).
 package archive
@@ -109,6 +111,7 @@ func (a *Archiver) CopyRaw(ctx context.Context, bucket, sourceKey, messageID str
 		TaggingDirective:     types.TaggingDirectiveReplace,
 		ServerSideEncryption: types.ServerSideEncryptionAwsKms,
 		SSEKMSKeyId:          aws.String(a.kmsKeyARN),
+		BucketKeyEnabled:     aws.Bool(false),
 	})
 	if err != nil {
 		return &perrors.StorageError{Op: "archive_raw_copy", Err: err}
@@ -134,6 +137,7 @@ func (a *Archiver) WriteClean(ctx context.Context, bucket string, rec CleanRecor
 		ContentType:          aws.String("application/json"),
 		ServerSideEncryption: types.ServerSideEncryptionAwsKms,
 		SSEKMSKeyId:          aws.String(a.kmsKeyARN),
+		BucketKeyEnabled:     aws.Bool(false),
 	})
 	if err != nil {
 		return &perrors.StorageError{Op: "archive_clean_write", Err: err}

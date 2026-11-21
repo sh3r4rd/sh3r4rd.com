@@ -175,8 +175,8 @@ func TestCopyRaw(t *testing.T) {
 			if aws.ToString(in.SSEKMSKeyId) != testKeyARN {
 				t.Errorf("SSEKMSKeyId = %q, want the key ARN", aws.ToString(in.SSEKMSKeyId))
 			}
-			if in.BucketKeyEnabled != nil {
-				t.Errorf("BucketKeyEnabled = %v, want unset (the IAM condition relies on the object-ARN encryption context)", *in.BucketKeyEnabled)
+			if in.BucketKeyEnabled == nil || *in.BucketKeyEnabled {
+				t.Errorf("BucketKeyEnabled = %v, want explicit false (the IAM and key-policy conditions rely on the object-ARN encryption context)", in.BucketKeyEnabled)
 			}
 		})
 	}
@@ -251,6 +251,9 @@ func TestWriteClean(t *testing.T) {
 			}
 			if aws.ToString(in.SSEKMSKeyId) != testKeyARN {
 				t.Errorf("SSEKMSKeyId = %q, want the key ARN", aws.ToString(in.SSEKMSKeyId))
+			}
+			if in.BucketKeyEnabled == nil || *in.BucketKeyEnabled {
+				t.Errorf("BucketKeyEnabled = %v, want explicit false", in.BucketKeyEnabled)
 			}
 
 			var got CleanRecord

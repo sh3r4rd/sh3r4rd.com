@@ -53,13 +53,16 @@ data "aws_iam_policy_document" "email_parser" {
   # CopyObject needs s3:GetObject on the source (above) and s3:PutObject here. The
   # copies carry no tags, so no tagging permission is needed on archive/.
   statement {
-    sid       = "S3WriteArchive"
-    actions   = ["s3:PutObject"]
-    resources = ["${var.s3_bucket_arn}/archive/*"]
+    sid     = "S3WriteArchive"
+    actions = ["s3:PutObject"]
+    resources = [
+      "${var.s3_bucket_arn}/archive/raw/*",
+      "${var.s3_bucket_arn}/archive/clean/*",
+    ]
   }
 
   # KMS: Encrypt archive/ writes with the archive key, only through S3 and only
-  # for objects under archive/. Single-part SSE-KMS writes need only
+  # for objects under archive/raw/ and archive/clean/. Single-part SSE-KMS writes need only
   # GenerateDataKey; the copy source (incoming/) is SSE-S3, so no Decrypt.
   statement {
     sid       = "KMSEncryptArchive"
@@ -75,7 +78,10 @@ data "aws_iam_policy_document" "email_parser" {
     condition {
       test     = "StringLike"
       variable = "kms:EncryptionContext:aws:s3:arn"
-      values   = ["${var.s3_bucket_arn}/archive/*"]
+      values = [
+        "${var.s3_bucket_arn}/archive/raw/*",
+        "${var.s3_bucket_arn}/archive/clean/*",
+      ]
     }
   }
 
