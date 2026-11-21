@@ -216,6 +216,12 @@ Five layers. Each one catches what the previous one misses:
 
 1. **AWS Budgets** monthly alert at 50/80/100% of **$10/month** (set in week 1), plus **Cost
    Anomaly Detection** on Bedrock (a custom monitor filtered to the Amazon Bedrock service).
+   Built in `modules/budget` (#135): the console-created "Monthly Budget" was imported and
+   raised to $10, not duplicated. Custom monitors can't filter on SERVICE, so a cost category
+   (SERVICE_CODE `AmazonBedrock`) scopes the monitor. Anomalies alert immediately at a total
+   impact of **$2 or more**, a fifth of the budget. Both alert types publish to the alerts SNS
+   topic. Claude bills under its own per-model service, so add its SERVICE_CODE to the module's
+   `bedrock_service_codes` once it has spend.
 2. **API Gateway throttling** on the public route, as the existing API already does
    (5 rps, burst 10: `modules/api-gateway/variables.tf:46-66`, applied at `modules/api-gateway/main.tf:296-297`), plus a usage plan.
 3. **A per-day token budget** in DynamoDB. The fit analyzer increments it atomically and refuses
