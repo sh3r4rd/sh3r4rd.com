@@ -26,7 +26,7 @@ Each module in `infra/recruiter-dashboard/modules/<name>/`:
 
 ## DynamoDB Schema
 
-- **Table:** `recruiter_emails` (PROVISIONED billing, 15/15 RCU/WCU)
+- **Table:** `recruiter-emails` (PROVISIONED billing, 15/15 RCU/WCU)
 - **Primary key:** `id` (S) + `received_at` (S)
 - **GSI `recruiter-index`:** `recruiter_email` (HASH) + `received_at` (RANGE)
 - **GSI `date-index`:** `date_year` (HASH) + `date_day` (RANGE)
