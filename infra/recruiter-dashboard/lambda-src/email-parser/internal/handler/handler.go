@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -13,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 
+	"github.com/sh3r4rd/sh3r4rd.com/infra/recruiter-dashboard/lambda-src/email-parser/internal/archive"
 	"github.com/sh3r4rd/sh3r4rd.com/infra/recruiter-dashboard/lambda-src/email-parser/internal/db"
 	"github.com/sh3r4rd/sh3r4rd.com/infra/recruiter-dashboard/lambda-src/email-parser/internal/extractor"
 	"github.com/sh3r4rd/sh3r4rd.com/infra/recruiter-dashboard/lambda-src/email-parser/internal/models"
@@ -45,19 +47,40 @@ type Handler struct {
 	tagger     *tagger.Tagger
 	ssmFetcher *ssm.ParameterFetcher
 	extractor  *extractor.Extractor
+	archiver   *archive.Archiver
 }
 
 // NewHandler creates a new email parsing handler.
-func NewHandler(s3Client S3Client, store *db.Store, t *tagger.Tagger, ssmFetcher *ssm.ParameterFetcher) *Handler {
+func NewHandler(s3Client S3Client, store *db.Store, t *tagger.Tagger, ssmFetcher *ssm.ParameterFetcher, archiver *archive.Archiver) *Handler {
 	return &Handler{
 		s3Client:   s3Client,
 		store:      store,
 		tagger:     t,
 		ssmFetcher: ssmFetcher,
+		archiver:   archiver,
 	}
 }
 
+// verdictOutcome is the result of checking a record's SES receipt verdicts.
+type verdictOutcome int
+
+const (
+	// verdictPass: no verdict is FAIL. The email is archived and parsed.
+	verdictPass verdictOutcome = iota
+	// verdictRejected: SPF, DKIM or spam is FAIL (virus is not). The raw email is
+	// archived but never parsed.
+	verdictRejected
+	// verdictVirus: the virus verdict is FAIL. The email is neither archived nor parsed;
+	// it expires from incoming/ with the lifecycle rule.
+	verdictVirus
+)
+
 // HandleSESEvent processes an SES SimpleEmailEvent.
+//
+// It returns an error, failing the invocation so Lambda retries it asynchronously, only
+// when the event is unusable or a raw email could not be copied to archive/raw/: that
+// copy is the one artifact that can't be regenerated. Every other per-record failure is
+// counted in the Summary and logged, as before.
 func (h *Handler) HandleSESEvent(ctx context.Context, event events.SimpleEmailEvent) (Summary, error) {
 	summary := Summary{Total: len(event.Records)}
 
@@ -101,34 +124,60 @@ func (h *Handler) HandleSESEvent(ctx context.Context, event events.SimpleEmailEv
 		h.extractor = extractor.NewExtractor(client)
 	}
 
+	// Process every record even if one fails fatally, then report all fatal errors.
+	// SES sends one record per event; a retry re-runs any others idempotently
+	// (the archive writes overwrite, and the DynamoDB write is conditional).
+	var fatalErrs []error
 	for _, record := range event.Records {
-		h.processRecord(ctx, record, bucket, keyPrefix, &summary)
+		if err := h.processRecord(ctx, record, bucket, keyPrefix, &summary); err != nil {
+			fatalErrs = append(fatalErrs, err)
+		}
 	}
 
 	log.Printf("Processing complete: total=%d success=%d failed=%d duplicate=%d rejected=%d",
 		summary.Total, summary.Success, summary.Failed, summary.Duplicate, summary.Rejected)
 
+	if len(fatalErrs) > 0 {
+		return summary, errors.Join(fatalErrs...)
+	}
 	return summary, nil
 }
 
-// processRecord handles a single SES event record.
-func (h *Handler) processRecord(ctx context.Context, record events.SimpleEmailRecord, bucket, keyPrefix string, summary *Summary) {
+// processRecord handles a single SES event record. It returns a non-nil error only for
+// failures that must fail the invocation (see HandleSESEvent).
+func (h *Handler) processRecord(ctx context.Context, record events.SimpleEmailRecord, bucket, keyPrefix string, summary *Summary) error {
 	messageID := record.SES.Mail.MessageID
 	if messageID == "" {
 		log.Printf("ERROR: SES record has empty MessageID")
 		summary.Failed++
-		return
-	}
-
-	// Validate SES verdicts
-	if !h.validateVerdicts(record, messageID) {
-		summary.Rejected++
-		return
+		return nil
 	}
 
 	// Derive S3 key with normalized prefix to avoid double slashes
 	normalizedPrefix := strings.TrimSuffix(keyPrefix, "/")
 	s3Key := normalizedPrefix + "/" + messageID
+
+	// 1. SES verdict check comes first.
+	outcome := evaluateVerdicts(record, messageID)
+	if outcome == verdictVirus {
+		summary.Rejected++
+		return nil
+	}
+
+	// 2. Copy the raw email to archive/raw/ before parsing. A failure here fails the
+	// invocation so Lambda retries it (and email-parser-errors fires) rather than losing
+	// the only copy that can't be regenerated once incoming/ expires.
+	if err := h.archiver.CopyRaw(ctx, bucket, s3Key, messageID); err != nil {
+		log.Printf("ERROR: failed to copy email %s to %s: %v", messageID, archive.RawPrefix, err)
+		summary.Failed++
+		return fmt.Errorf("archive raw email %s: %w", messageID, err)
+	}
+
+	// 3. SPF, DKIM or spam FAIL: archived above, never parsed.
+	if outcome == verdictRejected {
+		summary.Rejected++
+		return nil
+	}
 
 	// Fetch raw email from S3
 	rawEmail, err := h.fetchEmail(ctx, bucket, s3Key)
@@ -136,7 +185,7 @@ func (h *Handler) processRecord(ctx context.Context, record events.SimpleEmailRe
 		log.Printf("ERROR: failed to fetch email from s3://%s/%s: %v", bucket, s3Key, err)
 		h.tagFailure(ctx, bucket, s3Key, "S3 fetch failed: "+err.Error())
 		summary.Failed++
-		return
+		return nil
 	}
 
 	// Parse raw email
@@ -145,7 +194,7 @@ func (h *Handler) processRecord(ctx context.Context, record events.SimpleEmailRe
 		log.Printf("ERROR: failed to parse email %s: %v", messageID, err)
 		h.tagFailure(ctx, bucket, s3Key, "Parse failed: "+err.Error())
 		summary.Failed++
-		return
+		return nil
 	}
 
 	// Extract recruiter data via OpenAI
@@ -163,6 +212,13 @@ func (h *Handler) processRecord(ctx context.Context, record events.SimpleEmailRe
 	}
 	if extraction.RecruiterLastName != "Unknown" {
 		extraction.RecruiterLastName = sanitizer.CleanName(extraction.RecruiterLastName)
+	}
+
+	// 4. Write the clean record. A failure only logs: the raw email is already in
+	// archive/raw/, and the backfill command (cmd/backfill) regenerates the record.
+	cleanRecord := archive.NewCleanRecord(messageID, parsed, &extraction, archive.ExtractionSourceLive)
+	if err := h.archiver.WriteClean(ctx, bucket, cleanRecord); err != nil {
+		log.Printf("WARNING: failed to write %s record for email %s: %v", archive.CleanPrefix, messageID, err)
 	}
 
 	// Determine parse status
@@ -201,7 +257,7 @@ func (h *Handler) processRecord(ctx context.Context, record events.SimpleEmailRe
 		log.Printf("ERROR: failed to write email %s to DynamoDB: %v", messageID, err)
 		h.tagFailure(ctx, bucket, s3Key, "dynamodb_write_failed")
 		summary.Failed++
-		return
+		return nil
 	}
 
 	// Tag S3 object with parse results only after successful persistence
@@ -217,25 +273,35 @@ func (h *Handler) processRecord(ctx context.Context, record events.SimpleEmailRe
 	} else {
 		summary.Success++
 	}
+	return nil
 }
 
-// validateVerdicts checks SES receipt verdicts and rejects emails with FAIL status.
-func (h *Handler) validateVerdicts(record events.SimpleEmailRecord, messageID string) bool {
-	verdicts := map[string]string{
-		"SPF":   record.SES.Receipt.SPFVerdict.Status,
-		"DKIM":  record.SES.Receipt.DKIMVerdict.Status,
-		"Spam":  record.SES.Receipt.SpamVerdict.Status,
-		"Virus": record.SES.Receipt.VirusVerdict.Status,
+// evaluateVerdicts checks the SES receipt verdicts. Any FAIL rejects the email; a virus
+// FAIL additionally keeps it out of the archive. Every failing verdict is logged.
+func evaluateVerdicts(record events.SimpleEmailRecord, messageID string) verdictOutcome {
+	verdicts := []struct {
+		name   string
+		status string
+	}{
+		{"SPF", record.SES.Receipt.SPFVerdict.Status},
+		{"DKIM", record.SES.Receipt.DKIMVerdict.Status},
+		{"Spam", record.SES.Receipt.SpamVerdict.Status},
+		{"Virus", record.SES.Receipt.VirusVerdict.Status},
 	}
 
-	for name, status := range verdicts {
-		if strings.EqualFold(status, "FAIL") {
-			log.Printf("Rejecting email %s: %s verdict FAIL", messageID, name)
-			return false
+	outcome := verdictPass
+	for _, v := range verdicts {
+		if !strings.EqualFold(v.status, "FAIL") {
+			continue
+		}
+		log.Printf("Rejecting email %s: %s verdict FAIL", messageID, v.name)
+		if v.name == "Virus" {
+			outcome = verdictVirus
+		} else if outcome == verdictPass {
+			outcome = verdictRejected
 		}
 	}
-
-	return true
+	return outcome
 }
 
 // fetchEmail retrieves raw email bytes from S3.
