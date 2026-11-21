@@ -62,14 +62,22 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Cache the Chromium download (the costly part) keyed on the resolved
-      # Playwright version. On a hit, only the OS libraries are reinstalled.
+      # $ImageOS (e.g. "ubuntu24") is set on GitHub-hosted runners but is not
+      # exposed through the `env` context, so read it in a shell step.
+      - name: Get runner image
+        id: runner-image
+        run: echo "os=${ImageOS:-unknown}" >> "$GITHUB_OUTPUT"
+
+      # Cache the Chromium download (the costly part) keyed on the runner image
+      # and the resolved Playwright version, so an image change (e.g. 24.04 ->
+      # 26.04) misses the cache instead of reusing browsers built for the old
+      # image. On a hit, only the OS libraries are reinstalled.
       - name: Cache Playwright browsers
         id: playwright-cache
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+          key: ${{ runner.os }}-${{ steps.runner-image.outputs.os }}-playwright-${{ hashFiles('package-lock.json') }}
 
       - name: Install Playwright (browser + OS deps)
         if: steps.playwright-cache.outputs.cache-hit != 'true'
