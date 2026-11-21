@@ -96,13 +96,25 @@ during the project either way.
       `archive/clean/{messageId}.json`. It holds the cleaned body, parsed headers, `IsForwarded`
       (computed today and never persisted), the extraction result and the parser version.
       Encrypt with a new customer-managed **KMS key**. Use the same key for the `s3://…/evals/`
-      prefix (D-06).
+      prefix (D-06). The parser also copies each raw `.eml` to `archive/raw/{messageId}`
+      **without tags** (`CopyObject` with `TaggingDirective=REPLACE`), so `archive/raw/` keeps
+      every original, not only the ones week 0 copied.
 - Add a lifecycle rule on `archive/` that transitions to **S3 Intelligent-Tiering** with no
-      expiry. Then set `s3_lifecycle_expiration_days` back to 30. `incoming/` is a landing zone
-      again, and `archive/raw/` holds the originals.
+      expiry.
+- **Cutover gate, then restore expiry.** Mail that arrived between week 0's copy and the
+      deploy exists only in `incoming/`. After the parser change is live, run the week 0 sync
+      once more (tag-free, `--copy-props metadata-directive`), then confirm that every key in
+      `incoming/` is in `archive/raw/`. Only then set `s3_lifecycle_expiration_days` back to
+      30. `incoming/` is a landing zone again, and `archive/raw/` holds the originals.
 - **Backfill command** (`cmd/backfill` in email-parser). Re-run the existing `parser` package
       over every `archive/raw/*` and write `archive/clean/*`. No LLM calls; it is
-      deterministic and re-runnable.
+      deterministic and re-runnable. A `--reconcile` flag first copies any `incoming/` key
+      missing from `archive/raw/` (tag-free). That is the recovery path for archive writes
+      that failed: the raw copy runs before parsing and fails the invocation, so Lambda retries
+      it, but async retries stop after two and there is no DLQ. A failed `archive/clean` write
+      only logs, because the backfill regenerates it. Run `--reconcile` after any
+      `email-parser-errors` alarm and before each weekly journal entry, well inside the 30-day
+      expiry.
 - **Data-quality report** (`infra/recruiter-dashboard/evals/reports/data-quality.md`,
       aggregates only). It covers:
   - body count and token-length distribution
@@ -124,7 +136,8 @@ during the project either way.
 - A **Well-Architected Tool** review using the Generative AI Lens. Keep the findings in
       `DECISIONS.md`.
 
-**Definition of done:** a new test email lands in `archive/clean/` within a minute. The backfill
+**Definition of done:** a new test email lands in `archive/raw/` and `archive/clean/` within a
+minute. Every `incoming/` key was in `archive/raw/` before expiry went back to 30 days. The backfill
 has run over the whole archive. The report exists. A budget alert email has arrived (trigger
 one with a low test threshold, then raise it).
 
