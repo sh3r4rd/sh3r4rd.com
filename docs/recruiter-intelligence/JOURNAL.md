@@ -18,7 +18,7 @@ Use aggregate numbers and synthetic examples only (D-06).
 - DynamoDB rows (all-time extractions): 92. This excludes `STATS#` items; the `STATS#cache` item
   was absent at count time.
 - Bodies permanently lost (rows − bodies, approximate): 67, which is exact. All 92 rows record an
-  `s3_key`, and 25 of those keys still exist. The oldest surviving body was received on
+  `s3_key`, the 92 keys are distinct (no two rows share a body), and 25 of them still exist. The oldest surviving body was received on
   22 October 2026.
 - Lifecycle change applied (date, `terraform plan` summary): 21 November 2026, 04:31 UTC.
   `Plan: 0 to add, 1 to change, 0 to destroy.` The only change was
