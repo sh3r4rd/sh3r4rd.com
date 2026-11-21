@@ -59,8 +59,9 @@ Epic #118 · task #131. The inventory numbers are in § Week 0: inventory above.
   bodies expired between the plan's approval on 25 October and the copy.
 - 25 real bodies is under the plan's threshold of about 50. Weeks 2–5 therefore lean on synthetic
   data for volume, with the real bodies as ground truth.
-- The `STATS#cache` item has a 5-minute TTL, so it was absent when I counted. "COUNT minus one"
-  would have undercounted by one.
+- The `STATS#cache` item was absent when I counted. Its 5-minute window is the api-handler's own
+  freshness check, and DynamoDB's TTL deletes it in the background, so its presence at any moment
+  is unpredictable. "COUNT minus one" would have undercounted by one.
 
 **Exam skills exercised** (IDs, then tick them in `EXAM-COVERAGE.md`)
 - 3.2.2: S3 Lifecycle retention, and keeping PII-bearing object tags off the archive copies.
