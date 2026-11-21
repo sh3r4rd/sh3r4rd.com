@@ -40,7 +40,7 @@ make -C ../.. tf-vars-diff   # check drift vs SSM (exit 1 == drift)
 
 ## Email Parsing Pipeline
 
-SES receives email → stores raw email in S3 → triggers email-parser Lambda → parses with `internal/parser` → extracts recruiter data via OpenAI (`internal/extractor`) → sanitizes fields (`internal/sanitizer`) → writes to DynamoDB (`internal/db`) → tags S3 object (`internal/tagger`)
+SES receives email → stores raw email in S3 (`incoming/`) → triggers email-parser Lambda → checks SES verdicts → copies the raw email to `archive/raw/` (`internal/archive`, SSE-KMS; skipped for virus) → parses with `internal/parser` → extracts recruiter data via OpenAI (`internal/extractor`) → sanitizes fields (`internal/sanitizer`) → writes `archive/clean/` (`internal/archive`) → writes to DynamoDB (`internal/db`) → tags S3 object (`internal/tagger`)
 
 ## DynamoDB Schema
 
@@ -53,7 +53,7 @@ SES receives email → stores raw email in S3 → triggers email-parser Lambda �
 
 | Module | Purpose |
 |--------|---------|
-| `modules/s3` | Email storage bucket (AES-256, 30-day lifecycle) |
+| `modules/s3` | Email storage bucket (AES-256 default, SSE-C blocked), archive KMS key, `incoming/` expiry, `archive/` Intelligent-Tiering |
 | `modules/dynamodb` | Recruiter emails table + GSIs |
 | `modules/lambda` | Lambda function deployment (arm64) |
 | `modules/iam` | Roles, policies, log group ARN construction |

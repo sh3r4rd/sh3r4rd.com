@@ -16,7 +16,7 @@ Each module in `infra/recruiter-dashboard/modules/<name>/`:
 
 | Module | Purpose |
 |--------|---------|
-| `s3` | Email storage bucket (AES-256, 30-day lifecycle) |
+| `s3` | Email storage bucket (AES-256 default, SSE-C blocked), archive KMS key, `incoming/` expiry, `archive/` Intelligent-Tiering |
 | `dynamodb` | Recruiter emails table + GSIs |
 | `lambda` | Lambda function deployment (arm64) |
 | `iam` | Roles, policies, log group ARN construction |

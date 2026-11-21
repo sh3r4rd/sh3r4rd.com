@@ -9,13 +9,14 @@ Processes incoming recruiter emails received via SES. Parses raw email, extracts
 
 ## Pipeline Flow
 
-SES receives email -> stores raw email in S3 -> triggers this Lambda -> `internal/parser` parses raw email -> `internal/extractor` calls OpenAI to extract recruiter data -> `internal/sanitizer` cleans/validates fields -> `internal/db` writes to DynamoDB -> `internal/tagger` tags S3 object with parse results
+SES receives email -> stores raw email in S3 (`incoming/`) -> triggers this Lambda -> SES verdict check -> `internal/archive` copies the raw email to `archive/raw/` (skipped for virus; a failed copy fails the invocation) -> SPF/DKIM/spam FAIL stops here -> `internal/parser` parses raw email -> `internal/extractor` calls OpenAI to extract recruiter data -> `internal/sanitizer` cleans/validates fields -> `internal/archive` writes `archive/clean/{id}.json` (a failure only logs) -> `internal/db` writes to DynamoDB -> `internal/tagger` tags S3 object with parse results
 
 ## Package Structure (`internal/`)
 
 | Package | Purpose |
 |---------|---------|
 | `handler` | Lambda handler orchestration |
+| `archive` | `archive/raw/` copies and `archive/clean/` records, SSE-KMS (`CleanRecord` format) |
 | `parser` | Raw email parsing (MIME) |
 | `extractor` | OpenAI-based data extraction |
 | `sanitizer` | Field cleaning and validation |
@@ -35,6 +36,7 @@ SES receives email -> stores raw email in S3 -> triggers this Lambda -> `interna
 - `EMAIL_BUCKET` — S3 bucket for incoming emails
 - `S3_KEY_PREFIX` — S3 key prefix for emails
 - `SSM_OPENAI_KEY_NAME` — Parameter Store path for OpenAI API key
+- `ARCHIVE_KMS_KEY_ARN` — Full ARN of the archive KMS key (required; `main.go` exits without it)
 
 ## Testing
 

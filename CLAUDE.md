@@ -80,15 +80,15 @@ All three targets prompt before overwriting anything. For non-interactive use, s
 - Local state (single-developer project)
 - AWS region: us-east-1 (required for SES email receiving)
 - DynamoDB: provisioned billing mode (15/15 RCU/WCU, under 25 free tier)
-- S3: AES-256 encryption, full public access block. The `incoming/` lifecycle expiry is normally 30 days, but production is temporarily set to 3650 (`s3_lifecycle_expiration_days`, a Recruiter Intelligence week 0 stopgap) until #132 restores 30. `archive/raw/` matches no lifecycle rule
+- S3: AES-256 default encryption with SSE-C blocked, full public access block. `archive/` and `evals/` are SSE-KMS with a customer-managed key (`alias/recruiter-dashboard-archive`, in `modules/s3`): every write there must name the full key ARN, and the bucket policy denies writes that don't. `archive/` moves to Intelligent-Tiering and never expires. The `incoming/` lifecycle expiry is normally 30 days, but production is temporarily set to 3650 (`s3_lifecycle_expiration_days`, a Recruiter Intelligence week 0 stopgap) until #132's cutover restores 30
 - Default tags applied via provider `default_tags` block
 
 ### Backend Lambda Functions
 
 - **email-parser** (`infra/recruiter-dashboard/lambda-src/email-parser/`) — Go 1.25, production-ready
   - Entry point: `cmd/handler/main.go`
-  - 9 internal packages: `handler`, `ssm`, `sanitizer`, `extractor`, `models`, `parser`, `db`, `errors`, `tagger`
-  - Env vars: `RECRUITER_TABLE`, `EMAIL_BUCKET`, `S3_KEY_PREFIX`, `SSM_OPENAI_KEY_NAME`
+  - 10 internal packages: `handler`, `archive`, `ssm`, `sanitizer`, `extractor`, `models`, `parser`, `db`, `errors`, `tagger`
+  - Env vars: `RECRUITER_TABLE`, `EMAIL_BUCKET`, `S3_KEY_PREFIX`, `SSM_OPENAI_KEY_NAME`, `ARCHIVE_KMS_KEY_ARN` (full ARN of the archive KMS key)
   - Test fixtures in `testdata/`
 - **api-handler** (`infra/recruiter-dashboard/lambda-src/api-handler/`) — Go 1.25, serves recruiter dashboard REST API
   - 3 source files: `main.go` (entry point), `handler.go` (routing + DynamoDB queries), `anonymizer.go` (PII stripping)
@@ -98,7 +98,7 @@ All three targets prompt before overwriting anything. For non-interactive use, s
 
 ### SES Email Flow
 
-SES receives email → stores raw email in S3 → triggers email-parser Lambda → parses email with `internal/parser` → extracts recruiter data via OpenAI (`internal/extractor`) → sanitizes fields (`internal/sanitizer`) → writes to DynamoDB (`internal/db`) → tags S3 object with parse results (`internal/tagger`)
+SES receives email → stores raw email in S3 (`incoming/`) → triggers email-parser Lambda → checks SES verdicts → copies the raw email to `archive/raw/` (`internal/archive`; skipped for a virus FAIL, and a failed copy fails the invocation so Lambda retries) → stops here if SPF, DKIM or spam FAILed → parses email with `internal/parser` → extracts recruiter data via OpenAI (`internal/extractor`) → sanitizes fields (`internal/sanitizer`) → writes `archive/clean/{id}.json` (`internal/archive`; a failure only logs) → writes to DynamoDB (`internal/db`) → tags the `incoming/` object with parse results (`internal/tagger`)
 
 ### DynamoDB Schema
 

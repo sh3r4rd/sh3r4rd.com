@@ -39,11 +39,11 @@ make -C ../.. tf-vars-diff   # check drift vs SSM (exit 1 == drift)
 
 ### email-parser (`lambda-src/email-parser/`)
 
-SES email -> S3 -> this Lambda -> parse -> extract via OpenAI -> sanitize -> write to DynamoDB -> tag S3 object.
+SES email -> S3 `incoming/` -> this Lambda -> verdict check -> copy raw to `archive/raw/` (SSE-KMS; skipped for virus) -> parse -> extract via OpenAI -> sanitize -> write `archive/clean/` (SSE-KMS) -> write to DynamoDB -> tag S3 object.
 
 - Entry: `cmd/handler/main.go`
-- 9 internal packages: `handler`, `ssm`, `sanitizer`, `extractor`, `models`, `parser`, `db`, `errors`, `tagger`
-- Env vars: `RECRUITER_TABLE`, `EMAIL_BUCKET`, `S3_KEY_PREFIX`, `SSM_OPENAI_KEY_NAME`
+- 10 internal packages: `handler`, `archive`, `ssm`, `sanitizer`, `extractor`, `models`, `parser`, `db`, `errors`, `tagger`
+- Env vars: `RECRUITER_TABLE`, `EMAIL_BUCKET`, `S3_KEY_PREFIX`, `SSM_OPENAI_KEY_NAME`, `ARCHIVE_KMS_KEY_ARN` (full ARN of the archive KMS key)
 
 ### api-handler (`lambda-src/api-handler/`)
 

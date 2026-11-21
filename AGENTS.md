@@ -65,8 +65,8 @@ infra/recruiter-dashboard/
 └── lambda-src/
     ├── email-parser/        # Go 1.25 — production
     │   ├── cmd/handler/     # Lambda entry point (main.go)
-    │   ├── internal/        # 9 packages: handler, ssm, sanitizer, extractor,
-    │   │                    #   models, parser, db, errors, tagger
+    │   ├── internal/        # 10 packages: handler, archive, ssm, sanitizer,
+    │   │                    #   extractor, models, parser, db, errors, tagger
     │   └── testdata/        # Test fixtures
     └── api-handler/         # Go 1.25 — recruiter dashboard REST API
         ├── main.go          # Entry point, AWS config init
@@ -214,6 +214,7 @@ terraform -chdir=infra/recruiter-dashboard validate               # Must be vali
 - `EMAIL_BUCKET` — S3 bucket for incoming emails
 - `S3_KEY_PREFIX` — S3 key prefix for emails
 - `SSM_OPENAI_KEY_NAME` — Parameter Store path for OpenAI API key
+- `ARCHIVE_KMS_KEY_ARN` — Full ARN of the KMS key for `archive/` writes (an alias is denied by the bucket policy)
 
 ### api-handler Lambda
 
