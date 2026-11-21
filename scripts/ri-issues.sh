@@ -3,6 +3,7 @@
 # from docs/recruiter-intelligence/issues.json. See docs/recruiter-intelligence/TRACKING.md.
 #
 #   scripts/ri-issues.sh                 # dry run: print every action, change nothing
+#   scripts/ri-issues.sh --dry-run       # the same, spelled out
 #   scripts/ri-issues.sh --apply         # perform them
 #   scripts/ri-issues.sh --apply --phase project   # one phase only
 #
@@ -23,11 +24,18 @@ MANIFEST="$DOCS/issues.json"
 
 APPLY=0
 ONLY_PHASE=""
+PHASES="labels milestones issues links existing project"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --apply) APPLY=1 ;;
-    --phase) ONLY_PHASE="$2"; shift ;;
-    -h|--help) sed -n '2,16p' "$0"; exit 0 ;;
+    --dry-run) APPLY=0 ;;
+    --phase)
+      if [[ $# -lt 2 ]]; then echo "--phase needs a value: one of $PHASES" >&2; exit 2; fi
+      case " $PHASES " in
+        *" $2 "*) ONLY_PHASE="$2"; shift ;;
+        *) echo "unknown phase: $2 (expected one of: $PHASES)" >&2; exit 2 ;;
+      esac ;;
+    -h|--help) awk 'NR == 1 { next } /^#/ { sub(/^# ?/, ""); print; next } { exit }' "$0"; exit 0 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
   shift
@@ -63,6 +71,7 @@ KEYS="$STATE_DIR/keys"       # manifest key<TAB>issue number
 
 title_num()  { awk -F'\t' -v t="$1" '$2 == t { print $1; exit }' "$TITLES"; }
 key_num()    { awk -F'\t' -v k="$1" '$1 == k { n = $2 } END { if (n != "") print n }' "$KEYS"; }
+num_key()    { awk -F'\t' -v n="$1" '$2 == n { k = $1 } END { if (k != "") print k }' "$KEYS"; }
 set_key()    { printf '%s\t%s\n' "$1" "$2" >>"$KEYS"; }
 known_nums() { cut -f2 "$KEYS" | sort -un; }
 
@@ -91,16 +100,28 @@ ref() { # key -> "#123", or "#<KEY>" when not yet created (dry run)
 }
 
 render_body() { # body-file -> stdout with {{ref:KEY}} substituted
-  local text key
+  # On --apply, fail rather than publish a literal "#<KEY>": nothing edits the body later.
+  local text key missing=""
   text="$(cat "$DOCS/$1")"
   for key in $(grep -o '{{ref:[A-Z0-9-]*}}' "$DOCS/$1" | sed 's/{{ref:\(.*\)}}/\1/' | sort -u); do
+    if [[ -z "$(key_num "$key")" ]]; then missing+=" $key"; fi
     text="${text//\{\{ref:$key\}\}/$(ref "$key")}"
   done
+  if [[ $APPLY -eq 1 && -n "$missing" ]]; then
+    echo "error: $1 references issues that don't exist yet:$missing" >&2
+    echo "       create them first (order the manifest so referenced keys come earlier) or drop the refs" >&2
+    return 1
+  fi
   printf '%s\n' "$text"
 }
 
 issue_id()      { gh api "repos/$REPO/issues/$1" --jq .id; }
 issue_node_id() { gh api "repos/$REPO/issues/$1" --jq .node_id; }
+need_num() { # what number: on --apply, abort when an issue number didn't resolve
+  if [[ $APPLY -eq 0 || ( -n "$2" && "$2" != "null" ) ]]; then return 0; fi
+  echo "error: $1 has no issue number: not created yet (run the issues phase first) or a typo in the manifest" >&2
+  exit 1
+}
 parent_of()     { { gh api "repos/$REPO/issues/$1/parent" 2>/dev/null || true; } | jq -r '.number // empty'; }
 
 # --- phases ------------------------------------------------------------------
@@ -123,17 +144,20 @@ phase_milestones() {
   say "== milestones"
   local existing title due desc
   existing="$(gh api --paginate "repos/$REPO/milestones?state=all&per_page=100" --jq '.[].title')"
-  while IFS=$'\t' read -r title due desc; do
+  local margs
+  # US-separated, not tab: IFS collapses runs of tabs, so an empty due_on would shift.
+  while IFS=$'\x1f' read -r title due desc; do
     if grep -qxF "$title" <<<"$existing"; then
       skip "milestone $title exists"
     else
-      act "create milestone $title due $due"
+      act "create milestone $title due ${due:-(none)}"
       if [[ $APPLY -eq 1 ]]; then
-        gh api "repos/$REPO/milestones" -f title="$title" -f due_on="$due" \
-        -f description="$desc" >/dev/null
+        margs=(-f title="$title" -f description="$desc")
+        if [[ -n "$due" ]]; then margs+=(-f due_on="$due"); fi
+        gh api "repos/$REPO/milestones" "${margs[@]}" >/dev/null
       fi
     fi
-  done < <(jq -r '.milestones[] | [.title, .due_on, .description] | @tsv' "$MANIFEST")
+  done < <(jq -r '.milestones[] | [.title, (.due_on // ""), (.description // "")] | join("\u001f")' "$MANIFEST")
 }
 
 phase_issues() {
@@ -155,7 +179,7 @@ phase_issues() {
     act "create $key [${milestone:-no milestone}] [$labels]  $title"
     if [[ $APPLY -eq 1 ]]; then
       tmp="$(mktemp)"
-      render_body "$body_file" >"$tmp"
+      render_body "$body_file" >"$tmp" || { rm -f "$tmp"; exit 1; }
       args=(--repo "$REPO" --title "$title" --body-file "$tmp" --label "$labels")
       if [[ -n "$milestone" ]]; then args+=(--milestone "$milestone"); fi
       url="$(gh issue create "${args[@]}")"
@@ -171,7 +195,9 @@ phase_issues() {
 phase_links() {
   say "== links (sub-issues, blocked-by)"
   local key parent blockers child pnum current b bnum existing
-  while IFS=$'\t' read -r key parent blockers; do
+  # US-separated, not tab: IFS collapses runs of tabs, so with no parent the blockers
+  # would be read as the parent.
+  while IFS=$'\x1f' read -r key parent blockers; do
     child="$(key_num "$key")"
     if [[ -n "$parent" ]]; then
       pnum="$(key_num "$parent")"
@@ -179,9 +205,15 @@ phase_links() {
       if [[ -n "$child" ]]; then current="$(parent_of "$child")"; fi
       if [[ -n "$child" && -n "$pnum" && "$current" == "$pnum" ]]; then
         skip "$(ref "$key") already a sub-issue of $(ref "$parent")"
+      elif [[ -n "$current" ]]; then
+        # The API refuses (422) without replace_parent; moving an issue is a deliberate
+        # step, so it belongs in the manifest's "existing" section, not here.
+        printf '  WARN  %s has parent #%s, not %s; skipped (move it via "existing" or by hand)\n' \
+          "$(ref "$key")" "$current" "$(ref "$parent")" >&2
       else
         act "add $(ref "$key") as sub-issue of $(ref "$parent")"
         if [[ $APPLY -eq 1 ]]; then
+          need_num "$key" "$child"; need_num "parent $parent of $key" "$pnum"
           gh api "repos/$REPO/issues/$pnum/sub_issues" \
           -F sub_issue_id="$(issue_id "$child")" >/dev/null
         fi
@@ -197,12 +229,13 @@ phase_links() {
       else
         act "mark $(ref "$key") blocked by $(ref "$b")"
         if [[ $APPLY -eq 1 ]]; then
+          need_num "$key" "$child"; need_num "blocker $b of $key" "$bnum"
           gh api "repos/$REPO/issues/$child/dependencies/blocked_by" \
           -F issue_id="$(issue_id "$bnum")" >/dev/null
         fi
       fi
     done
-  done < <(jq -r '.issues[] | [.key, (.parent // ""), (.blocked_by | join(","))] | @tsv' "$MANIFEST")
+  done < <(jq -r '.issues[] | [.key, (.parent // ""), ((.blocked_by // []) | join(","))] | join("\u001f")' "$MANIFEST")
 }
 
 phase_existing() {
@@ -224,6 +257,7 @@ phase_existing() {
     else
       act "move #$num under $(ref "$parent") (current parent: ${current:+#}${current:-none}; replace_parent)"
       if [[ $APPLY -eq 1 ]]; then
+        need_num "parent $parent of #$num" "$pnum"
         gh api "repos/$REPO/issues/$pnum/sub_issues" \
         -F sub_issue_id="$(issue_id "$num")" -F replace_parent=true >/dev/null
       fi
@@ -246,7 +280,9 @@ phase_existing() {
     done
 
     if [[ -n "$first_line" || -n "$append_file" ]]; then
-      body="$(gh api "repos/$REPO/issues/$num" --jq .body)"
+      # Strip CR: a body saved in the web UI comes back with CRLF, which would defeat the
+      # exact first-line and marker matches below and re-append the section on every run.
+      body="$(gh api "repos/$REPO/issues/$num" --jq .body | tr -d '\r')"
       local new="$body"
       if [[ -n "$first_line" ]]; then
         local fl="${first_line//\{\{ref:$parent\}\}/$(ref "$parent")}"
@@ -254,7 +290,10 @@ phase_existing() {
       fi
       if [[ -n "$append_file" ]]; then
         local marker; marker="$(grep -m1 '^## ' "$DOCS/$append_file")"
-        grep -qxF "$marker" <<<"$new" || new="$new"$'\n'"$(render_body "$append_file")"
+        if ! grep -qxF "$marker" <<<"$new"; then
+          local appendix; appendix="$(render_body "$append_file")" || exit 1
+          new="$new"$'\n'"$appendix"
+        fi
       fi
       if [[ "$new" == "$body" ]]; then
         skip "#$num body up to date"
@@ -353,15 +392,22 @@ phase_project() {
   say "      item closed / PR merged -> Done"
 }
 
-set_item_fields() { # project-id: fill Estimate, Exam skills, Kind and Status (Todo only when empty)
+set_item_fields() { # project-id: fill Estimate, Exam skills, Kind and Status, each only when empty
   local proj_id="$1" fjson items
   fjson="$(gql -f query='query($p:ID!){node(id:$p){...on ProjectV2{fields(first:50){nodes{
             ...on ProjectV2Field{id name dataType}
             ...on ProjectV2SingleSelectField{id name dataType options{id name}}}}}}}' -f p="$proj_id" --jq '.data.node.fields.nodes')"
+  # Current values come back too, so edits made in the Project UI are never overwritten.
+  # Fields are joined with US (\u001f), not tab: IFS collapses runs of tabs, which would
+  # shift an empty value into the next variable.
   items="$(gql -f query='query($p:ID!){node(id:$p){...on ProjectV2{items(first:100){nodes{id
             content{...on Issue{number}}
-            fieldValueByName(name:"Status"){...on ProjectV2ItemFieldSingleSelectValue{name}}}}}}}' -f p="$proj_id" \
-            --jq '.data.node.items.nodes[] | [(.content.number|tostring), .id, (.fieldValueByName.name // "")] | @tsv')"
+            status: fieldValueByName(name:"Status"){...on ProjectV2ItemFieldSingleSelectValue{name}}
+            est: fieldValueByName(name:"Estimate (h)"){...on ProjectV2ItemFieldNumberValue{number}}
+            sk: fieldValueByName(name:"Exam skills"){...on ProjectV2ItemFieldTextValue{text}}
+            kind: fieldValueByName(name:"Kind"){...on ProjectV2ItemFieldSingleSelectValue{name}}}}}}}' -f p="$proj_id" \
+            --jq '.data.node.items.nodes[] | [(.content.number // "" | tostring), .id, (.status.name // ""),
+                  (.est.number // "" | tostring), (.sk.text // ""), (.kind.name // "")] | join("\u001f")')"
   local fid_est fid_sk fid_kind fid_status todo
   fid_est="$(jq -r '.[] | select(.name=="Estimate (h)") | .id' <<<"$fjson")"
   fid_sk="$(jq -r '.[] | select(.name=="Exam skills") | .id' <<<"$fjson")"
@@ -369,32 +415,43 @@ set_item_fields() { # project-id: fill Estimate, Exam skills, Kind and Status (T
   fid_status="$(jq -r '.[] | select(.name=="Status") | .id' <<<"$fjson")"
   todo="$(jq -r '.[] | select(.name=="Status") | .options[] | select(.name=="Todo") | .id' <<<"$fjson")"
 
-  local num item status meta est sk kind kid
-  while IFS=$'\t' read -r num item status; do
-    meta="$(jq -c --argjson n "$num" '(.issues[] | select(.number == $n)), (.existing[] | select(.number == $n))' "$MANIFEST" | head -n1)"
+  local num item status cur_est cur_sk cur_kind key meta est sk kind kid changed
+  while IFS=$'\x1f' read -r num item status cur_est cur_sk cur_kind; do
+    # Pull requests and draft items have no issue number; never match them to the manifest.
+    if [[ -z "$num" ]]; then continue; fi
+    # Match manifest issues by key via the resolved numbers ($KEYS), so issues found by
+    # title whose manifest number is still null get their fields too.
+    key="$(num_key "$num")"
+    meta="$(jq -c --arg k "$key" --argjson n "$num" \
+      '(.issues[] | select($k != "" and .key == $k)), (.existing[] | select(.number == $n))' "$MANIFEST" | head -n1)"
     if [[ -z "$meta" ]]; then continue; fi
     est="$(jq -r '.estimate // empty' <<<"$meta")"
     sk="$(jq -r '.skills // empty' <<<"$meta")"
     kind="$(jq -r '.kind // empty' <<<"$meta")"
-    if [[ -n "$est" ]]; then
+    changed=""
+    if [[ -n "$est" && -z "$cur_est" ]]; then
+      changed+=" estimate"
       # gh -F would send 1.5 as a string; build the request so the estimate is a JSON number.
       gql --input <(jq -n --arg p "$proj_id" --arg i "$item" --arg f "$fid_est" --argjson v "$est" \
         '{query: "mutation($p:ID!,$i:ID!,$f:ID!,$v:Float!){updateProjectV2ItemFieldValue(input:{projectId:$p,itemId:$i,fieldId:$f,value:{number:$v}}){projectV2Item{id}}}", variables: {p: $p, i: $i, f: $f, v: $v}}') >/dev/null
     fi
-    if [[ -n "$sk" ]]; then
+    if [[ -n "$sk" && -z "$cur_sk" ]]; then
+      changed+=" skills"
       gql -f query='mutation($p:ID!,$i:ID!,$f:ID!,$v:String!){updateProjectV2ItemFieldValue(input:{projectId:$p,itemId:$i,fieldId:$f,value:{text:$v}}){projectV2Item{id}}}' \
       -f p="$proj_id" -f i="$item" -f f="$fid_sk" -f v="$sk" >/dev/null
     fi
-    if [[ -n "$kind" ]]; then
+    if [[ -n "$kind" && -z "$cur_kind" ]]; then
+      changed+=" kind"
       kid="$(jq -r --arg k "$kind" '.[] | select(.name=="Kind") | .options[] | select(.name==$k) | .id' <<<"$fjson")"
       gql -f query='mutation($p:ID!,$i:ID!,$f:ID!,$v:String!){updateProjectV2ItemFieldValue(input:{projectId:$p,itemId:$i,fieldId:$f,value:{singleSelectOptionId:$v}}){projectV2Item{id}}}' \
         -f p="$proj_id" -f i="$item" -f f="$fid_kind" -f v="$kid" >/dev/null
     fi
     if [[ -z "$status" && -n "$todo" ]]; then
+      changed+=" status"
       gql -f query='mutation($p:ID!,$i:ID!,$f:ID!,$v:String!){updateProjectV2ItemFieldValue(input:{projectId:$p,itemId:$i,fieldId:$f,value:{singleSelectOptionId:$v}}){projectV2Item{id}}}' \
         -f p="$proj_id" -f i="$item" -f f="$fid_status" -f v="$todo" >/dev/null
     fi
-    say "  DO    fields on #$num"
+    if [[ -n "$changed" ]]; then say "  DO    fields on #$num:$changed"; else skip "fields on #$num already set"; fi
   done <<<"$items"
 }
 
@@ -403,7 +460,7 @@ set_item_fields() { # project-id: fill Estimate, Exam skills, Kind and Status (T
 if [[ $APPLY -eq 1 ]]; then say "APPLY: changes will be made to $REPO"; else say "DRY RUN for $REPO (pass --apply to perform)"; fi
 load_titles
 resolve_keys
-for phase in labels milestones issues links existing project; do
+for phase in $PHASES; do
   if want_phase "$phase"; then "phase_$phase"; fi
 done
 say "done"
