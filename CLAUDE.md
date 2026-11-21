@@ -46,6 +46,14 @@ Only the dashboard API actually *requires* this: it sends `Access-Control-Allow-
 - **Run all CI checks locally:** `make ci`
 - **Backfill `archive/clean/` (run by hand):** from `infra/recruiter-dashboard/lambda-src/email-parser`, `go run ./cmd/backfill --bucket <bucket> --table <table> --kms-key-arn "$(terraform -chdir=../.. output -raw archive_kms_key_arn)" [--reconcile] [--force]`. Use `--dry-run` to preview (writes nothing) and `--out-dir <dir>` to write records locally instead of the bucket. Run `--reconcile` after any `email-parser-errors` alarm and before each weekly `JOURNAL.md` entry: it copies `incoming/` emails missing from `archive/raw/` before `incoming/` expires. Prints counts and failing keys only
 
+### Evals (Python, `infra/recruiter-dashboard/evals/`)
+
+Managed with **uv** (`brew install uv`); see `infra/recruiter-dashboard/evals/README.md`.
+
+- **Install:** `cd infra/recruiter-dashboard/evals && uv sync`
+- **Tests (synthetic data only):** `cd infra/recruiter-dashboard/evals && uv run pytest`
+- **Data-quality report:** `cd infra/recruiter-dashboard/evals && uv run data-quality --clean-s3-bucket <bucket> --table <table>` → `reports/data-quality.md` (aggregates only; read it before committing)
+
 ### Infrastructure (Terraform)
 
 All commands run from `infra/recruiter-dashboard/`:
