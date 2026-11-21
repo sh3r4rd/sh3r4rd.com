@@ -25,6 +25,11 @@ cors_allowed_origin = "https://example.com"
 # Email address for alarm notifications
 alert_email = "alerts@example.com"
 
+# Monthly AWS cost budget in USD; alerts at 50/80/100% of actual spend (D-09).
+# Optional — defaults to 10 (see variables.tf). Uncomment only to override, for
+# example to a value below this month's spend to test the alert email.
+# monthly_budget_usd = 10
+
 # S3 bucket name for raw email storage (must be globally unique)
 email_bucket_name = "my-recruiter-emails"
 
