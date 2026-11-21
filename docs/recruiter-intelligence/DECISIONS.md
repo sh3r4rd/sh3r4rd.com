@@ -307,3 +307,79 @@ plan; RI conventions in `TRACKING.md` § 6
 **Why:** small, reviewable PRs, with one integration point per unit of work where
 `/code-review` runs and, for this plan, the week's `JOURNAL.md` entry is written.
 
+---
+
+## D-14 — Well-Architected Generative AI Lens: high-risk findings and responses
+
+**Status:** Accepted · **Decided in:** week 1
+
+The target architecture (end of week 12) was reviewed against the Well-Architected Tool's
+**Generative AI Lens** (version `2025-04-17`) as workload `Recruiter Intelligence` on
+21 November 2026. The result was 2 high, 1 medium and 26 no-risk questions out of 29. It is
+snapshotted as milestone `RI-W01 baseline`. The method, the risk counts per pillar and every
+answer are in [`WA-GENAI-LENS.md`](WA-GENAI-LENS.md). The review grades the plan, not what is
+deployed, so each "no risk" answer holds only if its week ships.
+
+**HRI-1. Output quality is evaluated on every change, never on a schedule** (genops1, missing
+GENOPS01-BP01). The plan has the machinery: stratified golden sets with custom scorers (week 2),
+a CI eval gate on PRs that touch prompts, models, retrieval or the agent, canary rollouts and
+Bedrock evaluation jobs (week 11). But every run is triggered by a change. Nothing re-measures
+quality while the inputs drift, and recruiter email changes with the market while the code
+stands still. Real-data evals run by hand from a laptop.
+- **Response: open.** Proposed for week 11:
+  1. Add a weekly `schedule:` trigger to `evals.yml` that runs the synthetic suites against the
+     production model and prompt configuration from AppConfig, and fails loudly on regression.
+     This is a workflow change, so it needs approval.
+  2. Add a monthly real-data run to the weekly journal checklist. It publishes dated aggregates
+     to the scorecard, which shows a trend rather than only the latest number.
+  3. Refresh the real golden set each quarter with newly arrived, stratified emails, so it keeps
+     up with real input.
+
+  Week 10's `needs_review` rate and confidence distribution are the cheap drift signals between
+  runs.
+
+**HRI-2. Nothing deploys the backend; it ships by a local `terraform apply`** (genops4, missing
+GENOPS04-BP02). The plan has GenAIOps pieces: Terraform for everything, versioned prompts in
+Prompt Management, model and prompt choice in AppConfig, a CI eval gate and canaries. But
+Lambdas and infrastructure reach production from build artifacts on a laptop.
+`modules/lambda` hashes whatever `bootstrap` sits in the local build directory, and the Makefile
+builds without `-trimpath`. Week 0's untargeted plan showed both Lambdas' `source_code_hash`
+drifting from production, so a bare `apply` would have redeployed them. An eval gate that
+passes in CI therefore doesn't prove what was deployed.
+- **Response: open, needs an owner decision.** Two options:
+  - **(a) A deploy pipeline in week 11**, beside the OIDC role it already adds:
+    - a workflow that builds the Lambdas in CI, runs `terraform plan` on PRs with a read-only
+      OIDC role, and posts the plan
+    - on merge, `apply` through a separate deploy role behind a GitHub environment approval,
+      with the eval gate as a required check
+    - cost: a workflow change, a high-privilege IAM role trusted by GitHub, and some week-11
+      time
+  - **(b) Accept manual applies as a recorded risk**, with guardrails:
+    - apply only from a clean checkout of `main`, from a saved plan
+    - build reproducibly (`-trimpath`, `-buildvcs=false`), so local and CI artifacts hash the
+      same
+    - record each apply in the journal
+  - **Recommendation:** (a) if week 11 has room, otherwise (b) until week 12.
+
+**Also recorded:**
+- **MRI-1. Throughput is never compared with quotas** (genrel1, medium, missing
+  GENREL01-BP01). Demand is small, capped (D-09) and spread across Regions by a US
+  cross-Region inference profile. But nothing checks the account's Bedrock on-demand quotas for
+  the chosen models, and nothing alarms on throttling. Per-record failures are non-fatal, so a
+  throttled extraction that runs out of retries is archived but not extracted until week 10's
+  re-extraction.
+  - **Response: open.** Proposed:
+    - week 3: record the chosen model's requests-per-minute and tokens-per-minute quotas next
+      to the comparison in D-01
+    - week 10: alarm on `AWS/Bedrock` `InvocationThrottles`, and plot tokens per minute against
+      the quota on the dashboard
+- **Accepted risks marked not applicable in the tool:**
+  - no VPC endpoints for Bedrock (gensec1_2)
+  - no cross-Region copy of the KB (genrel5_2)
+  - no multi-Region agent hosting (genrel5_3)
+
+  Each follows from the serverless, single-Region shape pinned by SES (D-11). None of them
+  raises the risk count, and each is listed with its reason in `WA-GENAI-LENS.md`.
+
+**Revisit** at the end of week 12. Re-answer the lens for what was actually built, record a
+second milestone and compare it with `RI-W01 baseline`.

@@ -8,6 +8,7 @@ studying for the **AWS Certified Generative AI Developer – Professional (AIP-C
 | [`PLAN.md`](PLAN.md) | The week-by-week plan: build tasks, exam skills, study, definition of done |
 | [`EXAM-COVERAGE.md`](EXAM-COVERAGE.md) | Every AIP-C01 skill (98 of them) mapped to the week that exercises it, or marked study-only |
 | [`DECISIONS.md`](DECISIONS.md) | Architecture decisions, each with the alternatives and why they lost |
+| [`WA-GENAI-LENS.md`](WA-GENAI-LENS.md) | The Well-Architected Generative AI Lens review of the target architecture: risk counts and every answer (high-risk findings in D-14) |
 | [`TRACKING.md`](TRACKING.md) | How the plan is tracked in a GitHub Project with milestones and issues, plus the next steps |
 | [`JOURNAL.md`](JOURNAL.md) | A weekly log template. It becomes the raw material for the case study in week 12 |
 
