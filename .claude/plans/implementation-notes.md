@@ -1,3 +1,89 @@
+# Recruiter Intelligence Week 0: Stop losing data — Implementation Notes
+
+Running log for milestone `RI-W00`: epic [#118](https://github.com/sh3r4rd/sh3r4rd.com/issues/118) and task [#131](https://github.com/sh3r4rd/sh3r4rd.com/issues/131). Spec: `docs/recruiter-intelligence/PLAN.md` § Week 0. Work done 2026-11-20 (local) / 2026-11-21 UTC.
+
+## Decisions you made (asked up front)
+
+| Question | Your answer |
+|---|---|
+| Run the production S3 copy + Terraform apply myself? | **Yes, run both now.** (Satisfies the epic's "run it yourself or approve it explicitly" gate.) |
+| Base branch, given `JOURNAL.md`/`PLAN.md` exist only on the unmerged docs PR #116 | **Stack on #116:** epic branch off `docs/recruiter-intelligence-plan` |
+| Epic branch name (`feat/{n}-…` vs TRACKING.md §6 `epic/ri-week-NN-<slug>`) | **`epic/ri-week-00-stop-losing-data`** |
+
+## Branch / PR layout
+
+```
+main
+ └─ docs/recruiter-intelligence-plan   (PR #116, yours, open)
+     └─ epic/ri-week-00-stop-losing-data   (epic #118 PR → docs branch; auto-retargets to main when #116 merges and its branch is deleted)
+         └─ feat/131-preserve-raw-emails-inventory   (task #131 PR → epic branch)
+```
+
+- The task branch is cut from the epic branch **after** the epic's own commits, so the two PRs never edit the same lines and #131 merges into the epic without conflicts.
+- **Suggested merge order:** #116 → #131's PR into the epic → the epic PR into `main`.
+
+## Production operations (all done, all verified)
+
+| Time (UTC) | Step | Result |
+|---|---|---|
+| 04:30:18 | Snapshot `incoming/` key list, then `aws s3 sync s3://sh3r4rd-recruiter-emails/incoming/ …/archive/raw/ --copy-props metadata-directive` | 25 → 25 objects; key sets identical |
+| 04:30–04:31 | Verified **every** copy, not just one: `get-object-tagging` + `head-object` ETag/size vs the original | 0 copies with tags; 0 ETag/size mismatches; SSE AES256 preserved |
+| 04:31 | `make tf-vars-pull` (no drift), set `s3_lifecycle_expiration_days = 3650`, **targeted** `plan -out` | `Plan: 0 to add, 1 to change, 0 to destroy`, only `days 30 -> 3650` |
+| 04:31:36 | `terraform apply <saved plan>` | `Apply complete! Resources: 0 added, 1 changed, 0 destroyed.` `get-bucket-lifecycle-configuration` now returns `Days: 3650` |
+| 04:32 | `make tf-vars-push TFVARS_ARGS=--force`, then `make tf-vars-diff` | Pushed as a new SSM version; diff exit 0 |
+
+### Why the apply was `-target`ed (deviation from the spec's bare `plan`/`apply`)
+
+The untargeted plan showed **4** changes, not 1. Three were pre-existing drift unrelated to week 0:
+
+1. `module.lambda_api_handler` and 2. `module.lambda_email_parser`: `source_code_hash` differs. An untargeted apply would have **redeployed both production Lambdas from whatever build artifacts happen to be on this laptop**.
+3. `module.s3.aws_s3_bucket_server_side_encryption_configuration`: it would **remove the `blocked_encryption_types = ["SSE-C"]` block** that AWS added. That's exactly the drift issue #98 owns, and week 1 requires reconciling it before the bucket gets a KMS key. Applying it here would weaken the bucket and pre-empt #98.
+
+So I applied `-target=module.s3.aws_s3_bucket_lifecycle_configuration.email_storage` from a saved plan file, which meets the issue's AC "the applied plan changed only the lifecycle rule" exactly. After the apply, the full plan shows just those 3 residual changes (the lifecycle change is gone from it). **They're still there for #98 / week 1 to handle.**
+
+### Other operational details
+- The tfvars comment was also edited: `# S3 lifecycle expiration in days for raw emails (RI week 0 stopgap: 3650; week 1 restores 30, #131)`, so whoever runs week 1 sees why it's 3650.
+- `archive/raw/` matches no lifecycle rule (the only rule filters `incoming/`), so the copies are retained indefinitely. That's intended until week 1 adds Intelligent-Tiering on `archive/`.
+- The copy didn't re-trigger the parser: SES invokes the Lambda directly, with no S3 event notification (PLAN.md; the DynamoDB item count was 92 before the copy and 92 after).
+- Scratch artifacts (key lists, the saved plan, the row projection) live only in the session scratchpad and were never committed. The row projection holds only `s3_key` + `received_at`.
+
+## Inventory (aggregates only; this is what goes in JOURNAL.md)
+
+| Metric | Value | How |
+|---|---|---|
+| Raw bodies preserved (`archive/raw/`) | **25** (239,397 bytes) | `aws s3 ls --recursive --summarize` |
+| DynamoDB rows (all-time extractions) | **92** | `scan --select COUNT --filter-expression 'NOT begins_with(id, :p)'` with `:p = STATS#` |
+| Bodies permanently lost | **67** (exact, not approximate) | every row has an `s3_key`; 25 of the 92 keys still exist, and 67 don't |
+| Surviving bodies that have no DynamoDB row | 0 | All 25 also carry `parse-status=success` |
+| Oldest surviving body | received 2026-10-22 | |
+| Bodies lost between plan approval (25 Oct) and the copy (20 Nov) | **about 26** (≈20 of them after the milestone's 1 Nov due date) | rows with `received_at` from 2026-09-25 up to the oldest surviving body. Day granularity; `received_at` carries mixed UTC offsets, so it's approximate |
+
+### Deviation: "COUNT minus one" is wrong, so I used a filter
+PLAN.md and #131 say to take the DynamoDB `COUNT` **minus one** for the `STATS#cache` item. But that item is a **5-minute TTL cache** (`statsCacheDuration`, `stats_ttl`), so it only exists for a few minutes after someone hits `/stats`. At inventory time it **wasn't there**: a `query id = "STATS#cache"` returned 0, and the raw count was 92, not 93. "Minus one" would have reported 91. I used `NOT begins_with(id, "STATS#")` instead, which is correct whether or not the cache item exists, and corrected PLAN.md § Week 0 step 3 in the #131 PR.
+
+## Docs changes and why they're split this way
+
+- **#131 PR (`feat/131-…`):** fills in the `JOURNAL.md` § "Week 0: inventory" fields (the task's AC), and corrects PLAN.md § Week 0: (a) target the apply at the lifecycle rule, (b) count with the `STATS#` filter, not minus one.
+- **Epic #118 PR:** TRACKING.md §6 says to write the week's `JOURNAL.md` entry *in the epic PR*. So the epic branch carries a full week-0 retrospective (Shipped / Numbers / Decisions / Surprises / Exam skills / Spend / Cut) in the `JOURNAL.md` template format, plus these notes.
+- PR titles: #131's issue title uses the type `ops:`, which isn't a conventional-commit type (no commitlint here, but semantic-release's analyzer ignores it). Both PRs change only docs, so they're `docs(recruiter-intelligence): …`, which also correctly triggers **no release**.
+
+## Things I deliberately did NOT do (yours to decide)
+
+- **The `EXAM-COVERAGE.md` ✓ for 3.2.2 is left unticked.** That column is a self-check: "tick a row when you can explain the skill and the alternatives." It's your call, not mine. It's listed as a close-out checkbox in the epic PR.
+- **Milestones were not shifted.** TRACKING.md §2 says "When a week slips, move that milestone and every later one by the same amount." Week 0 was due 1 Nov and finished 20 Nov (about a 3-week slip). RI-W01 (due 8 Nov) and RI-W02 (due 15 Nov) are already past due with all tasks open, and RI-W03 is due 22 Nov. Re-dating 13 milestones is a planning decision, so I flagged it rather than doing it.
+- **Issue bodies weren't edited** (checkbox ticking, etc.). The PRs carry `Closes #131` and the verification evidence. I did remove the `needs-approval` label from #131, because TRACKING.md §3 says it's "removed once approved" and you approved it in this session.
+- **The 3 residual plan diffs were not touched** (see above).
+- The pre-existing CLAUDE.md/AGENTS.md naming mismatch was **not fixed**: the docs call the table `recruiter_emails`, but the real table (and tfvars) is `recruiter-emails`. It's harmless but worth a one-line fix someday.
+
+## Close-out status for epic #118
+
+- [ ] Every task sub-issue closed or cut: #131 is the only task; it closes when its PR merges
+- [ ] `JOURNAL.md` week-0 entry merged with the epic PR (in the epic PR, pending review)
+- [ ] Exam skills exercised ticked in `EXAM-COVERAGE.md`: **yours** (3.2.2), see above
+- [x] Next wave's task issues created: end of week 0 → week 2's tasks, which already exist (#138–#141, created in wave 1)
+
+---
+
 # Phase 5: Testing & CI Pipeline — Implementation Notes
 
 Running log for issue [#20](https://github.com/sh3r4rd/sh3r4rd.com/issues/20) and subtasks #38, #39, #40, #41.
