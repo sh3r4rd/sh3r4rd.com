@@ -55,7 +55,7 @@ REST API serving anonymized recruiter data. PII is stripped from all responses.
 
 ## Terraform Modules
 
-7 modules in `modules/`: s3, dynamodb, lambda, iam, ses, api-gateway, monitoring.
+8 modules in `modules/`: s3, dynamodb, lambda, iam, ses, api-gateway, monitoring, budget.
 
 Module pattern: `main.tf`, `variables.tf`, `outputs.tf`. Use `snake_case`. Add `description` to all variables/outputs. No hardcoded ARNs. IAM constructs log group ARNs from function names to avoid circular deps.
 

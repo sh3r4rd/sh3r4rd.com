@@ -60,8 +60,8 @@ src/                         # React frontend (JSX only, no TypeScript)
 └── components/ui/           # Reusable primitives: Button, Card (named exports)
 
 infra/recruiter-dashboard/
-├── modules/                 # 7 Terraform modules: s3, dynamodb, lambda, iam,
-│                            #   ses, api-gateway, monitoring
+├── modules/                 # 8 Terraform modules: s3, dynamodb, lambda, iam,
+│                            #   ses, api-gateway, monitoring, budget
 └── lambda-src/
     ├── email-parser/        # Go 1.25 — production
     │   ├── cmd/handler/     # Lambda entry point (main.go)
