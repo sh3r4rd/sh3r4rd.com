@@ -142,11 +142,12 @@ func (a *Archiver) WriteClean(ctx context.Context, bucket string, rec CleanRecor
 }
 
 // copySource builds the URL-encoded "bucket/key" value CopyObject expects, escaping each
-// key segment but keeping the "/" separators.
+// key segment but keeping the "/" separators. url.PathEscape leaves "+" alone, but S3 can
+// decode a literal "+" in x-amz-copy-source as a space, so it is escaped explicitly.
 func copySource(bucket, key string) string {
 	segments := strings.Split(key, "/")
 	for i, s := range segments {
-		segments[i] = url.PathEscape(s)
+		segments[i] = strings.ReplaceAll(url.PathEscape(s), "+", "%2B")
 	}
 	return bucket + "/" + strings.Join(segments, "/")
 }

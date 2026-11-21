@@ -100,7 +100,7 @@ func TestCopySource(t *testing.T) {
 		want   string
 	}{
 		{"plain key", "my-bucket", "incoming/abc123", "my-bucket/incoming/abc123"},
-		{"space and plus are escaped", "my-bucket", "incoming/a b+c", "my-bucket/incoming/a%20b+c"},
+		{"space and plus are escaped", "my-bucket", "incoming/a b+c", "my-bucket/incoming/a%20b%2Bc"},
 		{"slashes kept as separators", "my-bucket", "a/b/c", "my-bucket/a/b/c"},
 		{"percent escaped", "my-bucket", "incoming/50%", "my-bucket/incoming/50%25"},
 	}
