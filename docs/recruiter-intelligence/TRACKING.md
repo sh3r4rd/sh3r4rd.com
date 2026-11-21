@@ -18,7 +18,7 @@ remain.
 
 The repository already tracks work in GitHub Issues: epic issues (#17, #19, #20) with subtask
 bodies that start `**Parent**: #N`, `epic/phase-N-…` branches, and `feat/{n}-{slug}` PRs into the
-epic (`.claude/plans/implementation-notes.md`). Semantic-release adds a `released` label. Before
+epic (D-13). Semantic-release adds a `released` label. Before
 this plan there were no milestones, Projects, issue templates or native sub-issues.
 
 ## 1. Structure

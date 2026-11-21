@@ -153,6 +153,16 @@ grounds (skills 1.1.1, 4.1.1, 4.1.4).
   `kb-source/`. Recruiter identity stays in DynamoDB. The assistant reaches it only through the
   `get_email` tool, behind Cognito.
 
+- **KMS is applied per prefix, not as the bucket default.** S3 default encryption covers the
+  whole bucket and can't be set per prefix. Switching it to the customer-managed key would put
+  the key in the path of SES delivery to `incoming/`. SES would then need a key-policy grant
+  that AWS documents only loosely, and a mistake there risks losing inbound mail, the one step
+  that can't be retried. So the default stays AES256. Writes to `archive/` and `evals/` send
+  `x-amz-server-side-encryption: aws:kms` plus the key ARN on every `PutObject`/`CopyObject`.
+  A bucket policy denies `s3:PutObject` on those prefixes unless the request names that key,
+  so a forgotten header fails loudly instead of landing unencrypted. `incoming/` is a 30-day
+  landing zone; the durable data is what the key protects.
+
 **Why:** an embedding index is hard to audit and easy to over-share from. Keeping identifiers
 out of it means a retrieval bug leaks a job description, not a person.
 
@@ -188,7 +198,7 @@ choice cheap to reverse.
 
 A Cognito user pool with **self-sign-up disabled**, one admin-created user, MFA on, and an API
 Gateway **Cognito authorizer** on the private routes. The existing public dashboard API stays
-unauthenticated, as decided in `.claude/plans/implementation-notes.md`.
+unauthenticated (D-12).
 
 **Alternatives rejected:**
 - *API keys.* They are an identifier, not authentication.
@@ -204,8 +214,8 @@ unauthenticated, as decided in `.claude/plans/implementation-notes.md`.
 
 Five layers. Each one catches what the previous one misses:
 
-1. **AWS Budgets** monthly alert at 50/80/100% of a figure you set in week 1, plus **Cost
-   Anomaly Detection** on Bedrock.
+1. **AWS Budgets** monthly alert at 50/80/100% of **$10/month** (set in week 1), plus **Cost
+   Anomaly Detection** on Bedrock (a custom monitor filtered to the Amazon Bedrock service).
 2. **API Gateway throttling** on the public route, as the existing API already does
    (5 rps, burst 10: `modules/api-gateway/variables.tf:46-66`, applied at `modules/api-gateway/main.tf:296-297`), plus a usage plan.
 3. **A per-day token budget** in DynamoDB. The fit analyzer increments it atomically and refuses
@@ -254,3 +264,46 @@ feature would need that, skip the feature.
 Checked in October 2026: **Cohere Rerank 3.5 is available in us-east-1** (Amazon Rerank 1.0 is
 not), so week 5 needs no cross-region call for reranking. A Guardrails **Standard**-tier
 grounding check needs cross-Region inference for the guardrail, which the rule above permits.
+
+---
+
+## D-12 — The public dashboard has no auth, because the API strips PII server-side
+
+**Status:** Accepted · **Decided in:** recruiter dashboard Phase 4 (25 May 2026), before this plan
+
+`/dashboard` and the dashboard API it calls are public, with no auth. That is safe only because
+the API anonymizes server-side: `anonymizer.go` returns an allowlist of fields. Recruiter names,
+email addresses and phone numbers never leave the backend; the recruiter appears as
+`recruiterLabel` ("Recruiter at {company}") and the date is coarsened to `month` (`YYYY-MM`).
+Issue #18's acceptance criterion holds: "API responses NEVER contain recruiter email, phone, or
+full name". The frontend renders the response verbatim, with no client-side anonymization.
+
+**Why:** the data is anonymized before it reaches the browser. The site had no auth
+infrastructure, and adding it was scope creep for Phase 4. Sending names to the client and
+masking them there would reintroduce exactly the PII the backend strips.
+
+**Consequence for this plan:** any new field on a public endpoint is an API payload change
+(ask-first in `AGENTS.md`) and must stay PII-free. D-04 extends this rule to every public
+surface, and D-08 adds auth only for the private assistant.
+
+---
+
+## D-13 — Work is tracked in GitHub Issues, with an epic branch per unit of work
+
+**Status:** Accepted · **Decided in:** recruiter dashboard Phases 4 and 5 (May 2026), before this
+plan; RI conventions in `TRACKING.md` § 6
+
+- **Tracker:** GitHub Issues on `sh3r4rd/sh3r4rd.com`, not Linear (the repository has no
+  `.linear/` directory). Task issue bodies start `**Parent**: #N`.
+- **Branches:** one epic branch per unit of work, off `main`. Before this plan that was
+  `epic/phase-N-…`; for Recruiter Intelligence it is `epic/ri-week-NN-<slug>`. Each task gets a
+  `feat/{n}-{slug}` (or `fix/`, `docs/`, `chore/`) branch off the epic, and its PR targets the
+  epic, not `main`. A task that needs a sibling's code stacks on that sibling's branch, and
+  GitHub retargets it to the epic when the sibling merges.
+- **Auto-close caveat:** GitHub applies `Closes #N` only when a PR merges into the **default**
+  branch. A task PR that merges into the epic does not close its issue, so the epic PR into
+  `main` carries `Closes #N` for the epic **and** every task it contains.
+
+**Why:** small, reviewable PRs, with one integration point per unit of work where
+`/code-review` runs and, for this plan, the week's `JOURNAL.md` entry is written.
+

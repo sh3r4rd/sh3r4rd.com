@@ -113,29 +113,43 @@ during the project either way.
 **Exam focus:** D1 1.1.1, 1.1.3, 1.3.1 · D3 3.2.2 · D4 4.3.2 (cost anomaly)
 
 **Build (must)**
-- **Durable archive in the email-parser.** After a successful parse, write
-      `archive/clean/{messageId}.json`. It holds the cleaned body, parsed headers, `IsForwarded`
-      (computed today and never persisted), the extraction result and the parser version.
-      Encrypt with a new customer-managed **KMS key**. Use the same key for the `s3://…/evals/`
-      prefix (D-06). The parser also copies each raw `.eml` to `archive/raw/{messageId}`
-      **without tags** (`CopyObject` with `TaggingDirective=REPLACE`), so `archive/raw/` keeps
-      every original, not only the ones week 0 copied.
+- **Durable archive in the email-parser.** The order inside the handler is:
+  1. **SES verdict check.** This stays first.
+  2. **Raw copy.** Copy the raw `.eml` to `archive/raw/{messageId}` **without tags**
+     (`CopyObject` with `TaggingDirective=REPLACE`), so `archive/raw/` keeps every original,
+     not only the ones week 0 copied. `{messageId}` is the SES `MessageID`, the same name the
+     object has under `incoming/`. Mail that fails the SPF, DKIM or spam verdict is copied and
+     then stops: it is archived but never parsed. Mail that fails the **virus** verdict is not
+     copied, and expires from `incoming/` as usual.
+  3. **Parse.**
+  4. **Clean record.** After a successful parse, write `archive/clean/{messageId}.json`. It
+     holds the cleaned body, parsed headers, `IsForwarded` (computed today and never
+     persisted), the extraction result and the parser version.
+
+  Encrypt both archive writes with a new customer-managed **KMS key**, and use the same key
+  for the `s3://…/evals/` prefix (D-06). The bucket default stays AES256, so `incoming/`
+  (where SES writes) doesn't depend on the key. Every write to `archive/` and `evals/` names
+  the key explicitly (`SSE-KMS` headers on the request), and a bucket policy refuses any write
+  to those prefixes that doesn't.
 - Add a lifecycle rule on `archive/` that transitions to **S3 Intelligent-Tiering** with no
       expiry.
 - **Cutover gate, then restore expiry.** Mail that arrived between week 0's copy and the
       deploy exists only in `incoming/`. After the parser change is live, run the week 0 sync
-      once more (tag-free, `--copy-props metadata-directive`), then confirm that every key in
-      `incoming/` is in `archive/raw/`. Only then set `s3_lifecycle_expiration_days` back to
-      30. `incoming/` is a landing zone again, and `archive/raw/` holds the originals.
+      once more. Keep it tag-free (`--copy-props metadata-directive`) and KMS-encrypted
+      (`--sse aws:kms --sse-kms-key-id <key ARN>`), and leave out virus-flagged keys. Then
+      confirm that every key in `incoming/`, apart from the virus-flagged ones, is in
+      `archive/raw/`. Only then set `s3_lifecycle_expiration_days` back to 30. `incoming/` is
+      a landing zone again, and `archive/raw/` holds the originals.
 - **Backfill command** (`cmd/backfill` in email-parser). Re-run the existing `parser` package
       over every `archive/raw/*` and write `archive/clean/*`. No LLM calls; it is
-      deterministic and re-runnable. A `--reconcile` flag first copies any `incoming/` key
-      missing from `archive/raw/` (tag-free). That is the recovery path for archive writes
-      that failed: the raw copy runs before parsing and fails the invocation, so Lambda retries
-      it, but async retries stop after two and there is no DLQ. A failed `archive/clean` write
-      only logs, because the backfill regenerates it. Run `--reconcile` after any
-      `email-parser-errors` alarm and before each weekly journal entry, well inside the 30-day
-      expiry.
+      deterministic and re-runnable. Mail that SES rejected (read from the verdict headers SES
+      writes into the stored message) is skipped and counted, never parsed. A `--reconcile`
+      flag first copies any `incoming/` key missing from `archive/raw/` (tag-free, KMS, virus
+      excluded). That is the recovery path for archive writes that failed: the raw copy runs
+      before parsing and fails the invocation, so Lambda retries it, but async retries stop
+      after two and there is no DLQ. A failed `archive/clean` write only logs, because the
+      backfill regenerates it. Run `--reconcile` after any `email-parser-errors` alarm and
+      before each weekly journal entry, well inside the 30-day expiry.
 - **Data-quality report** (`infra/recruiter-dashboard/evals/reports/data-quality.md`,
       aggregates only). It covers:
   - body count and token-length distribution
@@ -145,8 +159,10 @@ during the project either way.
   - duplicates by `dedup_key`
   - the "Unknown" rate per field in DynamoDB
   - how often `confidence < 0.5`
-- **AWS Budgets** (alerts at 50/80/100%) and **Cost Anomaly Detection** for Bedrock, in a
-      new `modules/budget`. Pick the monthly figure now (D-09).
+- **AWS Budgets**: **$10/month**, with alerts at 50/80/100% (D-09). Add **Cost Anomaly
+      Detection** for Bedrock in the same new `modules/budget`. Use a custom monitor filtered
+      to the Amazon Bedrock service, because the default per-service monitor watches every
+      service.
 - Confirm the week-3 candidate models can be invoked in us-east-1. AWS retired the Model
       Access page in October 2025, and serverless models are now enabled automatically. Only
       Anthropic models still need a one-time use-case form.
@@ -158,7 +174,8 @@ during the project either way.
       `DECISIONS.md`.
 
 **Definition of done:** a new test email lands in `archive/raw/` and `archive/clean/` within a
-minute. Every `incoming/` key was in `archive/raw/` before expiry went back to 30 days. The backfill
+minute, SSE-KMS encrypted. Every `incoming/` key (except virus-flagged mail) was in
+`archive/raw/` before expiry went back to 30 days. The backfill
 has run over the whole archive. The report exists. A budget alert email has arrived (trigger
 one with a low test threshold, then raise it).
 

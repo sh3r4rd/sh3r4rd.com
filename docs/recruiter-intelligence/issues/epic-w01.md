@@ -8,7 +8,11 @@ D1 1.1.1, 1.1.3, 1.3.1 · D3 3.2.2 · D4 4.3.2 (cost anomaly)
 
 ## Definition of done
 
-a new test email lands in `archive/clean/` within a minute. The backfill has run over the whole archive. The report exists. A budget alert email has arrived (trigger one with a low test threshold, then raise it).
+- A new test email lands in `archive/raw/` (no tags) and `archive/clean/` within a minute, SSE-KMS encrypted.
+- Every `incoming/` key except virus-flagged mail was in `archive/raw/` before expiry went back to 30 days.
+- The backfill has run over the whole archive.
+- The data-quality report exists.
+- A budget alert email has arrived for the $10/month budget (trigger one with a low test threshold, then raise it back to $10).
 
 ## Approval gates
 

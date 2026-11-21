@@ -105,7 +105,7 @@ own experience documents, never recruiter email text.** See `DECISIONS.md` § D-
 - **Spend is capped in code and alarmed in AWS.** A public LLM endpoint without both is a bill
   waiting to happen. See week 1 (budgets) and week 9 (the per-day kill switch).
 - **Conventional commits and the existing branch model** (epic branch → `feat/{n}-{slug}` PRs,
-  tracked in GitHub Issues, per `.claude/plans/implementation-notes.md`).
+  tracked in GitHub Issues, per D-13 in `DECISIONS.md`).
 
 ## Where code will live
 
