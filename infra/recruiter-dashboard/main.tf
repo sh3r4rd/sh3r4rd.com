@@ -155,7 +155,7 @@ module "iam" {
 }
 
 # ---------------------------------------------------------------------------
-# Module: Monitoring — Budget alerts, CloudWatch alarms, SNS
+# Module: Monitoring — CloudWatch alarms, SNS alerts topic
 # ---------------------------------------------------------------------------
 module "monitoring" {
   source = "./modules/monitoring"
@@ -164,4 +164,22 @@ module "monitoring" {
   alert_email                = var.alert_email
   email_parser_function_name = module.lambda_email_parser.function_name
   api_handler_function_name  = module.lambda_api_handler.function_name
+}
+
+# ---------------------------------------------------------------------------
+# Module: Budget — AWS Budgets + Bedrock Cost Anomaly Detection (D-09)
+# ---------------------------------------------------------------------------
+module "budget" {
+  source = "./modules/budget"
+
+  monthly_budget_usd = var.monthly_budget_usd
+  sns_topic_arn      = module.monitoring.sns_topic_arn
+  aws_account_id     = data.aws_caller_identity.current.account_id
+}
+
+# The "Monthly Budget" budget was created in the console. Adopt it instead of
+# creating a second budget. Safe to delete this block once it has been applied.
+import {
+  to = module.budget.aws_budgets_budget.monthly
+  id = "${data.aws_caller_identity.current.account_id}:Monthly Budget"
 }

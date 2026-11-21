@@ -59,7 +59,8 @@ SES receives email → stores raw email in S3 → triggers email-parser Lambda �
 | `modules/iam` | Roles, policies, log group ARN construction |
 | `modules/ses` | Email receiving on `inbox.sh3r4rd.com` |
 | `modules/api-gateway` | REST API at `dashboard-api.sh3r4rd.com` |
-| `modules/monitoring` | CloudWatch alarms, budget alerts via SNS |
+| `modules/monitoring` | CloudWatch alarms, SNS alerts topic (email subscription) |
+| `modules/budget` | Monthly AWS Budget (50/80/100% alerts) + Bedrock Cost Anomaly Detection, both via the alerts topic |
 
 ## Terraform Conventions
 

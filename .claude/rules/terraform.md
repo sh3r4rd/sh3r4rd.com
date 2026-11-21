@@ -12,7 +12,7 @@ Each module in `infra/recruiter-dashboard/modules/<name>/`:
 - `variables.tf` — Input variables with `description`, `type`, and `validation`
 - `outputs.tf` — Output values with `description`
 
-## 7 Modules
+## 8 Modules
 
 | Module | Purpose |
 |--------|---------|
@@ -22,7 +22,8 @@ Each module in `infra/recruiter-dashboard/modules/<name>/`:
 | `iam` | Roles, policies, log group ARN construction |
 | `ses` | Email receiving on `inbox.sh3r4rd.com` |
 | `api-gateway` | REST API at `dashboard-api.sh3r4rd.com` |
-| `monitoring` | CloudWatch alarms, budget alerts via SNS |
+| `monitoring` | CloudWatch alarms, SNS alerts topic (email subscription) |
+| `budget` | Monthly AWS Budget + Bedrock Cost Anomaly Detection, both via the alerts topic |
 
 ## DynamoDB Schema
 

@@ -95,6 +95,17 @@ variable "s3_lifecycle_expiration_days" {
   default     = 30
 }
 
+variable "monthly_budget_usd" {
+  description = "Monthly AWS cost budget in USD. Alerts fire at 50/80/100% of ACTUAL spend (D-09). Lower it temporarily to test the alert."
+  type        = number
+  default     = 10
+
+  validation {
+    condition     = var.monthly_budget_usd > 0
+    error_message = "monthly_budget_usd must be greater than 0."
+  }
+}
+
 variable "hosted_zone_id" {
   description = "Route53 hosted zone ID for SES DNS record creation."
   type        = string
