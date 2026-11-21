@@ -11,11 +11,20 @@ Use aggregate numbers and synthetic examples only (D-06).
 
 ## Week 0: inventory
 
-- Date:
-- Raw bodies preserved (`archive/raw/` object count):
-- DynamoDB rows (all-time extractions):
-- Bodies permanently lost (rows − bodies, approximate):
-- Lifecycle change applied (date, `terraform plan` summary):
+- Date: 21 November 2026 (UTC); 20 November local
+- Raw bodies preserved (`archive/raw/` object count): 25 (239,397 bytes). This equals the
+  `incoming/` count at copy time, the key sets are identical, and none of the 25 copies carries a
+  tag.
+- DynamoDB rows (all-time extractions): 92. This excludes `STATS#` items; the `STATS#cache` item
+  was absent at count time.
+- Bodies permanently lost (rows − bodies, approximate): 67, which is exact. All 92 rows record an
+  `s3_key`, and 25 of those keys still exist. The oldest surviving body was received on
+  22 October 2026.
+- Lifecycle change applied (date, `terraform plan` summary): 21 November 2026, 04:31 UTC.
+  `Plan: 0 to add, 1 to change, 0 to destroy.` The only change was
+  `module.s3.aws_s3_bucket_lifecycle_configuration.email_storage`, with expiration `days` going
+  from 30 to 3650 on `incoming/`. It was applied with `-target` from a saved plan, and
+  `make tf-vars-push` followed.
 
 ---
 
