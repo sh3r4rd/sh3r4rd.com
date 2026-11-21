@@ -66,17 +66,30 @@ explicitly.
    can still write to `archive/`. If `sync` is refused, stop and check the policy rather than
    loosening it.
 2. **Stop the expiry.** Run `make tf-vars-pull`, then set `s3_lifecycle_expiration_days = 3650`
-   in `terraform.tfvars`. Run `terraform -chdir=infra/recruiter-dashboard plan`; it should change
-   **only** the lifecycle rule. Then run `terraform -chdir=infra/recruiter-dashboard apply` and
-   `make tf-vars-push`. Week 1 replaces this stopgap with a real archive.
+   in `terraform.tfvars`. Target the plan at the lifecycle rule and save it, so that the apply
+   changes **only** that rule:
+   ```bash
+   terraform -chdir=infra/recruiter-dashboard plan \
+     -target=module.s3.aws_s3_bucket_lifecycle_configuration.email_storage -out=w00.tfplan
+   terraform -chdir=infra/recruiter-dashboard apply w00.tfplan
+   make tf-vars-push
+   ```
+   An untargeted plan also carries unrelated drift. On 21 November 2026 that was both Lambdas'
+   `source_code_hash` and the bucket's `blocked_encryption_types = ["SSE-C"]` (#98). A bare
+   `apply` would redeploy production Lambdas from local build artifacts and drop the SSE-C block.
+   Week 1 replaces this stopgap with a real archive.
 3. **Record the inventory** in `JOURNAL.md`:
    ```bash
    aws s3 ls "s3://$BUCKET/archive/raw/" --recursive --summarize | tail -2
-   aws dynamodb scan --table-name recruiter-emails --select COUNT --region us-east-1
+   aws dynamodb scan --table-name recruiter-emails --select COUNT --region us-east-1 \
+     --filter-expression 'NOT begins_with(id, :p)' \
+     --expression-attribute-values '{":p":{"S":"STATS#"}}'
    ```
-   The DynamoDB count **minus one** is every email ever extracted. The api-handler keeps its
-   `STATS#cache` item in the same table (`api-handler/handler.go:131`). The S3 count is how many
-   of those emails still have a body. The gap between them is permanent.
+   The filtered DynamoDB count is every email ever extracted. The api-handler keeps its
+   `STATS#cache` item in the same table (`api-handler/handler.go:131`). That item has a 5-minute
+   TTL, so it is often absent, and "the count minus one" can undercount. The filter is correct
+   either way. The S3 count is how many of those emails still have a body. The gap between them
+   is permanent.
 
 **Why it matters for the plan:** the S3 count decides how much of weeks 2–5 runs on real email
 and how much on synthetic. Fewer than about 50 real bodies means synthetic data carries the
