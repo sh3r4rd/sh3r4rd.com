@@ -20,16 +20,9 @@ concurrency:
 jobs:
   # unit-tests and e2e-tests are independent, so neither `needs` the other (nor
   # a lint gate) — they run in parallel and surface their results together.
-  #
-  # Both jobs are pinned to ubuntu-24.04 instead of ubuntu-latest. When
-  # ubuntu-latest moved to Ubuntu 26.04, `npx playwright install --with-deps
-  # chromium` started failing with "Playwright does not support chromium on
-  # ubuntu26.04-x64". Unpin once the resolved @playwright/test version
-  # supports the newer image. unit-tests is pinned too, so both jobs run on the
-  # same image.
   unit-tests:
     name: Unit tests
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -55,7 +48,7 @@ jobs:
 
   e2e-tests:
     name: E2E tests
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
